@@ -23,12 +23,5 @@ public class GameManager : MonoBehaviour
         var ghostInputs = new PlayerInputs();
         ghostInputs.devices = new InputDevice[] { Gamepad.all[1] };
         ghost.AssignInput(ghostInputs);
-
-        // Fly triggers
-        ghostInputs.Player.FlyUp.performed += ctx => ghost.SetVerticalInput(ctx.ReadValue<float>());
-        ghostInputs.Player.FlyUp.canceled += ctx => ghost.SetVerticalInput(0f);
-
-        ghostInputs.Player.FlyDown.performed += ctx => ghost.SetVerticalInput(-ctx.ReadValue<float>());
-        ghostInputs.Player.FlyDown.canceled += ctx => ghost.SetVerticalInput(0f);
     }
 }
