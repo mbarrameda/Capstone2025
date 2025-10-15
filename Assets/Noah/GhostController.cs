@@ -11,7 +11,9 @@ public class GhostController : MonoBehaviour
 
     [Header("Phasing & Fear")]
     public float fear = 100f;
-    public float fearDrainRate = 20f;
+    public float fearDrainRateDuringPossession = 15f;
+    public float phaseCost = 10f;
+    public float requiredFearToPossess = 50f;
 
     [Header("Layers")]
     public string defaultLayerName = "Default";
@@ -19,7 +21,9 @@ public class GhostController : MonoBehaviour
     public string phaseableWallLayerName = "PhaseableWall";
 
     [Header("References")]
-    public Transform cameraTransform;
+    public Transform cameraTransform;    // ghost camera pivot
+    public Camera ghostCamera;           // ghost Camera component
+    public PlayerInputHandler player;    // player script (assign in Inspector)
 
     private PlayerInputs inputActions;
     private Rigidbody rb;
@@ -30,6 +34,7 @@ public class GhostController : MonoBehaviour
     private float verticalInput;
     private float xRotation;
     private bool isPhasing = false;
+    private bool isPossessing = false;
 
     private int defaultLayer;
     private int ghostLayer;
@@ -50,39 +55,86 @@ public class GhostController : MonoBehaviour
         phaseableWallLayer = LayerMask.NameToLayer(phaseableWallLayerName);
 
         gameObject.layer = defaultLayer;
-
-        Physics.IgnoreLayerCollision(defaultLayer, ghostLayer, false);
-        Physics.IgnoreLayerCollision(defaultLayer, phaseableWallLayer, false);
     }
 
     public void AssignInput(PlayerInputs actions)
     {
+        // store reference and subscribe handlers
         inputActions = actions;
+        SubscribeInputs();
         inputActions.Enable();
-
-        inputActions.Player.Movement.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        inputActions.Player.Movement.canceled += ctx => moveInput = Vector2.zero;
-
-        inputActions.Player.Look.performed += ctx => lookInput = ctx.ReadValue<Vector2>();
-        inputActions.Player.Look.canceled += ctx => lookInput = Vector2.zero;
-
-        inputActions.Player.PhaseToggle.performed += ctx => TogglePhase();
-
-        inputActions.Player.FlyUp.performed += ctx => verticalInput = ctx.ReadValue<float>();
-        inputActions.Player.FlyUp.canceled += ctx => verticalInput = 0f;
-
-        inputActions.Player.FlyDown.performed += ctx => verticalInput = -ctx.ReadValue<float>();
-        inputActions.Player.FlyDown.canceled += ctx => verticalInput = 0f;
     }
+
+    private void SubscribeInputs()
+    {
+        if (inputActions == null) return;
+
+        inputActions.Player.Movement.performed += OnMovePerformed;
+        inputActions.Player.Movement.canceled += OnMoveCanceled;
+
+        inputActions.Player.Look.performed += OnLookPerformed;
+        inputActions.Player.Look.canceled += OnLookCanceled;
+
+        inputActions.Player.PhaseToggle.performed += OnPhaseToggle;
+
+        inputActions.Player.FlyUp.performed += OnFlyUp;
+        inputActions.Player.FlyUp.canceled += OnFlyUpCanceled;
+
+        inputActions.Player.FlyDown.performed += OnFlyDown;
+        inputActions.Player.FlyDown.canceled += OnFlyDownCanceled;
+
+        inputActions.Player.Possess.performed += OnPossessPressed;
+    }
+
+    private void UnsubscribeInputs()
+    {
+        if (inputActions == null) return;
+
+        inputActions.Player.Movement.performed -= OnMovePerformed;
+        inputActions.Player.Movement.canceled -= OnMoveCanceled;
+
+        inputActions.Player.Look.performed -= OnLookPerformed;
+        inputActions.Player.Look.canceled -= OnLookCanceled;
+
+        inputActions.Player.PhaseToggle.performed -= OnPhaseToggle;
+
+        inputActions.Player.FlyUp.performed -= OnFlyUp;
+        inputActions.Player.FlyUp.canceled -= OnFlyUpCanceled;
+
+        inputActions.Player.FlyDown.performed -= OnFlyDown;
+        inputActions.Player.FlyDown.canceled -= OnFlyDownCanceled;
+
+        inputActions.Player.Possess.performed -= OnPossessPressed;
+    }
+
+    #region Input Callbacks
+    private void OnMovePerformed(InputAction.CallbackContext ctx) => moveInput = ctx.ReadValue<Vector2>();
+    private void OnMoveCanceled(InputAction.CallbackContext _) => moveInput = Vector2.zero;
+
+    private void OnLookPerformed(InputAction.CallbackContext ctx) => lookInput = ctx.ReadValue<Vector2>();
+    private void OnLookCanceled(InputAction.CallbackContext _) => lookInput = Vector2.zero;
+
+    private void OnPhaseToggle(InputAction.CallbackContext _) => TryTogglePhase();
+
+    private void OnFlyUp(InputAction.CallbackContext ctx) => verticalInput = ctx.ReadValue<float>();
+    private void OnFlyUpCanceled(InputAction.CallbackContext _) => verticalInput = 0f;
+
+    private void OnFlyDown(InputAction.CallbackContext ctx) => verticalInput = -ctx.ReadValue<float>();
+    private void OnFlyDownCanceled(InputAction.CallbackContext _) => verticalInput = 0f;
+
+    private void OnPossessPressed(InputAction.CallbackContext _) => TryTogglePossession();
+    #endregion
 
     private void Update()
     {
+        if (isPossessing) return; // ghost doesn't look or move while possessing
         HandleLook();
         HandleFear();
     }
 
     private void FixedUpdate()
     {
+        if (isPossessing) return;
         HandleMovement();
     }
 
@@ -105,48 +157,46 @@ public class GhostController : MonoBehaviour
 
         if (isPhasing)
         {
-            // Free movement only through phaseable walls (default walls are still colliding)
-            rb.MovePosition(rb.position + moveAmount);
+            // when phasing we ignore phaseable walls only (default stays blocking)
+            int defaultMask = LayerMask.GetMask(defaultLayerName);
+            if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f, rb.position - Vector3.up * 0.5f, 0.5f,
+                moveAmount.normalized, moveAmount.magnitude, defaultMask))
+            {
+                rb.position += moveAmount;
+            }
         }
         else
         {
-            // Solid movement, collide with everything
-            if (!Physics.CapsuleCast(
-                    rb.position + Vector3.up * 0.5f,
-                    rb.position - Vector3.up * 0.5f,
-                    0.5f,
-                    moveAmount.normalized,
-                    moveAmount.magnitude,
-                    ~LayerMask.GetMask(ghostLayerName)))
+            // normal movement blocks everything
+            if (moveAmount.sqrMagnitude > 0f)
             {
-                rb.MovePosition(rb.position + moveAmount);
+                if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f, rb.position - Vector3.up * 0.5f, 0.5f,
+                    moveAmount.normalized, moveAmount.magnitude))
+                {
+                    rb.MovePosition(rb.position + moveAmount);
+                }
             }
         }
     }
 
-
-    private void TogglePhase()
+    private void TryTogglePhase()
     {
-        if (fear <= 0f && !isPhasing) return;
+        if (fear < phaseCost) return;
+        if (isPossessing) return;
 
         isPhasing = !isPhasing;
+        fear -= phaseCost;
+        fear = Mathf.Max(fear, 0f);
 
         if (isPhasing)
         {
             gameObject.layer = ghostLayer;
-
-            // Only ignore collisions with phaseable walls
             Physics.IgnoreLayerCollision(ghostLayer, phaseableWallLayer, true);
         }
         else
         {
-            // Push ghost out of walls to prevent clipping
-            Collider[] overlaps = Physics.OverlapCapsule(
-                rb.position + Vector3.up * 0.5f,
-                rb.position - Vector3.up * 0.5f,
-                0.5f,
+            Collider[] overlaps = Physics.OverlapCapsule(rb.position + Vector3.up * 0.5f, rb.position - Vector3.up * 0.5f, 0.5f,
                 (1 << defaultLayer) | (1 << phaseableWallLayer));
-
             foreach (var hit in overlaps)
             {
                 Vector3 push = rb.position - hit.ClosestPoint(rb.position);
@@ -157,7 +207,6 @@ public class GhostController : MonoBehaviour
             Physics.IgnoreLayerCollision(ghostLayer, phaseableWallLayer, false);
         }
 
-        // Optional ghost transparency feedback
         if (ghostRenderer != null)
         {
             Color c = ghostRenderer.material.color;
@@ -166,18 +215,67 @@ public class GhostController : MonoBehaviour
         }
     }
 
+    private void TryTogglePossession()
+    {
+        if (isPossessing)
+        {
+            EndPossession();
+            return;
+        }
+
+        if (fear < requiredFearToPossess) return;
+
+        float distance = Vector3.Distance(transform.position, player.transform.position);
+        if (distance > 3f) return;
+
+        StartPossession();
+    }
+
+    private void StartPossession()
+    {
+        if (inputActions == null) return;
+
+        isPossessing = true;
+
+        // stop ghost from receiving inputs
+        UnsubscribeInputs();
+        inputActions.Disable();
+
+        // hide and disable physics
+        rb.isKinematic = true;
+        GetComponent<Collider>().enabled = false;
+        if (ghostRenderer) ghostRenderer.enabled = false;
+        if (ghostCamera) ghostCamera.enabled = false;
+
+        // transfer the inputs to the player (player will subscribe its own callbacks)
+        player.TakeControl(inputActions);
+
+        // note: player should enable its own camera inside TakeControl
+    }
+
+    public void EndPossession()
+    {
+        if (!isPossessing) return;
+
+        isPossessing = false;
+
+        // ask player to release the shared input
+        player.ReleaseControl();
+
+        // restore ghost visuals and physics
+        rb.isKinematic = false;
+        GetComponent<Collider>().enabled = true;
+        if (ghostRenderer) ghostRenderer.enabled = true;
+        if (ghostCamera) ghostCamera.enabled = true;
+
+        // re-subscribe ghost handlers and re-enable input
+        SubscribeInputs();
+        inputActions.Enable();
+    }
 
     private void HandleFear()
     {
-        if (isPhasing)
-        {
-            fear -= fearDrainRate * Time.deltaTime;
-            fear = Mathf.Max(fear, 0f);
-
-            if (fear <= 0f && isPhasing)
-            {
-                TogglePhase();
-            }
-        }
+        // drain while possessing is handled by player? keep here if you prefer
+        // (we'll handle possession drain in player to avoid coupling; but below is an option if desired)
     }
 }

@@ -14188,6 +14188,7 @@ MonoBehaviour:
   jumpHeight: 1
   gravity: -9.81
   cameraTransform: {fileID: 395227821}
+  playerCamera: {fileID: 395227824}
   lookSensitivity: 1
 --- !u!143 &332007924
 CharacterController:
@@ -17402,6 +17403,11 @@ Mesh:
 --- !u!4 &395227821 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 9005220659476430818, guid: 2d3a85ecde41a8246a79669975912b74, type: 3}
+  m_PrefabInstance: {fileID: 2181528709038534193}
+  m_PrefabAsset: {fileID: 0}
+--- !u!20 &395227824 stripped
+Camera:
+  m_CorrespondingSourceObject: {fileID: 9005220659476430821, guid: 2d3a85ecde41a8246a79669975912b74, type: 3}
   m_PrefabInstance: {fileID: 2181528709038534193}
   m_PrefabAsset: {fileID: 0}
 --- !u!43 &397431948
@@ -24978,8 +24984,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8674c93d2ba28a4da0a7f73717b55d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 332007923}
+  explorer: {fileID: 332007923}
   ghost: {fileID: 1885975085}
+  minFearToPossess: 50
+  possessionDrainRate: 10
 --- !u!4 &576571766
 Transform:
   m_ObjectHideFlags: 0
@@ -79627,11 +79635,15 @@ MonoBehaviour:
   flySpeed: 3
   lookSensitivity: 1
   fear: 100
-  fearDrainRate: 1
+  fearDrainRateDuringPossession: 15
+  phaseCost: 10
+  requiredFearToPossess: 50
   defaultLayerName: Default
   ghostLayerName: Ghost
   phaseableWallLayerName: PhaseableWall
-  cameraTransform: {fileID: 1577167610}
+  cameraTransform: {fileID: 395227821}
+  ghostCamera: {fileID: 1577167609}
+  player: {fileID: 332007923}
 --- !u!54 &1885975086
 Rigidbody:
   m_ObjectHideFlags: 0
