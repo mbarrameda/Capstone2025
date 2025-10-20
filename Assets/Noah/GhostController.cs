@@ -11,7 +11,9 @@ public class GhostController : MonoBehaviour
 
     [Header("Phasing & Fear")]
     public float fear = 100f;
-    public float fearDrainRate = 20f;
+    public float phaseCost = 25f;
+    private float phaseDuration = 10f;   // seconds
+    private float phaseTimer = 0f;
 
     [Header("Layers")]
     public string defaultLayerName = "Default";
@@ -20,25 +22,32 @@ public class GhostController : MonoBehaviour
 
     [Header("References")]
     public Transform cameraTransform;
+    public Camera ghostCamera;
+    public Renderer ghostRenderer;
 
+    // input & physics
     private PlayerInputs inputActions;
-    private Rigidbody rb;
-    private Renderer ghostRenderer;
+    public Rigidbody rb;
 
+    // runtime
     private Vector2 moveInput;
     private Vector2 lookInput;
     private float verticalInput;
     private float xRotation;
     private bool isPhasing = false;
+    private bool freezeInput = false;
 
     private int defaultLayer;
     private int ghostLayer;
     private int phaseableWallLayer;
 
+    private Quaternion targetRotation;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        ghostRenderer = GetComponentInChildren<Renderer>();
+        ghostRenderer = ghostRenderer ?? GetComponentInChildren<Renderer>();
+        targetRotation = transform.rotation;
 
         rb.useGravity = false;
         rb.constraints = RigidbodyConstraints.FreezeRotation;
@@ -50,49 +59,130 @@ public class GhostController : MonoBehaviour
         phaseableWallLayer = LayerMask.NameToLayer(phaseableWallLayerName);
 
         gameObject.layer = defaultLayer;
-
-        Physics.IgnoreLayerCollision(defaultLayer, ghostLayer, false);
-        Physics.IgnoreLayerCollision(defaultLayer, phaseableWallLayer, false);
     }
 
     public void AssignInput(PlayerInputs actions)
     {
         inputActions = actions;
+        SubscribeInputs();
         inputActions.Enable();
-
-        inputActions.Player.Movement.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        inputActions.Player.Movement.canceled += ctx => moveInput = Vector2.zero;
-
-        inputActions.Player.Look.performed += ctx => lookInput = ctx.ReadValue<Vector2>();
-        inputActions.Player.Look.canceled += ctx => lookInput = Vector2.zero;
-
-        inputActions.Player.PhaseToggle.performed += ctx => TogglePhase();
-
-        inputActions.Player.FlyUp.performed += ctx => verticalInput = ctx.ReadValue<float>();
-        inputActions.Player.FlyUp.canceled += ctx => verticalInput = 0f;
-
-        inputActions.Player.FlyDown.performed += ctx => verticalInput = -ctx.ReadValue<float>();
-        inputActions.Player.FlyDown.canceled += ctx => verticalInput = 0f;
     }
+
+    public void RemoveInput()
+    {
+        if (inputActions == null) return;
+        UnsubscribeInputs();
+        inputActions.Disable();
+        inputActions = null;
+    }
+
+    private void SubscribeInputs()
+    {
+        if (inputActions == null) return;
+
+        inputActions.Player.Movement.performed += OnMovePerformed;
+        inputActions.Player.Movement.canceled += OnMoveCanceled;
+
+        inputActions.Player.Look.performed += OnLookPerformed;
+        inputActions.Player.Look.canceled += OnLookCanceled;
+
+        inputActions.Player.PhaseToggle.performed += OnPhaseToggle;
+
+        inputActions.Player.FlyUp.performed += OnFlyUp;
+        inputActions.Player.FlyUp.canceled += OnFlyUpCanceled;
+
+        inputActions.Player.FlyDown.performed += OnFlyDown;
+        inputActions.Player.FlyDown.canceled += OnFlyDownCanceled;
+    }
+
+    private void UnsubscribeInputs()
+    {
+        if (inputActions == null) return;
+
+        inputActions.Player.Movement.performed -= OnMovePerformed;
+        inputActions.Player.Movement.canceled -= OnMoveCanceled;
+
+        inputActions.Player.Look.performed -= OnLookPerformed;
+        inputActions.Player.Look.canceled -= OnLookCanceled;
+
+        inputActions.Player.PhaseToggle.performed -= OnPhaseToggle;
+
+        inputActions.Player.FlyUp.performed -= OnFlyUp;
+        inputActions.Player.FlyUp.canceled -= OnFlyUpCanceled;
+
+        inputActions.Player.FlyDown.performed -= OnFlyDown;
+        inputActions.Player.FlyDown.canceled -= OnFlyDownCanceled;
+    }
+
+    // Named input methods
+    private void OnMovePerformed(InputAction.CallbackContext ctx) => moveInput = ctx.ReadValue<Vector2>();
+    private void OnMoveCanceled(InputAction.CallbackContext ctx) => moveInput = Vector2.zero;
+
+    private void OnLookPerformed(InputAction.CallbackContext ctx) => lookInput = ctx.ReadValue<Vector2>();
+    private void OnLookCanceled(InputAction.CallbackContext ctx) => lookInput = Vector2.zero;
+
+    private void OnFlyUp(InputAction.CallbackContext ctx) => verticalInput = ctx.ReadValue<float>();
+    private void OnFlyUpCanceled(InputAction.CallbackContext ctx) => verticalInput = 0f;
+
+    private void OnFlyDown(InputAction.CallbackContext ctx) => verticalInput = -ctx.ReadValue<float>();
+    private void OnFlyDownCanceled(InputAction.CallbackContext ctx) => verticalInput = 0f;
+
+    private void OnPhaseToggle(InputAction.CallbackContext ctx) => TogglePhase();
+
 
     private void Update()
     {
-        HandleLook();
-        HandleFear();
+        //if (freezeInput) return;
+
+        //HandleLook();
+
+        // Countdown phasing timer
+        if (isPhasing)
+        {
+            phaseTimer -= Time.deltaTime;
+            if (phaseTimer <= 0f)
+            {
+                // Time's up, automatically stop phasing
+                TogglePhase();
+            }
+        }
     }
 
     private void FixedUpdate()
     {
+        if (freezeInput) return;
+
+        // Rotate body and camera
+        HandleRotation();
+
+        // Move the ghost
         HandleMovement();
     }
 
-    private void HandleLook()
+    private void HandleRotation()
     {
-        transform.Rotate(Vector3.up * lookInput.x * lookSensitivity);
+        // Apply yaw to body
+        float yRotation = lookInput.x * lookSensitivity;
+        rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, yRotation, 0f));
 
+        // Apply pitch to camera
         xRotation -= lookInput.y * lookSensitivity;
         xRotation = Mathf.Clamp(xRotation, -80f, 80f);
+        if (cameraTransform != null)
+            cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+    }
 
+
+
+    private void HandleLook()
+    {
+        // Apply body rotation (yaw)
+        float yaw = lookInput.x * lookSensitivity;
+        targetRotation *= Quaternion.Euler(0f, yaw, 0f);
+        transform.rotation = targetRotation;
+
+        // Apply camera pitch
+        xRotation = Mathf.Clamp(xRotation - lookInput.y * lookSensitivity, -80f, 80f);
         if (cameraTransform != null)
             cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
     }
@@ -103,61 +193,56 @@ public class GhostController : MonoBehaviour
         Vector3 verticalMove = Vector3.up * verticalInput;
         Vector3 moveAmount = (moveDir * moveSpeed + verticalMove * flySpeed) * Time.fixedDeltaTime;
 
+        if (moveAmount.sqrMagnitude <= 0f) return;
+
         if (isPhasing)
         {
-            // Free movement only through phaseable walls (default walls are still colliding)
-            rb.MovePosition(rb.position + moveAmount);
+            int defaultMask = LayerMask.GetMask(defaultLayerName);
+            if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f, rb.position - Vector3.up * 0.5f, 0.5f,
+                moveAmount.normalized, moveAmount.magnitude, defaultMask))
+            {
+                rb.MovePosition(rb.position + moveAmount);
+            }
         }
         else
         {
-            // Solid movement, collide with everything
-            if (!Physics.CapsuleCast(
-                    rb.position + Vector3.up * 0.5f,
-                    rb.position - Vector3.up * 0.5f,
-                    0.5f,
-                    moveAmount.normalized,
-                    moveAmount.magnitude,
-                    ~LayerMask.GetMask(ghostLayerName)))
+            if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f, rb.position - Vector3.up * 0.5f, 0.5f,
+                moveAmount.normalized, moveAmount.magnitude))
             {
                 rb.MovePosition(rb.position + moveAmount);
             }
         }
     }
 
-
-    private void TogglePhase()
+    public void TogglePhase()
     {
-        if (fear <= 0f && !isPhasing) return;
+        if (!isPhasing && fear < phaseCost) return; // can't enable if not enough fear
 
+        // Only drain fear when turning on
+        if (!isPhasing)
+        {
+            fear -= phaseCost;
+            fear = Mathf.Max(fear, 0f);
+
+            // Start timer
+            phaseTimer = phaseDuration;
+        }
+
+        // Toggle phasing state
         isPhasing = !isPhasing;
 
         if (isPhasing)
         {
             gameObject.layer = ghostLayer;
-
-            // Only ignore collisions with phaseable walls
             Physics.IgnoreLayerCollision(ghostLayer, phaseableWallLayer, true);
         }
         else
         {
-            // Push ghost out of walls to prevent clipping
-            Collider[] overlaps = Physics.OverlapCapsule(
-                rb.position + Vector3.up * 0.5f,
-                rb.position - Vector3.up * 0.5f,
-                0.5f,
-                (1 << defaultLayer) | (1 << phaseableWallLayer));
-
-            foreach (var hit in overlaps)
-            {
-                Vector3 push = rb.position - hit.ClosestPoint(rb.position);
-                rb.position += push.normalized * 0.6f;
-            }
-
             gameObject.layer = defaultLayer;
             Physics.IgnoreLayerCollision(ghostLayer, phaseableWallLayer, false);
         }
 
-        // Optional ghost transparency feedback
+        // Update ghost transparency
         if (ghostRenderer != null)
         {
             Color c = ghostRenderer.material.color;
@@ -165,19 +250,23 @@ public class GhostController : MonoBehaviour
             ghostRenderer.material.color = c;
         }
     }
-
-
-    private void HandleFear()
+    public void FreezeInput(bool freeze)
     {
-        if (isPhasing)
-        {
-            fear -= fearDrainRate * Time.deltaTime;
-            fear = Mathf.Max(fear, 0f);
+        freezeInput = freeze;
+    }
 
-            if (fear <= 0f && isPhasing)
-            {
-                TogglePhase();
-            }
-        }
+    public void SetVisibility(bool visible)
+    {
+        if (ghostRenderer != null)
+            ghostRenderer.enabled = visible;
+
+        if (ghostCamera != null)
+            ghostCamera.enabled = visible;
+    }
+
+    public void ResetPositionAndRotation()
+    {
+        rb.isKinematic = false;
+        rb.velocity = Vector3.zero;
     }
 }
