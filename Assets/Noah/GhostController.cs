@@ -11,9 +11,9 @@ public class GhostController : MonoBehaviour
 
     [Header("Phasing & Fear")]
     public float fear = 100f;
-    public float fearDrainRateDuringPossession = 15f;
-    public float phaseCost = 10f;
-    public float requiredFearToPossess = 50f;
+    public float phaseCost = 25f;
+    private float phaseDuration = 10f;   // seconds
+    private float phaseTimer = 0f;
 
     [Header("Layers")]
     public string defaultLayerName = "Default";
@@ -21,29 +21,33 @@ public class GhostController : MonoBehaviour
     public string phaseableWallLayerName = "PhaseableWall";
 
     [Header("References")]
-    public Transform cameraTransform;    // ghost camera pivot
-    public Camera ghostCamera;           // ghost Camera component
-    public PlayerInputHandler player;    // player script (assign in Inspector)
+    public Transform cameraTransform;
+    public Camera ghostCamera;
+    public Renderer ghostRenderer;
 
+    // input & physics
     private PlayerInputs inputActions;
-    private Rigidbody rb;
-    private Renderer ghostRenderer;
+    public Rigidbody rb;
 
+    // runtime
     private Vector2 moveInput;
     private Vector2 lookInput;
     private float verticalInput;
     private float xRotation;
     private bool isPhasing = false;
-    private bool isPossessing = false;
+    private bool freezeInput = false;
 
     private int defaultLayer;
     private int ghostLayer;
     private int phaseableWallLayer;
 
+    private Quaternion targetRotation;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        ghostRenderer = GetComponentInChildren<Renderer>();
+        ghostRenderer = ghostRenderer ?? GetComponentInChildren<Renderer>();
+        targetRotation = transform.rotation;
 
         rb.useGravity = false;
         rb.constraints = RigidbodyConstraints.FreezeRotation;
@@ -59,10 +63,17 @@ public class GhostController : MonoBehaviour
 
     public void AssignInput(PlayerInputs actions)
     {
-        // store reference and subscribe handlers
         inputActions = actions;
         SubscribeInputs();
         inputActions.Enable();
+    }
+
+    public void RemoveInput()
+    {
+        if (inputActions == null) return;
+        UnsubscribeInputs();
+        inputActions.Disable();
+        inputActions = null;
     }
 
     private void SubscribeInputs()
@@ -82,8 +93,6 @@ public class GhostController : MonoBehaviour
 
         inputActions.Player.FlyDown.performed += OnFlyDown;
         inputActions.Player.FlyDown.canceled += OnFlyDownCanceled;
-
-        inputActions.Player.Possess.performed += OnPossessPressed;
     }
 
     private void UnsubscribeInputs()
@@ -103,48 +112,77 @@ public class GhostController : MonoBehaviour
 
         inputActions.Player.FlyDown.performed -= OnFlyDown;
         inputActions.Player.FlyDown.canceled -= OnFlyDownCanceled;
-
-        inputActions.Player.Possess.performed -= OnPossessPressed;
     }
 
-    #region Input Callbacks
+    // Named input methods
     private void OnMovePerformed(InputAction.CallbackContext ctx) => moveInput = ctx.ReadValue<Vector2>();
-    private void OnMoveCanceled(InputAction.CallbackContext _) => moveInput = Vector2.zero;
+    private void OnMoveCanceled(InputAction.CallbackContext ctx) => moveInput = Vector2.zero;
 
     private void OnLookPerformed(InputAction.CallbackContext ctx) => lookInput = ctx.ReadValue<Vector2>();
-    private void OnLookCanceled(InputAction.CallbackContext _) => lookInput = Vector2.zero;
-
-    private void OnPhaseToggle(InputAction.CallbackContext _) => TryTogglePhase();
+    private void OnLookCanceled(InputAction.CallbackContext ctx) => lookInput = Vector2.zero;
 
     private void OnFlyUp(InputAction.CallbackContext ctx) => verticalInput = ctx.ReadValue<float>();
-    private void OnFlyUpCanceled(InputAction.CallbackContext _) => verticalInput = 0f;
+    private void OnFlyUpCanceled(InputAction.CallbackContext ctx) => verticalInput = 0f;
 
     private void OnFlyDown(InputAction.CallbackContext ctx) => verticalInput = -ctx.ReadValue<float>();
-    private void OnFlyDownCanceled(InputAction.CallbackContext _) => verticalInput = 0f;
+    private void OnFlyDownCanceled(InputAction.CallbackContext ctx) => verticalInput = 0f;
 
-    private void OnPossessPressed(InputAction.CallbackContext _) => TryTogglePossession();
-    #endregion
+    private void OnPhaseToggle(InputAction.CallbackContext ctx) => TogglePhase();
+
 
     private void Update()
     {
-        if (isPossessing) return; // ghost doesn't look or move while possessing
-        HandleLook();
-        HandleFear();
+        //if (freezeInput) return;
+
+        //HandleLook();
+
+        // Countdown phasing timer
+        if (isPhasing)
+        {
+            phaseTimer -= Time.deltaTime;
+            if (phaseTimer <= 0f)
+            {
+                // Time's up, automatically stop phasing
+                TogglePhase();
+            }
+        }
     }
 
     private void FixedUpdate()
     {
-        if (isPossessing) return;
+        if (freezeInput) return;
+
+        // Rotate body and camera
+        HandleRotation();
+
+        // Move the ghost
         HandleMovement();
     }
 
-    private void HandleLook()
+    private void HandleRotation()
     {
-        transform.Rotate(Vector3.up * lookInput.x * lookSensitivity);
+        // Apply yaw to body
+        float yRotation = lookInput.x * lookSensitivity;
+        rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, yRotation, 0f));
 
+        // Apply pitch to camera
         xRotation -= lookInput.y * lookSensitivity;
         xRotation = Mathf.Clamp(xRotation, -80f, 80f);
+        if (cameraTransform != null)
+            cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+    }
 
+
+
+    private void HandleLook()
+    {
+        // Apply body rotation (yaw)
+        float yaw = lookInput.x * lookSensitivity;
+        targetRotation *= Quaternion.Euler(0f, yaw, 0f);
+        transform.rotation = targetRotation;
+
+        // Apply camera pitch
+        xRotation = Mathf.Clamp(xRotation - lookInput.y * lookSensitivity, -80f, 80f);
         if (cameraTransform != null)
             cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
     }
@@ -155,38 +193,43 @@ public class GhostController : MonoBehaviour
         Vector3 verticalMove = Vector3.up * verticalInput;
         Vector3 moveAmount = (moveDir * moveSpeed + verticalMove * flySpeed) * Time.fixedDeltaTime;
 
+        if (moveAmount.sqrMagnitude <= 0f) return;
+
         if (isPhasing)
         {
-            // when phasing we ignore phaseable walls only (default stays blocking)
             int defaultMask = LayerMask.GetMask(defaultLayerName);
             if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f, rb.position - Vector3.up * 0.5f, 0.5f,
                 moveAmount.normalized, moveAmount.magnitude, defaultMask))
             {
-                rb.position += moveAmount;
+                rb.MovePosition(rb.position + moveAmount);
             }
         }
         else
         {
-            // normal movement blocks everything
-            if (moveAmount.sqrMagnitude > 0f)
+            if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f, rb.position - Vector3.up * 0.5f, 0.5f,
+                moveAmount.normalized, moveAmount.magnitude))
             {
-                if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f, rb.position - Vector3.up * 0.5f, 0.5f,
-                    moveAmount.normalized, moveAmount.magnitude))
-                {
-                    rb.MovePosition(rb.position + moveAmount);
-                }
+                rb.MovePosition(rb.position + moveAmount);
             }
         }
     }
 
-    private void TryTogglePhase()
+    public void TogglePhase()
     {
-        if (fear < phaseCost) return;
-        if (isPossessing) return;
+        if (!isPhasing && fear < phaseCost) return; // can't enable if not enough fear
 
+        // Only drain fear when turning on
+        if (!isPhasing)
+        {
+            fear -= phaseCost;
+            fear = Mathf.Max(fear, 0f);
+
+            // Start timer
+            phaseTimer = phaseDuration;
+        }
+
+        // Toggle phasing state
         isPhasing = !isPhasing;
-        fear -= phaseCost;
-        fear = Mathf.Max(fear, 0f);
 
         if (isPhasing)
         {
@@ -195,18 +238,11 @@ public class GhostController : MonoBehaviour
         }
         else
         {
-            Collider[] overlaps = Physics.OverlapCapsule(rb.position + Vector3.up * 0.5f, rb.position - Vector3.up * 0.5f, 0.5f,
-                (1 << defaultLayer) | (1 << phaseableWallLayer));
-            foreach (var hit in overlaps)
-            {
-                Vector3 push = rb.position - hit.ClosestPoint(rb.position);
-                rb.position += push.normalized * 0.6f;
-            }
-
             gameObject.layer = defaultLayer;
             Physics.IgnoreLayerCollision(ghostLayer, phaseableWallLayer, false);
         }
 
+        // Update ghost transparency
         if (ghostRenderer != null)
         {
             Color c = ghostRenderer.material.color;
@@ -214,68 +250,23 @@ public class GhostController : MonoBehaviour
             ghostRenderer.material.color = c;
         }
     }
-
-    private void TryTogglePossession()
+    public void FreezeInput(bool freeze)
     {
-        if (isPossessing)
-        {
-            EndPossession();
-            return;
-        }
-
-        if (fear < requiredFearToPossess) return;
-
-        float distance = Vector3.Distance(transform.position, player.transform.position);
-        if (distance > 3f) return;
-
-        StartPossession();
+        freezeInput = freeze;
     }
 
-    private void StartPossession()
+    public void SetVisibility(bool visible)
     {
-        if (inputActions == null) return;
+        if (ghostRenderer != null)
+            ghostRenderer.enabled = visible;
 
-        isPossessing = true;
-
-        // stop ghost from receiving inputs
-        UnsubscribeInputs();
-        inputActions.Disable();
-
-        // hide and disable physics
-        rb.isKinematic = true;
-        GetComponent<Collider>().enabled = false;
-        if (ghostRenderer) ghostRenderer.enabled = false;
-        if (ghostCamera) ghostCamera.enabled = false;
-
-        // transfer the inputs to the player (player will subscribe its own callbacks)
-        player.TakeControl(inputActions);
-
-        // note: player should enable its own camera inside TakeControl
+        if (ghostCamera != null)
+            ghostCamera.enabled = visible;
     }
 
-    public void EndPossession()
+    public void ResetPositionAndRotation()
     {
-        if (!isPossessing) return;
-
-        isPossessing = false;
-
-        // ask player to release the shared input
-        player.ReleaseControl();
-
-        // restore ghost visuals and physics
         rb.isKinematic = false;
-        GetComponent<Collider>().enabled = true;
-        if (ghostRenderer) ghostRenderer.enabled = true;
-        if (ghostCamera) ghostCamera.enabled = true;
-
-        // re-subscribe ghost handlers and re-enable input
-        SubscribeInputs();
-        inputActions.Enable();
-    }
-
-    private void HandleFear()
-    {
-        // drain while possessing is handled by player? keep here if you prefer
-        // (we'll handle possession drain in player to avoid coupling; but below is an option if desired)
+        rb.velocity = Vector3.zero;
     }
 }

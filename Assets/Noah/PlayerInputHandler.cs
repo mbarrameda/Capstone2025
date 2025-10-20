@@ -29,12 +29,23 @@ public class PlayerInputHandler : MonoBehaviour
         controller = GetComponent<CharacterController>();
     }
 
-    // Called when ghost transfers control to the player
+    // Called when ghost transfers control to the clone
     public void TakeControl(PlayerInputs newInputs)
     {
-        ReleaseControl(); // clear any old bindings
+        ReleaseControl();
+
         inputActions = newInputs;
-        SubscribeInputs();
+
+        // Subscribe using normal methods, no lambdas
+        inputActions.Player.Movement.performed += OnMovePerformed;
+        inputActions.Player.Movement.canceled += OnMoveCanceled;
+
+        inputActions.Player.Look.performed += OnLookPerformed;
+        inputActions.Player.Look.canceled += OnLookCanceled;
+
+        inputActions.Player.Jump.performed += OnJumpPerformed;
+        inputActions.Player.Sprint.performed += OnSprintPerformed;
+
         inputActions.Enable();
 
         if (playerCamera != null)
@@ -44,31 +55,6 @@ public class PlayerInputHandler : MonoBehaviour
     public void ReleaseControl()
     {
         if (inputActions == null) return;
-        UnsubscribeInputs();
-        inputActions.Disable();
-        inputActions = null;
-    }
-
-    private void SubscribeInputs()
-    {
-        if (inputActions == null) return;
-
-        inputActions.Player.Movement.performed += OnMovePerformed;
-        inputActions.Player.Movement.canceled += OnMoveCanceled;
-
-        inputActions.Player.Look.performed += OnLookPerformed;
-        inputActions.Player.Look.canceled += OnLookCanceled;
-
-        inputActions.Player.Jump.performed += _ => Jump();
-        inputActions.Player.Sprint.performed += _ => sprinting = !sprinting;
-
-        // Possess handled by ghost, so no action here
-        inputActions.Player.Possess.performed += _ => { };
-    }
-
-    private void UnsubscribeInputs()
-    {
-        if (inputActions == null) return;
 
         inputActions.Player.Movement.performed -= OnMovePerformed;
         inputActions.Player.Movement.canceled -= OnMoveCanceled;
@@ -76,17 +62,26 @@ public class PlayerInputHandler : MonoBehaviour
         inputActions.Player.Look.performed -= OnLookPerformed;
         inputActions.Player.Look.canceled -= OnLookCanceled;
 
-        // No need to unsubscribe lambdas, but good practice:
-        inputActions.Player.Jump.performed -= _ => Jump();
-        inputActions.Player.Sprint.performed -= _ => sprinting = !sprinting;
-        inputActions.Player.Possess.performed -= _ => { };
+        inputActions.Player.Jump.performed -= OnJumpPerformed;
+        inputActions.Player.Sprint.performed -= OnSprintPerformed;
+
+        inputActions.Disable();
+        inputActions = null;
+
+        if (playerCamera != null)
+            playerCamera.enabled = false;
     }
 
+    #region Input Callbacks
     private void OnMovePerformed(InputAction.CallbackContext ctx) => moveInput = ctx.ReadValue<Vector2>();
     private void OnMoveCanceled(InputAction.CallbackContext _) => moveInput = Vector2.zero;
 
     private void OnLookPerformed(InputAction.CallbackContext ctx) => lookInput = ctx.ReadValue<Vector2>();
     private void OnLookCanceled(InputAction.CallbackContext _) => lookInput = Vector2.zero;
+
+    private void OnJumpPerformed(InputAction.CallbackContext _) => Jump();
+    private void OnSprintPerformed(InputAction.CallbackContext _) => sprinting = !sprinting;
+    #endregion
 
     private void Update()
     {
@@ -121,14 +116,6 @@ public class PlayerInputHandler : MonoBehaviour
     private void Jump()
     {
         if (controller.isGrounded)
-        {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-        }
-    }
-
-    public void ForceDisableCamera()
-    {
-        if (playerCamera != null)
-            playerCamera.enabled = false;
     }
 }

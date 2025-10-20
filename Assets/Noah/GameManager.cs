@@ -4,96 +4,121 @@ using UnityEngine.InputSystem;
 public class GameManager : MonoBehaviour
 {
     [Header("References")]
-    public PlayerInputHandler explorer;
-    public GhostController ghost;
+    public PlayerInputHandler explorer;       // Real explorer
+    public GhostController ghost;             // The ghost
+    public GameObject explorerClonePrefab;    // Prefab of explorer clone
 
-    [Header("Possession Settings")]
-    public float minFearToPossess = 50f;
-    public float possessionDrainRate = 10f; // fear per second
+    [Header("Clone Settings")]
+    public Vector3 cloneOffset = new Vector3(1.5f, 0f, 0f);
+    public float fearDrainRateWhileUsingClone = 20f; // fear drained per second
 
-    private PlayerInputs explorerInputs;
     private PlayerInputs ghostInputs;
-
-    private bool isPossessing = false;
+    private PlayerInputs explorerInputs;
+    private GameObject currentClone;
+    private bool isControllingClone = false;
 
     private void Awake()
     {
-        // Make sure we have two controllers
         if (Gamepad.all.Count < 2)
         {
-            Debug.LogError("Two gamepads are required (Explorer & Ghost)");
+            Debug.LogError("Two controllers required!");
             return;
         }
 
-        // --- Player 1 (Explorer) ---
+        // Setup explorer input
         explorerInputs = new PlayerInputs();
         explorerInputs.devices = new InputDevice[] { Gamepad.all[0] };
         explorer.TakeControl(explorerInputs);
 
-        // --- Player 2 (Ghost) ---
+        // Setup ghost input
         ghostInputs = new PlayerInputs();
         ghostInputs.devices = new InputDevice[] { Gamepad.all[1] };
         ghost.AssignInput(ghostInputs);
 
-        // Bind ghost possession control (Y / north button)
-        ghostInputs.Player.Possess.performed += ctx => TryTogglePossession();
+        // Bind clone control button
+        ghostInputs.Player.Possess.performed += ctx => ToggleCloneControl();
     }
 
     private void Update()
     {
-        if (isPossessing)
+        if (isControllingClone)
         {
-            // Drain ghost’s fear while possessing
-            ghost.fear -= possessionDrainRate * Time.deltaTime;
+            DrainFear();
+
+            // Auto-return to ghost if fear depleted
             if (ghost.fear <= 0f)
             {
-                ghost.fear = 0f;
-                EndPossession();
+                ReleaseClone();
             }
         }
     }
 
-    private void TryTogglePossession()
+    private void ToggleCloneControl()
     {
-        if (isPossessing)
+        if (isControllingClone)
         {
-            EndPossession();
-        }
-        else if (ghost.fear >= minFearToPossess)
-        {
-            StartPossession();
+            ReleaseClone();
         }
         else
         {
-            Debug.Log("Not enough fear to possess!");
+            if (ghost.fear <= 0f)
+            {
+                Debug.Log("Not enough fear to use clone!");
+                return;
+            }
+            SpawnAndControlClone();
         }
     }
 
-    private void StartPossession()
+    private void SpawnAndControlClone()
     {
-        isPossessing = true;
+        if (currentClone != null) return;
 
-        // Disable explorer’s own input
-        explorerInputs.Disable();
+        // Spawn clone at ghost position + offset
+        currentClone = Instantiate(
+            explorerClonePrefab,
+            ghost.transform.position + cloneOffset,
+            ghost.transform.rotation
+        );
 
-        // Let ghost control explorer instead
-        ghostInputs.Disable(); // temporarily disable ghost movement
-        explorer.TakeControl(ghostInputs);
+        // Freeze and hide ghost
+        ghost.FreezeInput(true);
+        ghost.SetVisibility(false);  // <-- hide ghost renderer & camera
 
-        Debug.Log("👻 Ghost is now possessing the Explorer!");
+        // Give ghost's input to clone
+        var cloneHandler = currentClone.GetComponent<PlayerInputHandler>();
+        if (cloneHandler != null)
+        {
+            ghostInputs.Disable();
+            cloneHandler.TakeControl(ghostInputs);
+        }
+
+        isControllingClone = true;
     }
 
-    private void EndPossession()
+    private void ReleaseClone()
     {
-        isPossessing = false;
+        if (currentClone == null) return;
 
-        // Return controls to normal
-        explorerInputs.Enable();
-        explorer.TakeControl(explorerInputs);
+        // Destroy clone
+        Destroy(currentClone);
+        currentClone = null;
 
+        // Unfreeze and show ghost
+        ghost.FreezeInput(false);
+        ghost.SetVisibility(true); // <-- restore ghost renderer & camera
+
+        // Restore ghost input
         ghostInputs.Enable();
         ghost.AssignInput(ghostInputs);
 
-        Debug.Log("💨 Ghost has left the body!");
+        isControllingClone = false;
+    }
+
+
+    private void DrainFear()
+    {
+        ghost.fear -= fearDrainRateWhileUsingClone * Time.deltaTime;
+        ghost.fear = Mathf.Max(ghost.fear, 0f);
     }
 }
