@@ -12,6 +12,7 @@ public class PlayerInputHandler : MonoBehaviour
 
     [Header("Camera Settings")]
     public Transform cameraTransform;
+    public Camera playerCamera;
     public float lookSensitivity = 2f;
 
     private PlayerInputs inputActions;
@@ -21,40 +22,66 @@ public class PlayerInputHandler : MonoBehaviour
     private CharacterController controller;
     private Vector3 velocity;
     private float xRotation = 0f;
+    private bool sprinting = false;
 
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
     }
 
-    public void AssignInput(PlayerInputs actions)
+    // Called when ghost transfers control to the clone
+    public void TakeControl(PlayerInputs newInputs)
     {
-        inputActions = actions;
+        ReleaseControl();
 
-        if (inputActions == null)
-        {
-            Debug.LogError("Assigned PlayerInputs is null!");
-            return;
-        }
+        inputActions = newInputs;
+
+        // Subscribe using normal methods, no lambdas
+        inputActions.Player.Movement.performed += OnMovePerformed;
+        inputActions.Player.Movement.canceled += OnMoveCanceled;
+
+        inputActions.Player.Look.performed += OnLookPerformed;
+        inputActions.Player.Look.canceled += OnLookCanceled;
+
+        inputActions.Player.Jump.performed += OnJumpPerformed;
+        inputActions.Player.Sprint.performed += OnSprintPerformed;
 
         inputActions.Enable();
 
-        // Movement
-        inputActions.Player.Movement.performed += ctx => moveInput = ctx.ReadValue<Vector2>();
-        inputActions.Player.Movement.canceled += ctx => moveInput = Vector2.zero;
-
-        // Look
-        inputActions.Player.Look.performed += ctx => lookInput = ctx.ReadValue<Vector2>();
-        inputActions.Player.Look.canceled += ctx => lookInput = Vector2.zero;
-
-        // Jump
-        inputActions.Player.Jump.performed += ctx => Jump();
-
-        // Sprint
-        inputActions.Player.Sprint.performed += ctx => sprinting = !sprinting;
+        if (playerCamera != null)
+            playerCamera.enabled = true;
     }
 
-    private bool sprinting = false;
+    public void ReleaseControl()
+    {
+        if (inputActions == null) return;
+
+        inputActions.Player.Movement.performed -= OnMovePerformed;
+        inputActions.Player.Movement.canceled -= OnMoveCanceled;
+
+        inputActions.Player.Look.performed -= OnLookPerformed;
+        inputActions.Player.Look.canceled -= OnLookCanceled;
+
+        inputActions.Player.Jump.performed -= OnJumpPerformed;
+        inputActions.Player.Sprint.performed -= OnSprintPerformed;
+
+        inputActions.Disable();
+        inputActions = null;
+
+        if (playerCamera != null)
+            playerCamera.enabled = false;
+    }
+
+    #region Input Callbacks
+    private void OnMovePerformed(InputAction.CallbackContext ctx) => moveInput = ctx.ReadValue<Vector2>();
+    private void OnMoveCanceled(InputAction.CallbackContext _) => moveInput = Vector2.zero;
+
+    private void OnLookPerformed(InputAction.CallbackContext ctx) => lookInput = ctx.ReadValue<Vector2>();
+    private void OnLookCanceled(InputAction.CallbackContext _) => lookInput = Vector2.zero;
+
+    private void OnJumpPerformed(InputAction.CallbackContext _) => Jump();
+    private void OnSprintPerformed(InputAction.CallbackContext _) => sprinting = !sprinting;
+    #endregion
 
     private void Update()
     {
@@ -64,23 +91,21 @@ public class PlayerInputHandler : MonoBehaviour
 
     private void HandleLook()
     {
-        // Horizontal rotation (player body)
         transform.Rotate(Vector3.up * lookInput.x * lookSensitivity);
 
-        // Vertical rotation (camera)
         xRotation -= lookInput.y * lookSensitivity;
         xRotation = Mathf.Clamp(xRotation, -80f, 80f);
-        cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+
+        if (cameraTransform != null)
+            cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
     }
 
     private void HandleMovement()
     {
         float speed = sprinting ? moveSpeed * sprintMultiplier : moveSpeed;
-
         Vector3 move = transform.forward * moveInput.y + transform.right * moveInput.x;
         controller.Move(move * speed * Time.deltaTime);
 
-        // Gravity
         if (controller.isGrounded && velocity.y < 0)
             velocity.y = -2f;
 

@@ -89,6 +89,15 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Possess"",
+                    ""type"": ""Button"",
+                    ""id"": ""99fb6a00-ba34-4dcd-90f0-12f39ad4c5c2"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -168,6 +177,17 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                     ""action"": ""Fly Down"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b89b3143-9739-4a14-bb8b-cb4639735ae2"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Possess"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -183,6 +203,7 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         m_Player_PhaseToggle = m_Player.FindAction("Phase Toggle", throwIfNotFound: true);
         m_Player_FlyUp = m_Player.FindAction("Fly Up", throwIfNotFound: true);
         m_Player_FlyDown = m_Player.FindAction("Fly Down", throwIfNotFound: true);
+        m_Player_Possess = m_Player.FindAction("Possess", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -251,6 +272,7 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_PhaseToggle;
     private readonly InputAction m_Player_FlyUp;
     private readonly InputAction m_Player_FlyDown;
+    private readonly InputAction m_Player_Possess;
     public struct PlayerActions
     {
         private @PlayerInputs m_Wrapper;
@@ -262,6 +284,7 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         public InputAction @PhaseToggle => m_Wrapper.m_Player_PhaseToggle;
         public InputAction @FlyUp => m_Wrapper.m_Player_FlyUp;
         public InputAction @FlyDown => m_Wrapper.m_Player_FlyDown;
+        public InputAction @Possess => m_Wrapper.m_Player_Possess;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -292,6 +315,9 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
             @FlyDown.started += instance.OnFlyDown;
             @FlyDown.performed += instance.OnFlyDown;
             @FlyDown.canceled += instance.OnFlyDown;
+            @Possess.started += instance.OnPossess;
+            @Possess.performed += instance.OnPossess;
+            @Possess.canceled += instance.OnPossess;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -317,6 +343,9 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
             @FlyDown.started -= instance.OnFlyDown;
             @FlyDown.performed -= instance.OnFlyDown;
             @FlyDown.canceled -= instance.OnFlyDown;
+            @Possess.started -= instance.OnPossess;
+            @Possess.performed -= instance.OnPossess;
+            @Possess.canceled -= instance.OnPossess;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -343,5 +372,6 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         void OnPhaseToggle(InputAction.CallbackContext context);
         void OnFlyUp(InputAction.CallbackContext context);
         void OnFlyDown(InputAction.CallbackContext context);
+        void OnPossess(InputAction.CallbackContext context);
     }
 }
