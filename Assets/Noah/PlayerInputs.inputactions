@@ -76,6 +76,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "PullOutPhone",
+                    "type": "Button",
+                    "id": "1fe763a7-e123-4c68-8299-1540f309f4dd",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Flashlight",
+                    "type": "Button",
+                    "id": "84da3577-8a04-4acd-a147-85791fc02b9a",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -164,6 +182,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "Possess",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "718a8222-dd28-4345-bc19-0ccfd520a25d",
+                    "path": "<Gamepad>/buttonNorth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PullOutPhone",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d88646f2-04ad-4ba2-b994-654aaa3f82b9",
+                    "path": "<Gamepad>/buttonWest",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Flashlight",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
