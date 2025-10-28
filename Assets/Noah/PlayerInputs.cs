@@ -98,6 +98,24 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""PullOutPhone"",
+                    ""type"": ""Button"",
+                    ""id"": ""1fe763a7-e123-4c68-8299-1540f309f4dd"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Flashlight"",
+                    ""type"": ""Button"",
+                    ""id"": ""84da3577-8a04-4acd-a147-85791fc02b9a"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -188,6 +206,28 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                     ""action"": ""Possess"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""718a8222-dd28-4345-bc19-0ccfd520a25d"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PullOutPhone"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d88646f2-04ad-4ba2-b994-654aaa3f82b9"",
+                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Flashlight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -204,6 +244,8 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         m_Player_FlyUp = m_Player.FindAction("Fly Up", throwIfNotFound: true);
         m_Player_FlyDown = m_Player.FindAction("Fly Down", throwIfNotFound: true);
         m_Player_Possess = m_Player.FindAction("Possess", throwIfNotFound: true);
+        m_Player_PullOutPhone = m_Player.FindAction("PullOutPhone", throwIfNotFound: true);
+        m_Player_Flashlight = m_Player.FindAction("Flashlight", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -273,6 +315,8 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_FlyUp;
     private readonly InputAction m_Player_FlyDown;
     private readonly InputAction m_Player_Possess;
+    private readonly InputAction m_Player_PullOutPhone;
+    private readonly InputAction m_Player_Flashlight;
     public struct PlayerActions
     {
         private @PlayerInputs m_Wrapper;
@@ -285,6 +329,8 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         public InputAction @FlyUp => m_Wrapper.m_Player_FlyUp;
         public InputAction @FlyDown => m_Wrapper.m_Player_FlyDown;
         public InputAction @Possess => m_Wrapper.m_Player_Possess;
+        public InputAction @PullOutPhone => m_Wrapper.m_Player_PullOutPhone;
+        public InputAction @Flashlight => m_Wrapper.m_Player_Flashlight;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -318,6 +364,12 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
             @Possess.started += instance.OnPossess;
             @Possess.performed += instance.OnPossess;
             @Possess.canceled += instance.OnPossess;
+            @PullOutPhone.started += instance.OnPullOutPhone;
+            @PullOutPhone.performed += instance.OnPullOutPhone;
+            @PullOutPhone.canceled += instance.OnPullOutPhone;
+            @Flashlight.started += instance.OnFlashlight;
+            @Flashlight.performed += instance.OnFlashlight;
+            @Flashlight.canceled += instance.OnFlashlight;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -346,6 +398,12 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
             @Possess.started -= instance.OnPossess;
             @Possess.performed -= instance.OnPossess;
             @Possess.canceled -= instance.OnPossess;
+            @PullOutPhone.started -= instance.OnPullOutPhone;
+            @PullOutPhone.performed -= instance.OnPullOutPhone;
+            @PullOutPhone.canceled -= instance.OnPullOutPhone;
+            @Flashlight.started -= instance.OnFlashlight;
+            @Flashlight.performed -= instance.OnFlashlight;
+            @Flashlight.canceled -= instance.OnFlashlight;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -373,5 +431,7 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         void OnFlyUp(InputAction.CallbackContext context);
         void OnFlyDown(InputAction.CallbackContext context);
         void OnPossess(InputAction.CallbackContext context);
+        void OnPullOutPhone(InputAction.CallbackContext context);
+        void OnFlashlight(InputAction.CallbackContext context);
     }
 }

@@ -15,6 +15,12 @@ public class PlayerInputHandler : MonoBehaviour
     public Camera playerCamera;
     public float lookSensitivity = 2f;
 
+    [Header("Phone Settings")]
+    public GameObject phonePrefab;
+
+    [HideInInspector]
+    public Phone phoneInstance;
+
     private PlayerInputs inputActions;
     private Vector2 moveInput;
     private Vector2 lookInput;
@@ -26,6 +32,20 @@ public class PlayerInputHandler : MonoBehaviour
 
     private void Awake()
     {
+        // Instantiate phone as a child of player
+        if (phonePrefab != null && cameraTransform != null)
+        {
+            GameObject phoneObj = Instantiate(phonePrefab, cameraTransform);
+            phoneInstance = phoneObj.GetComponent<Phone>();
+
+            // Set position/rotation to prefab defaults
+            phoneObj.transform.localPosition = phonePrefab.transform.localPosition;
+            phoneObj.transform.localRotation = phonePrefab.transform.localRotation;
+
+            phoneObj.SetActive(false); // start hidden
+            phoneInstance.explorer = this; // assign reference
+        }
+
         controller = GetComponent<CharacterController>();
     }
 
@@ -36,7 +56,7 @@ public class PlayerInputHandler : MonoBehaviour
 
         inputActions = newInputs;
 
-        // Subscribe using normal methods, no lambdas
+        // Movement/look/jump/sprint
         inputActions.Player.Movement.performed += OnMovePerformed;
         inputActions.Player.Movement.canceled += OnMoveCanceled;
 
@@ -46,11 +66,25 @@ public class PlayerInputHandler : MonoBehaviour
         inputActions.Player.Jump.performed += OnJumpPerformed;
         inputActions.Player.Sprint.performed += OnSprintPerformed;
 
+        // --- Phone inputs ---
+        inputActions.Player.PullOutPhone.performed += ctx =>
+        {
+            if (phoneInstance != null)
+                phoneInstance.TogglePhone();
+        };
+
+        inputActions.Player.Flashlight.performed += ctx =>
+        {
+            if (phoneInstance != null)
+                phoneInstance.ToggleFlashlight();
+        };
+
         inputActions.Enable();
 
         if (playerCamera != null)
             playerCamera.enabled = true;
     }
+
 
     public void ReleaseControl()
     {

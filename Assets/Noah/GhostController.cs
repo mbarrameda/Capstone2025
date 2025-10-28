@@ -12,7 +12,7 @@ public class GhostController : MonoBehaviour
     [Header("Phasing & Fear")]
     public float fear = 100f;
     public float phaseCost = 25f;
-    private float phaseDuration = 10f;   // seconds
+    public float phaseDuration = 10f;   // seconds
     private float phaseTimer = 0f;
 
     [Header("Layers")]
@@ -25,8 +25,11 @@ public class GhostController : MonoBehaviour
     public Camera ghostCamera;
     public Renderer ghostRenderer;
 
+    private bool isStunned = false;
+    private float stunTimer = 0f;
+
     // input & physics
-    private PlayerInputs inputActions;
+    public PlayerInputs inputActions;
     public Rigidbody rb;
 
     // runtime
@@ -144,6 +147,15 @@ public class GhostController : MonoBehaviour
             {
                 // Time's up, automatically stop phasing
                 TogglePhase();
+            }
+        }
+        if (isStunned)
+        {
+            stunTimer -= Time.deltaTime;
+            if (stunTimer <= 0f)
+            {
+                isStunned = false;
+                FreezeInput(false);
             }
         }
     }
@@ -268,5 +280,11 @@ public class GhostController : MonoBehaviour
     {
         rb.isKinematic = false;
         rb.velocity = Vector3.zero;
+    }
+    public void Stun(float duration)
+    {
+        isStunned = true;
+        stunTimer = duration;
+        FreezeInput(true);
     }
 }

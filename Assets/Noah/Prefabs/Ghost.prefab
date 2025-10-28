@@ -160,17 +160,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 5
   flySpeed: 3
-  lookSensitivity: 1
+  lookSensitivity: 3
   fear: 100
-  fearDrainRateDuringPossession: 15
   phaseCost: 10
-  requiredFearToPossess: 50
   defaultLayerName: Default
   ghostLayerName: Ghost
   phaseableWallLayerName: PhaseableWall
   cameraTransform: {fileID: 4272074462309545225}
   ghostCamera: {fileID: 6027540668835561494}
-  player: {fileID: 0}
+  ghostRenderer: {fileID: 8466732496915190834}
+  rb: {fileID: 4235255242431818843}
 --- !u!136 &6147667372854573218
 CapsuleCollider:
   m_ObjectHideFlags: 0
