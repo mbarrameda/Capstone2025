@@ -160,9 +160,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 5
   flySpeed: 3
-  lookSensitivity: 3
+  lookSensitivity: 5
   fear: 100
   phaseCost: 10
+  phaseDuration: 10
   defaultLayerName: Default
   ghostLayerName: Ghost
   phaseableWallLayerName: PhaseableWall

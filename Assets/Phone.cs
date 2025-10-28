@@ -81,18 +81,33 @@ public class Phone : MonoBehaviour
 
     private void StunGhostsInCone()
     {
+        if (explorer == null || explorer.cameraTransform == null) return;
+
+        Vector3 origin = explorer.cameraTransform.position; // start raycast from camera
+        Vector3 forward = explorer.cameraTransform.forward;
+
         GhostController[] ghosts = FindObjectsOfType<GhostController>();
+
         foreach (GhostController ghost in ghosts)
         {
-            Vector3 dirToGhost = ghost.transform.position - flashlight.transform.position;
+            Vector3 dirToGhost = ghost.transform.position - origin;
             float distance = dirToGhost.magnitude;
+
             if (distance > stunDistance) continue;
 
-            float angle = Vector3.Angle(flashlight.transform.forward, dirToGhost);
+            float angle = Vector3.Angle(forward, dirToGhost);
             if (angle <= stunAngle / 2f)
             {
-                ghost.Stun(stunDuration);
+                if (Physics.Raycast(origin, dirToGhost.normalized, out RaycastHit hit, stunDistance))
+                {
+                    if (hit.collider.gameObject == ghost.gameObject)
+                    {
+                        ghost.Stun(stunDuration);
+                    }
+                }
             }
         }
     }
+
+
 }
