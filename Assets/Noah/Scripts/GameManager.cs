@@ -209,7 +209,7 @@ public class GameManager : MonoBehaviour
 
     public void SpawnObjectClone(GhostController ghost, PossessableObject obj)
     {
-        if (activeClones.ContainsKey(ghost)) return; // already controlling a clone
+        if (activeClones.ContainsKey(ghost)) return;
 
         if (obj.clonePrefab == null)
         {
@@ -222,11 +222,25 @@ public class GameManager : MonoBehaviour
         ghost.FreezeInput(true);
         ghost.SetVisibility(false);
 
-        var handler = clone.GetComponent<PlayerInputHandler>();
-        if (handler != null)
+        // Try to get ObjectMovement first, then fall back to PlayerInputHandler
+        var objectMovement = clone.GetComponent<ObjectMovement>();
+        var playerHandler = clone.GetComponent<PlayerInputHandler>();
+
+        if (objectMovement != null)
         {
+            // Use ObjectMovement for objects
             ghost.playerInputs.Disable();
-            handler.TakeControl(ghost.playerInputs);
+            objectMovement.TakeControl(ghost.playerInputs);
+        }
+        else if (playerHandler != null)
+        {
+            // Use PlayerInputHandler for explorer clones
+            ghost.playerInputs.Disable();
+            playerHandler.TakeControl(ghost.playerInputs);
+        }
+        else
+        {
+            Debug.LogError("Clone prefab has no movement component!");
         }
 
         activeClones.Add(ghost, new CloneData { cloneObject = clone, timer = cloneDuration });

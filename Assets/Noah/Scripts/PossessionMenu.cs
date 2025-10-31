@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
 
 public class PossessionMenu : MonoBehaviour
@@ -33,15 +32,20 @@ public class PossessionMenu : MonoBehaviour
 
         menuButtons.Clear();
 
-        // Always add Explorer option
-        AddMenuButton("Explorer", null);
+        // Always add Explorer option first
+        AddMenuButton("Explorer", "Explorer", null);
 
         // Add possessed objects
         foreach (var obj in possessedObjects)
         {
-            if (obj != null && obj.GetComponent<PossessableObject>() != null)
+            if (obj != null)
             {
-                AddMenuButton(obj.name, obj);
+                PossessableObject possessable = obj.GetComponent<PossessableObject>();
+                if (possessable != null)
+                {
+                    string displayName = GetDisplayName(obj.name);
+                    AddMenuButton(displayName, obj.name, obj);
+                }
             }
         }
 
@@ -59,9 +63,13 @@ public class PossessionMenu : MonoBehaviour
         }
     }
 
-    private void AddMenuButton(string buttonText, GameObject linkedObject)
+    private void AddMenuButton(string displayText, string objectName, GameObject linkedObject)
     {
-        if (buttonPrefab == null || buttonParent == null) return;
+        if (buttonPrefab == null || buttonParent == null)
+        {
+            Debug.LogError("Button prefab or parent is not assigned!");
+            return;
+        }
 
         var buttonObj = Instantiate(buttonPrefab, buttonParent);
         Button button = buttonObj.GetComponent<Button>();
@@ -72,18 +80,34 @@ public class PossessionMenu : MonoBehaviour
             Text textComponent = buttonObj.GetComponentInChildren<Text>();
             if (textComponent != null)
             {
-                textComponent.text = buttonText;
+                textComponent.text = displayText;
+                Debug.Log($"Set button text to: {displayText}");
+            }
+            else
+            {
+                Debug.LogWarning("No Text component found in button prefab!");
             }
 
             // Store reference to the object this button represents
             GameObject objRef = linkedObject;
 
             button.onClick.AddListener(() => {
+                Debug.Log($"Button clicked: {displayText} -> {objectName}");
                 OnButtonSelected(objRef);
             });
 
             menuButtons.Add(button);
         }
+        else
+        {
+            Debug.LogError("No Button component found in button prefab!");
+        }
+    }
+
+    private string GetDisplayName(string originalName)
+    {
+        // Clean up the name for display
+        return originalName.Replace("(Clone)", "").Trim();
     }
 
     private void SetupControllerNavigation()
@@ -104,6 +128,7 @@ public class PossessionMenu : MonoBehaviour
 
     private void OnButtonSelected(GameObject selectedObject)
     {
+        Debug.Log($"Menu selected: {(selectedObject != null ? selectedObject.name : "Explorer")}");
         onSelectObject?.Invoke(selectedObject);
         CloseMenu();
     }
@@ -114,6 +139,11 @@ public class PossessionMenu : MonoBehaviour
         {
             menuRoot.SetActive(true);
             UpdateMenu(possessedObjects);
+            Debug.Log($"Menu opened with {possessedObjects.Count} possessed objects");
+        }
+        else
+        {
+            Debug.LogError("Menu root is null!");
         }
     }
 
@@ -121,24 +151,5 @@ public class PossessionMenu : MonoBehaviour
     {
         if (menuRoot != null)
             menuRoot.SetActive(false);
-    }
-
-    // Handle controller input for the menu
-    public void OnNavigate(InputAction.CallbackContext context)
-    {
-        // This allows controller navigation through the menu
-        // The Input System UI Input Module should handle this automatically
-    }
-
-    public void OnSubmit(InputAction.CallbackContext context)
-    {
-        if (context.performed && EventSystem.current.currentSelectedGameObject != null)
-        {
-            Button selectedButton = EventSystem.current.currentSelectedGameObject.GetComponent<Button>();
-            if (selectedButton != null)
-            {
-                selectedButton.onClick.Invoke();
-            }
-        }
     }
 }

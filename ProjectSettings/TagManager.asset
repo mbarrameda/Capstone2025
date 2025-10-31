@@ -6,6 +6,7 @@ TagManager:
   tags:
   - CinemachineTarget
   - Explorer
+  - Ground
   layers:
   - Default
   - TransparentFX
@@ -15,7 +16,7 @@ TagManager:
   - UI
   - PhaseableWall
   - Ghost
-  - 
+  - Ground
   - 
   - 
   - 

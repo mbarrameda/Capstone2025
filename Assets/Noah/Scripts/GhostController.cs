@@ -114,14 +114,14 @@ public class GhostController : MonoBehaviour
         }
     }
 
-    // ADD THIS MISSING METHOD
     private void OnMenuOptionSelected(GameObject selectedObject)
     {
         Debug.Log($"Menu option selected: {selectedObject?.name ?? "Explorer"}");
 
-        if (selectedObject == null || selectedObject.name == "ExplorerOption")
+        if (selectedObject == null)
         {
             // Spawn explorer clone
+            Debug.Log("Spawning explorer clone");
             GameManager.Instance.SpawnExplorerClone(this);
         }
         else
@@ -130,11 +130,12 @@ public class GhostController : MonoBehaviour
             PossessableObject possessable = selectedObject.GetComponent<PossessableObject>();
             if (possessable != null)
             {
+                Debug.Log($"Spawning object clone: {possessable.name}");
                 GameManager.Instance.SpawnObjectClone(this, possessable);
             }
             else
             {
-                Debug.LogError("Selected object doesn't have PossessableObject component!");
+                Debug.LogError($"Selected object {selectedObject.name} doesn't have PossessableObject component!");
                 // Fallback to explorer clone
                 GameManager.Instance.SpawnExplorerClone(this);
             }
@@ -442,10 +443,13 @@ public class GhostController : MonoBehaviour
             bool success = nearest.TryPossess(this);
             if (success)
             {
-                Debug.Log($"Possessed object: {nearest.name}");
-                // Add to possessed objects list
+                Debug.Log($"Successfully possessed object: {nearest.name}");
+                // Make sure it's added to the list
                 if (!possessedObjects.Contains(nearest))
+                {
                     possessedObjects.Add(nearest);
+                    Debug.Log($"Added {nearest.name} to possessed objects list");
+                }
             }
             else
             {

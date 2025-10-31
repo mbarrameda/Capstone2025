@@ -446,6 +446,7 @@ MonoBehaviour:
   fearReturnBonus: 5
   isPossessed: 0
   canBeTransformedInto: 1
+  clonePrefab: {fileID: 4227542348200219666}
 --- !u!1 &4542573530358255661
 GameObject:
   m_ObjectHideFlags: 0

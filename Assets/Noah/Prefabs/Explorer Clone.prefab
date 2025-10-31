@@ -187,7 +187,7 @@ MonoBehaviour:
   gravity: -9.81
   cameraTransform: {fileID: 8458238811085099424}
   playerCamera: {fileID: 4934358297328321311}
-  lookSensitivity: 0.5
+  lookSensitivity: 1
   phonePrefab: {fileID: 1107688851397771869, guid: 728bd32e44bd7be46b05ff2ea90a6046, type: 3}
   phoneInstance: {fileID: 0}
 --- !u!1 &8247462598548540000
