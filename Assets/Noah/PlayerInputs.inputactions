@@ -69,15 +69,6 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Possess",
-                    "type": "Button",
-                    "id": "99fb6a00-ba34-4dcd-90f0-12f39ad4c5c2",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "PullOutPhone",
                     "type": "Button",
                     "id": "1fe763a7-e123-4c68-8299-1540f309f4dd",
@@ -87,9 +78,18 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Flashlight",
+                    "name": "PossessObject",
                     "type": "Button",
-                    "id": "84da3577-8a04-4acd-a147-85791fc02b9a",
+                    "id": "e7b3c392-2161-437c-8c6c-a2f5034e20a1",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "MenuToggle",
+                    "type": "Button",
+                    "id": "0edf0f67-74b2-4689-91ba-58d8069f536a",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -176,17 +176,6 @@
                 },
                 {
                     "name": "",
-                    "id": "b89b3143-9739-4a14-bb8b-cb4639735ae2",
-                    "path": "<Gamepad>/buttonNorth",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Possess",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "718a8222-dd28-4345-bc19-0ccfd520a25d",
                     "path": "<Gamepad>/buttonNorth",
                     "interactions": "",
@@ -198,12 +187,91 @@
                 },
                 {
                     "name": "",
-                    "id": "d88646f2-04ad-4ba2-b994-654aaa3f82b9",
-                    "path": "<Gamepad>/buttonWest",
+                    "id": "f399e1cf-c4ff-4679-ad20-6ebe022dc0f4",
+                    "path": "<Gamepad>/buttonEast",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Flashlight",
+                    "action": "PossessObject",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7a79770b-17f0-4591-a000-ea739686108f",
+                    "path": "<Gamepad>/buttonNorth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MenuToggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "UI",
+            "id": "80817362-9d38-4859-9779-1b077e97b896",
+            "actions": [
+                {
+                    "name": "Navigate",
+                    "type": "Value",
+                    "id": "5489d6e1-10bd-4cb0-940f-eb2968dcd47e",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Submit",
+                    "type": "Button",
+                    "id": "b6bef387-8097-4351-a7b0-09abdeac2805",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Cancel",
+                    "type": "Button",
+                    "id": "4c9390a9-ddc5-4734-9a74-e2dd88a7fed1",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "8b53baaf-aca8-4742-8645-d3e7aa50c147",
+                    "path": "<Gamepad>/leftStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Navigate",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "7edc6d47-e270-41f9-8d62-f216fb6731ea",
+                    "path": "<Gamepad>/buttonSouth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Submit",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "942b3241-1e1c-4cb1-a145-a8b2a0b21640",
+                    "path": "<Gamepad>/buttonEast",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Cancel",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

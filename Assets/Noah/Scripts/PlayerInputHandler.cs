@@ -73,7 +73,7 @@ public class PlayerInputHandler : MonoBehaviour
                 phoneInstance.TogglePhone();
         };
 
-        inputActions.Player.Flashlight.performed += ctx =>
+        
         {
             if (phoneInstance != null)
                 phoneInstance.ToggleFlashlight();

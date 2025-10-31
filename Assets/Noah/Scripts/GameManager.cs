@@ -14,24 +14,30 @@ public class GameManager : MonoBehaviour
     public Transform[] ghostSpawns;
 
     [Header("Clone Settings")]
-    [Tooltip("Offset from ghost when spawning clone")]
     public Vector3 cloneOffset = new Vector3(1.5f, 0f, 0f);
-
-    [Tooltip("Fear drained per second while controlling clone")]
     public float fearDrainRateWhileUsingClone = 20f;
-
-    [Tooltip("Maximum duration for controlling a clone in seconds")]
     public float cloneDuration = 15f;
-
-    [Tooltip("Fear cost to spawn a clone")]
     public float cloneFearCost = 25f;
 
     private List<PlayerInputHandler> explorers = new List<PlayerInputHandler>();
     private List<GhostController> ghosts = new List<GhostController>();
     private List<PlayerInputs> inputSets = new List<PlayerInputs>();
 
-    // Tracks active clones
-    private Dictionary<GhostController, CloneData> activeClones = new Dictionary<GhostController, CloneData>();
+    // Change from private to public and make CloneData public
+    public Dictionary<GhostController, CloneData> activeClones = new Dictionary<GhostController, CloneData>();
+
+    public static GameManager Instance { get; private set; }
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
 
     private void Start()
     {
@@ -41,7 +47,6 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        // Update all active clones
         List<GhostController> finishedClones = new List<GhostController>();
 
         foreach (var kvp in activeClones)
@@ -49,36 +54,29 @@ public class GameManager : MonoBehaviour
             GhostController ghost = kvp.Key;
             CloneData data = kvp.Value;
 
-            // Drain fear and count down timer
             ghost.fear -= fearDrainRateWhileUsingClone * Time.deltaTime;
             ghost.fear = Mathf.Max(ghost.fear, 0f);
             data.timer -= Time.deltaTime;
 
-            // Auto-release if time runs out or fear depleted
             if (data.timer <= 0f || ghost.fear <= 0f)
-            {
                 finishedClones.Add(ghost);
-            }
         }
 
         foreach (var ghost in finishedClones)
-        {
             ReleaseClone(ghost);
-        }
     }
+
+    // ------------------ Player & Ghost Setup ------------------ //
 
     private void SetupPlayers()
     {
         int controllerCount = Gamepad.all.Count;
-        Debug.Log($"Detected {controllerCount} controllers.");
-
         if (controllerCount < 2)
         {
             Debug.LogError("At least 2 controllers required!");
             return;
         }
 
-        // Create an input set for each controller
         for (int i = 0; i < controllerCount; i++)
         {
             var input = new PlayerInputs();
@@ -86,7 +84,6 @@ public class GameManager : MonoBehaviour
             inputSets.Add(input);
         }
 
-        // --- PLAYER ASSIGNMENT LOGIC ---
         switch (controllerCount)
         {
             case 2:
@@ -121,10 +118,6 @@ public class GameManager : MonoBehaviour
         var ghost = Instantiate(ghostPrefab, spawn.position, spawn.rotation);
         ghost.AssignInput(inputSets[controllerIndex]);
         ghosts.Add(ghost);
-
-        // Bind clone/possess button per ghost
-        int index = ghosts.Count - 1;
-        inputSets[controllerIndex].Player.Possess.performed += ctx => ToggleCloneControl(ghost);
     }
 
     private void SetupDisplays()
@@ -135,62 +128,59 @@ public class GameManager : MonoBehaviour
             Display.displays[1].Activate();
         }
 
-        // --- Explorers ---
         for (int i = 0; i < explorers.Count; i++)
         {
             Camera cam = explorers[i].playerCamera;
             cam.targetDisplay = 0;
-
-            if (explorers.Count == 1)
-                cam.rect = new Rect(0, 0, 1, 1);
-            else if (explorers.Count == 2)
-                cam.rect = i == 0 ? new Rect(0, 0.5f, 1, 0.5f) : new Rect(0, 0, 1, 0.5f);
+            cam.rect = explorers.Count == 1 ? new Rect(0, 0, 1, 1) : i == 0 ? new Rect(0, 0.5f, 1, 0.5f) : new Rect(0, 0, 1, 0.5f);
         }
 
-        // --- Ghosts ---
         for (int i = 0; i < ghosts.Count; i++)
         {
             Camera cam = ghosts[i].ghostCamera;
             cam.targetDisplay = 1;
-
-            if (ghosts.Count == 1)
-                cam.rect = new Rect(0, 0, 1, 1);
-            else if (ghosts.Count == 2)
-                cam.rect = i == 0 ? new Rect(0, 0.5f, 1, 0.5f) : new Rect(0, 0, 1, 0.5f);
+            cam.rect = ghosts.Count == 1 ? new Rect(0, 0, 1, 1) : i == 0 ? new Rect(0, 0.5f, 1, 0.5f) : new Rect(0, 0, 1, 0.5f);
         }
     }
 
-    // --- Clone / Possess Logic ---
-    private void ToggleCloneControl(GhostController ghost)
+    // ------------------ Clone Handling ------------------ //
+
+    public void SpawnPossessedClone(GhostController ghost, PossessableObject obj)
     {
-        if (activeClones.ContainsKey(ghost))
+        if (obj == null || obj.clonePrefab == null)
         {
-            ReleaseClone(ghost);
+            Debug.Log("Spawning explorer clone instead.");
+            SpawnExplorerClone(ghost);
+            return;
         }
-        else
+
+        GameObject clone = Instantiate(obj.clonePrefab, ghost.transform.position + cloneOffset, ghost.transform.rotation);
+
+        ghost.FreezeInput(true);
+        ghost.SetVisibility(false);
+
+        var handler = clone.GetComponent<PlayerInputHandler>();
+        if (handler != null)
         {
-            if (ghost.fear < cloneFearCost) return;
-            SpawnAndControlClone(ghost);
+            ghost.playerInputs.Disable();
+            handler.TakeControl(ghost.playerInputs);
         }
+
+        activeClones.Add(ghost, new CloneData { cloneObject = clone, timer = cloneDuration });
     }
 
-    private void SpawnAndControlClone(GhostController ghost)
+    public void SpawnExplorerClone(GhostController ghost)
     {
-        if (activeClones.ContainsKey(ghost)) return;
-
-        // Deduct fear cost
-        ghost.fear -= cloneFearCost;
-
         GameObject clone = Instantiate(explorerClonePrefab, ghost.transform.position + cloneOffset, ghost.transform.rotation);
 
         ghost.FreezeInput(true);
         ghost.SetVisibility(false);
 
-        var cloneHandler = clone.GetComponent<PlayerInputHandler>();
-        if (cloneHandler != null)
+        var handler = clone.GetComponent<PlayerInputHandler>();
+        if (handler != null)
         {
-            ghost.inputActions.Disable();
-            cloneHandler.TakeControl(ghost.inputActions);
+            ghost.playerInputs.Disable();
+            handler.TakeControl(ghost.playerInputs);
         }
 
         activeClones.Add(ghost, new CloneData { cloneObject = clone, timer = cloneDuration });
@@ -201,19 +191,50 @@ public class GameManager : MonoBehaviour
         if (!activeClones.ContainsKey(ghost)) return;
 
         var data = activeClones[ghost];
-
-        if (data.cloneObject != null)
-            Destroy(data.cloneObject);
+        if (data.cloneObject != null) Destroy(data.cloneObject);
 
         ghost.FreezeInput(false);
         ghost.SetVisibility(true);
-        ghost.inputActions.Enable();
-        ghost.AssignInput(ghost.inputActions);
+        ghost.playerInputs.Enable();
+        ghost.AssignInput(ghost.playerInputs);
 
         activeClones.Remove(ghost);
     }
 
-    private class CloneData
+    // Add this public method to check if a ghost has an active clone
+    public bool HasActiveClone(GhostController ghost)
+    {
+        return activeClones.ContainsKey(ghost);
+    }
+
+    public void SpawnObjectClone(GhostController ghost, PossessableObject obj)
+    {
+        if (activeClones.ContainsKey(ghost)) return; // already controlling a clone
+
+        if (obj.clonePrefab == null)
+        {
+            SpawnExplorerClone(ghost);
+            return;
+        }
+
+        GameObject clone = Instantiate(obj.clonePrefab, ghost.transform.position + cloneOffset, ghost.transform.rotation);
+
+        ghost.FreezeInput(true);
+        ghost.SetVisibility(false);
+
+        var handler = clone.GetComponent<PlayerInputHandler>();
+        if (handler != null)
+        {
+            ghost.playerInputs.Disable();
+            handler.TakeControl(ghost.playerInputs);
+        }
+
+        activeClones.Add(ghost, new CloneData { cloneObject = clone, timer = cloneDuration });
+    }
+
+    // Make CloneData public
+    [System.Serializable]
+    public class CloneData
     {
         public GameObject cloneObject;
         public float timer;

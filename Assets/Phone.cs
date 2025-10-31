@@ -45,18 +45,29 @@ public class Phone : MonoBehaviour
         isOut = !isOut;
         gameObject.SetActive(isOut);
 
-        // Turn off flashlight if phone is put away
-        if (!isOut)
+        if (isOut)
         {
+            // Automatically turn flashlight on
+            if (currentBattery > 0f)
+            {
+                flashlightOn = true;
+                if (flashlight != null)
+                    flashlight.enabled = true;
+            }
+        }
+        else
+        {
+            // Turn flashlight off when putting phone away
             flashlightOn = false;
             if (flashlight != null)
                 flashlight.enabled = false;
         }
     }
 
+    // This stays in case you need manual toggle later
     public void ToggleFlashlight()
     {
-        if (!isOut) return; // only works if phone is out
+        if (!isOut) return;
         if (currentBattery <= 0f)
         {
             flashlightOn = false;
@@ -83,7 +94,7 @@ public class Phone : MonoBehaviour
     {
         if (explorer == null || explorer.cameraTransform == null) return;
 
-        Vector3 origin = explorer.cameraTransform.position; // start raycast from camera
+        Vector3 origin = explorer.cameraTransform.position;
         Vector3 forward = explorer.cameraTransform.forward;
 
         GhostController[] ghosts = FindObjectsOfType<GhostController>();
@@ -98,6 +109,7 @@ public class Phone : MonoBehaviour
             float angle = Vector3.Angle(forward, dirToGhost);
             if (angle <= stunAngle / 2f)
             {
+                // Only stun if ghost is visible (no walls between)
                 if (Physics.Raycast(origin, dirToGhost.normalized, out RaycastHit hit, stunDistance))
                 {
                     if (hit.collider.gameObject == ghost.gameObject)
@@ -108,6 +120,4 @@ public class Phone : MonoBehaviour
             }
         }
     }
-
-
 }

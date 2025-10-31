@@ -91,15 +91,6 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""Possess"",
-                    ""type"": ""Button"",
-                    ""id"": ""99fb6a00-ba34-4dcd-90f0-12f39ad4c5c2"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
                     ""name"": ""PullOutPhone"",
                     ""type"": ""Button"",
                     ""id"": ""1fe763a7-e123-4c68-8299-1540f309f4dd"",
@@ -109,9 +100,18 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Flashlight"",
+                    ""name"": ""PossessObject"",
                     ""type"": ""Button"",
-                    ""id"": ""84da3577-8a04-4acd-a147-85791fc02b9a"",
+                    ""id"": ""e7b3c392-2161-437c-8c6c-a2f5034e20a1"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""MenuToggle"",
+                    ""type"": ""Button"",
+                    ""id"": ""0edf0f67-74b2-4689-91ba-58d8069f536a"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
@@ -198,17 +198,6 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""b89b3143-9739-4a14-bb8b-cb4639735ae2"",
-                    ""path"": ""<Gamepad>/buttonNorth"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Possess"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""718a8222-dd28-4345-bc19-0ccfd520a25d"",
                     ""path"": ""<Gamepad>/buttonNorth"",
                     ""interactions"": """",
@@ -220,12 +209,91 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""d88646f2-04ad-4ba2-b994-654aaa3f82b9"",
-                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""id"": ""f399e1cf-c4ff-4679-ad20-6ebe022dc0f4"",
+                    ""path"": ""<Gamepad>/buttonEast"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Flashlight"",
+                    ""action"": ""PossessObject"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7a79770b-17f0-4591-a000-ea739686108f"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MenuToggle"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
+        },
+        {
+            ""name"": ""UI"",
+            ""id"": ""80817362-9d38-4859-9779-1b077e97b896"",
+            ""actions"": [
+                {
+                    ""name"": ""Navigate"",
+                    ""type"": ""Value"",
+                    ""id"": ""5489d6e1-10bd-4cb0-940f-eb2968dcd47e"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Submit"",
+                    ""type"": ""Button"",
+                    ""id"": ""b6bef387-8097-4351-a7b0-09abdeac2805"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Cancel"",
+                    ""type"": ""Button"",
+                    ""id"": ""4c9390a9-ddc5-4734-9a74-e2dd88a7fed1"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""8b53baaf-aca8-4742-8645-d3e7aa50c147"",
+                    ""path"": ""<Gamepad>/leftStick"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Navigate"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7edc6d47-e270-41f9-8d62-f216fb6731ea"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Submit"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""942b3241-1e1c-4cb1-a145-a8b2a0b21640"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Cancel"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -243,9 +311,14 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         m_Player_PhaseToggle = m_Player.FindAction("Phase Toggle", throwIfNotFound: true);
         m_Player_FlyUp = m_Player.FindAction("Fly Up", throwIfNotFound: true);
         m_Player_FlyDown = m_Player.FindAction("Fly Down", throwIfNotFound: true);
-        m_Player_Possess = m_Player.FindAction("Possess", throwIfNotFound: true);
         m_Player_PullOutPhone = m_Player.FindAction("PullOutPhone", throwIfNotFound: true);
-        m_Player_Flashlight = m_Player.FindAction("Flashlight", throwIfNotFound: true);
+        m_Player_PossessObject = m_Player.FindAction("PossessObject", throwIfNotFound: true);
+        m_Player_MenuToggle = m_Player.FindAction("MenuToggle", throwIfNotFound: true);
+        // UI
+        m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
+        m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
+        m_UI_Submit = m_UI.FindAction("Submit", throwIfNotFound: true);
+        m_UI_Cancel = m_UI.FindAction("Cancel", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -314,9 +387,9 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_PhaseToggle;
     private readonly InputAction m_Player_FlyUp;
     private readonly InputAction m_Player_FlyDown;
-    private readonly InputAction m_Player_Possess;
     private readonly InputAction m_Player_PullOutPhone;
-    private readonly InputAction m_Player_Flashlight;
+    private readonly InputAction m_Player_PossessObject;
+    private readonly InputAction m_Player_MenuToggle;
     public struct PlayerActions
     {
         private @PlayerInputs m_Wrapper;
@@ -328,9 +401,9 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         public InputAction @PhaseToggle => m_Wrapper.m_Player_PhaseToggle;
         public InputAction @FlyUp => m_Wrapper.m_Player_FlyUp;
         public InputAction @FlyDown => m_Wrapper.m_Player_FlyDown;
-        public InputAction @Possess => m_Wrapper.m_Player_Possess;
         public InputAction @PullOutPhone => m_Wrapper.m_Player_PullOutPhone;
-        public InputAction @Flashlight => m_Wrapper.m_Player_Flashlight;
+        public InputAction @PossessObject => m_Wrapper.m_Player_PossessObject;
+        public InputAction @MenuToggle => m_Wrapper.m_Player_MenuToggle;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -361,15 +434,15 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
             @FlyDown.started += instance.OnFlyDown;
             @FlyDown.performed += instance.OnFlyDown;
             @FlyDown.canceled += instance.OnFlyDown;
-            @Possess.started += instance.OnPossess;
-            @Possess.performed += instance.OnPossess;
-            @Possess.canceled += instance.OnPossess;
             @PullOutPhone.started += instance.OnPullOutPhone;
             @PullOutPhone.performed += instance.OnPullOutPhone;
             @PullOutPhone.canceled += instance.OnPullOutPhone;
-            @Flashlight.started += instance.OnFlashlight;
-            @Flashlight.performed += instance.OnFlashlight;
-            @Flashlight.canceled += instance.OnFlashlight;
+            @PossessObject.started += instance.OnPossessObject;
+            @PossessObject.performed += instance.OnPossessObject;
+            @PossessObject.canceled += instance.OnPossessObject;
+            @MenuToggle.started += instance.OnMenuToggle;
+            @MenuToggle.performed += instance.OnMenuToggle;
+            @MenuToggle.canceled += instance.OnMenuToggle;
         }
 
         private void UnregisterCallbacks(IPlayerActions instance)
@@ -395,15 +468,15 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
             @FlyDown.started -= instance.OnFlyDown;
             @FlyDown.performed -= instance.OnFlyDown;
             @FlyDown.canceled -= instance.OnFlyDown;
-            @Possess.started -= instance.OnPossess;
-            @Possess.performed -= instance.OnPossess;
-            @Possess.canceled -= instance.OnPossess;
             @PullOutPhone.started -= instance.OnPullOutPhone;
             @PullOutPhone.performed -= instance.OnPullOutPhone;
             @PullOutPhone.canceled -= instance.OnPullOutPhone;
-            @Flashlight.started -= instance.OnFlashlight;
-            @Flashlight.performed -= instance.OnFlashlight;
-            @Flashlight.canceled -= instance.OnFlashlight;
+            @PossessObject.started -= instance.OnPossessObject;
+            @PossessObject.performed -= instance.OnPossessObject;
+            @PossessObject.canceled -= instance.OnPossessObject;
+            @MenuToggle.started -= instance.OnMenuToggle;
+            @MenuToggle.performed -= instance.OnMenuToggle;
+            @MenuToggle.canceled -= instance.OnMenuToggle;
         }
 
         public void RemoveCallbacks(IPlayerActions instance)
@@ -421,6 +494,68 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         }
     }
     public PlayerActions @Player => new PlayerActions(this);
+
+    // UI
+    private readonly InputActionMap m_UI;
+    private List<IUIActions> m_UIActionsCallbackInterfaces = new List<IUIActions>();
+    private readonly InputAction m_UI_Navigate;
+    private readonly InputAction m_UI_Submit;
+    private readonly InputAction m_UI_Cancel;
+    public struct UIActions
+    {
+        private @PlayerInputs m_Wrapper;
+        public UIActions(@PlayerInputs wrapper) { m_Wrapper = wrapper; }
+        public InputAction @Navigate => m_Wrapper.m_UI_Navigate;
+        public InputAction @Submit => m_Wrapper.m_UI_Submit;
+        public InputAction @Cancel => m_Wrapper.m_UI_Cancel;
+        public InputActionMap Get() { return m_Wrapper.m_UI; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(UIActions set) { return set.Get(); }
+        public void AddCallbacks(IUIActions instance)
+        {
+            if (instance == null || m_Wrapper.m_UIActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_UIActionsCallbackInterfaces.Add(instance);
+            @Navigate.started += instance.OnNavigate;
+            @Navigate.performed += instance.OnNavigate;
+            @Navigate.canceled += instance.OnNavigate;
+            @Submit.started += instance.OnSubmit;
+            @Submit.performed += instance.OnSubmit;
+            @Submit.canceled += instance.OnSubmit;
+            @Cancel.started += instance.OnCancel;
+            @Cancel.performed += instance.OnCancel;
+            @Cancel.canceled += instance.OnCancel;
+        }
+
+        private void UnregisterCallbacks(IUIActions instance)
+        {
+            @Navigate.started -= instance.OnNavigate;
+            @Navigate.performed -= instance.OnNavigate;
+            @Navigate.canceled -= instance.OnNavigate;
+            @Submit.started -= instance.OnSubmit;
+            @Submit.performed -= instance.OnSubmit;
+            @Submit.canceled -= instance.OnSubmit;
+            @Cancel.started -= instance.OnCancel;
+            @Cancel.performed -= instance.OnCancel;
+            @Cancel.canceled -= instance.OnCancel;
+        }
+
+        public void RemoveCallbacks(IUIActions instance)
+        {
+            if (m_Wrapper.m_UIActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        public void SetCallbacks(IUIActions instance)
+        {
+            foreach (var item in m_Wrapper.m_UIActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_UIActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    public UIActions @UI => new UIActions(this);
     public interface IPlayerActions
     {
         void OnMovement(InputAction.CallbackContext context);
@@ -430,8 +565,14 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         void OnPhaseToggle(InputAction.CallbackContext context);
         void OnFlyUp(InputAction.CallbackContext context);
         void OnFlyDown(InputAction.CallbackContext context);
-        void OnPossess(InputAction.CallbackContext context);
         void OnPullOutPhone(InputAction.CallbackContext context);
-        void OnFlashlight(InputAction.CallbackContext context);
+        void OnPossessObject(InputAction.CallbackContext context);
+        void OnMenuToggle(InputAction.CallbackContext context);
+    }
+    public interface IUIActions
+    {
+        void OnNavigate(InputAction.CallbackContext context);
+        void OnSubmit(InputAction.CallbackContext context);
+        void OnCancel(InputAction.CallbackContext context);
     }
 }
