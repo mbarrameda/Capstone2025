@@ -443,6 +443,75 @@ Mesh:
     offset: 0
     size: 0
     path: 
+--- !u!1001 &9436173
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 07851a0a2ceca164ba240521039d5d53, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 07851a0a2ceca164ba240521039d5d53, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 07851a0a2ceca164ba240521039d5d53, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 07851a0a2ceca164ba240521039d5d53, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 07851a0a2ceca164ba240521039d5d53, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.272
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 07851a0a2ceca164ba240521039d5d53, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 07851a0a2ceca164ba240521039d5d53, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 07851a0a2ceca164ba240521039d5d53, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 07851a0a2ceca164ba240521039d5d53, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 07851a0a2ceca164ba240521039d5d53, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 07851a0a2ceca164ba240521039d5d53, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 07851a0a2ceca164ba240521039d5d53, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 07851a0a2ceca164ba240521039d5d53, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 07851a0a2ceca164ba240521039d5d53, type: 3}
+      propertyPath: m_Name
+      value: Meshy_Model
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 07851a0a2ceca164ba240521039d5d53, type: 3}
 --- !u!43 &10427629
 Mesh:
   m_ObjectHideFlags: 0
@@ -13534,6 +13603,21 @@ Mesh:
     offset: 0
     size: 0
     path: 
+--- !u!115 &313823671
+MonoScript:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 7
+  m_DefaultReferences: {}
+  m_Icon: {fileID: 0}
+  m_Type: 0
+  m_ExecutionOrder: 0
+  m_ClassName: MeshyBridge
+  m_Namespace: 
+  m_AssemblyName: MeshyAssembly
 --- !u!1001 &317010491
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -14385,7 +14469,10 @@ MonoBehaviour:
   jumpHeight: 1
   gravity: -9.81
   cameraTransform: {fileID: 395227821}
+  playerCamera: {fileID: 0}
   lookSensitivity: 1
+  phonePrefab: {fileID: 0}
+  phoneInstance: {fileID: 0}
 --- !u!143 &332007924
 CharacterController:
   m_ObjectHideFlags: 0
@@ -25419,8 +25506,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8674c93d2ba28a4da0a7f73717b55d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 332007923}
-  ghost: {fileID: 1885975085}
+  explorerPrefab: {fileID: 0}
+  ghostPrefab: {fileID: 0}
+  explorerClonePrefab: {fileID: 0}
+  explorerSpawns: []
+  ghostSpawns: []
+  cloneOffset: {x: 1.5, y: 0, z: 0}
+  fearDrainRateWhileUsingClone: 20
+  cloneDuration: 15
+  cloneFearCost: 25
 --- !u!4 &576571766
 Transform:
   m_ObjectHideFlags: 0
@@ -27875,6 +27969,50 @@ Mesh:
     offset: 0
     size: 0
     path: 
+--- !u!1 &616965210
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 616965212}
+  - component: {fileID: 616965211}
+  m_Layer: 0
+  m_Name: MeshyBridge
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &616965211
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 616965210}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 313823671}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &616965212
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 616965210}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &618754517
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -82274,15 +82412,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 090e8ca2dc20d7b4d880eee98c1b2cf6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  possessionMenuCanvasName: Possession Menu Canvas
   moveSpeed: 5
   flySpeed: 3
   lookSensitivity: 1
   fear: 100
-  fearDrainRate: 1
+  phaseCost: 25
+  phaseDuration: 10
   defaultLayerName: Default
   ghostLayerName: Ghost
   phaseableWallLayerName: PhaseableWall
+  promptCanvas: {fileID: 0}
+  promptText: {fileID: 0}
   cameraTransform: {fileID: 1577167610}
+  ghostCamera: {fileID: 0}
+  ghostRenderer: {fileID: 0}
+  rb: {fileID: 0}
 --- !u!54 &1885975086
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -95602,3 +95747,5 @@ SceneRoots:
   - {fileID: 1225999964}
   - {fileID: 2038152788}
   - {fileID: 232305957}
+  - {fileID: 616965212}
+  - {fileID: 9436173}
