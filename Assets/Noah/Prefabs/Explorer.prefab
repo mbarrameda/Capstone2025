@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 4646947839042228124}
   m_Layer: 0
   m_Name: Explorer
-  m_TagString: Untagged
+  m_TagString: Explorer
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -84,6 +84,11 @@ MonoBehaviour:
   lookSensitivity: 2
   phonePrefab: {fileID: 1107688851397771869, guid: 728bd32e44bd7be46b05ff2ea90a6046, type: 3}
   phoneInstance: {fileID: 0}
+  uiHint: {fileID: 0}
+  interactDistance: 3
+  interactLayerMask:
+    serializedVersion: 2
+    m_Bits: 512
 --- !u!136 &4646947839042228124
 CapsuleCollider:
   m_ObjectHideFlags: 0
