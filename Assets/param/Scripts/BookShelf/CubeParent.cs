@@ -1,4 +1,6 @@
 using UnityEngine;
+using TMPro;
+using System.Collections;
 
 /// <summary>
 /// Controls the cube puzzle logic.
@@ -15,6 +17,19 @@ public class CubeGroupManager : MonoBehaviour
     [Tooltip("Door open rotation or movement speed.")]
     public float doorOpenSpeed = 2f;
 
+    [Header("Feedback")]
+    [Tooltip("TextMeshProUGUI element for pop-up messages.")]
+    public TextMeshProUGUI hintText;
+
+    [Tooltip("Time in seconds the pop-up stays visible.")]
+    public float hintDuration = 2f;
+
+    [Tooltip("Sound played when the correct cube is selected.")]
+    public AudioClip successSound;
+
+    [Tooltip("AudioSource used for feedback sounds.")]
+    public AudioSource audioSource;
+
     private bool puzzleSolved = false;
     private Quaternion doorTargetRotation;
 
@@ -29,6 +44,10 @@ public class CubeGroupManager : MonoBehaviour
         // Keep door closed at start
         if (door != null)
             doorTargetRotation = door.transform.rotation;
+
+        // Hide hint text initially
+        if (hintText != null)
+            hintText.enabled = false;
     }
 
     /// <summary>
@@ -42,6 +61,15 @@ public class CubeGroupManager : MonoBehaviour
         {
             Debug.Log("Correct cube chosen! Door opening...");
             puzzleSolved = true;
+
+            // Show pop-up hint
+            if (hintText != null)
+                StartCoroutine(ShowHint("You heard a door open!"));
+
+            // Play success sound
+            if (audioSource != null && successSound != null)
+                audioSource.PlayOneShot(successSound);
+
             OpenDoor();
         }
         else
@@ -60,7 +88,7 @@ public class CubeGroupManager : MonoBehaviour
         }
     }
 
-    private System.Collections.IEnumerator RotateDoor(GameObject doorObj, Quaternion targetRot)
+    private IEnumerator RotateDoor(GameObject doorObj, Quaternion targetRot)
     {
         Quaternion startRot = doorObj.transform.rotation;
         float t = 0;
@@ -70,5 +98,18 @@ public class CubeGroupManager : MonoBehaviour
             doorObj.transform.rotation = Quaternion.Slerp(startRot, targetRot, t);
             yield return null;
         }
+    }
+
+    /// <summary>
+    /// Shows a hint message temporarily on screen.
+    /// </summary>
+    private IEnumerator ShowHint(string message)
+    {
+        hintText.text = message;
+        hintText.enabled = true;
+
+        yield return new WaitForSeconds(hintDuration);
+
+        hintText.enabled = false;
     }
 }

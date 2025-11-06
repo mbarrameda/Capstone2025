@@ -1,6 +1,7 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 
 /// <summary>
 /// Controls the Sound Pattern Puzzle logic:
@@ -8,6 +9,7 @@ using System.Collections.Generic;
 /// - Plays it when the pattern cube is interacted with
 /// - Checks player's reproduction sequence
 /// - Opens the door on success
+/// - Shows UI hints and plays sounds for correct or wrong sequences
 /// </summary>
 public class SoundPatternPuzzle : MonoBehaviour
 {
@@ -24,6 +26,19 @@ public class SoundPatternPuzzle : MonoBehaviour
     [Tooltip("Speed of door opening animation.")]
     public float doorOpenSpeed = 2f;
 
+    [Header("Feedback")]
+    [Tooltip("TextMeshProUGUI element for pop-up messages.")]
+    public TextMeshProUGUI hintText;
+
+    [Tooltip("Time in seconds the pop-up stays visible.")]
+    public float hintDuration = 2f;
+
+    [Tooltip("Sound played when the puzzle is solved.")]
+    public AudioClip successSound;
+
+    [Tooltip("Sound played when the player enters a wrong sequence.")]
+    public AudioClip failSound;
+
     private List<int> patternSequence = new List<int>();
     private List<int> playerInputSequence = new List<int>();
 
@@ -34,11 +49,14 @@ public class SoundPatternPuzzle : MonoBehaviour
     private void Start()
     {
         if (soundClips.Length != 6)
-            Debug.LogWarning("?? You should assign exactly 6 sound clips for this puzzle!");
+            Debug.LogWarning("⚠️ You should assign exactly 6 sound clips for this puzzle!");
+
+        if (hintText != null)
+            hintText.enabled = false;
     }
 
     /// <summary>
-    /// Called by the pattern cube � generates and plays a random 6-sound sequence.
+    /// Called by the pattern cube — generates and plays a random 6-sound sequence.
     /// </summary>
     public void PlayRandomPattern()
     {
@@ -57,7 +75,7 @@ public class SoundPatternPuzzle : MonoBehaviour
             patternSequence.Add(Random.Range(0, soundClips.Length));
         }
         patternGenerated = true;
-        Debug.Log("?? New random sound pattern generated.");
+        Debug.Log("🎵 New random sound pattern generated.");
     }
 
     private IEnumerator PlayPattern()
@@ -71,7 +89,7 @@ public class SoundPatternPuzzle : MonoBehaviour
         }
 
         patternPlaying = false;
-        Debug.Log("?? Pattern playback finished. Player can now reproduce it.");
+        Debug.Log("🔊 Pattern playback finished. Player can now reproduce it.");
     }
 
     /// <summary>
@@ -82,7 +100,7 @@ public class SoundPatternPuzzle : MonoBehaviour
         if (!patternGenerated || patternPlaying || puzzleCompleted)
             return;
 
-        // Immediate sound feedback
+        // Immediate sound feedback for the input cube
         audioSource.clip = soundClips[cubeID];
         audioSource.Play();
 
@@ -98,14 +116,30 @@ public class SoundPatternPuzzle : MonoBehaviour
         {
             if (playerInputSequence[i] != patternSequence[i])
             {
-                Debug.Log("? Wrong sequence. Try again.");
+                Debug.Log("❌ Wrong sequence. Try again.");
+                // Show wrong sequence hint
+                if (hintText != null)
+                    StartCoroutine(ShowHint("You have to try again"));
+                // Play fail sound
+                if (audioSource != null && failSound != null)
+                    audioSource.PlayOneShot(failSound);
+
                 playerInputSequence.Clear();
                 return;
             }
         }
 
-        Debug.Log("? Correct sequence! Puzzle solved!");
+        Debug.Log("✅ Correct sequence! Puzzle solved!");
         puzzleCompleted = true;
+
+        // Show correct sequence hint
+        if (hintText != null)
+            StartCoroutine(ShowHint("You heard a door open!"));
+
+        // Play success sound
+        if (audioSource != null && successSound != null)
+            audioSource.PlayOneShot(successSound);
+
         StartCoroutine(OpenDoor());
     }
 
@@ -125,5 +159,18 @@ public class SoundPatternPuzzle : MonoBehaviour
         }
 
         doorObject.transform.position = endPos;
+    }
+
+    /// <summary>
+    /// Shows a temporary hint message on screen.
+    /// </summary>
+    private IEnumerator ShowHint(string message)
+    {
+        hintText.text = message;
+        hintText.enabled = true;
+
+        yield return new WaitForSeconds(hintDuration);
+
+        hintText.enabled = false;
     }
 }
