@@ -28,8 +28,19 @@ public class PossessionMenu : MonoBehaviour
 
         if (menuRoot != null)
             menuRoot.SetActive(false);
-    }
 
+        foreach (Transform child in buttonParent)
+        {
+            Button btn = child.GetComponent<Button>();
+            if (btn != null)
+                btn.onClick.RemoveAllListeners();
+        }
+    }
+    public void ClearCallbacks()
+    {
+        // Clear any stored callbacks to prevent calling destroyed objects
+        onSelectObject = null;
+    }
     public void UpdateMenu(List<GameObject> possessedObjects)
     {
         // Clear existing buttons

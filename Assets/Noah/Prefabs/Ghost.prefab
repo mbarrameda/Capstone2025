@@ -158,22 +158,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 090e8ca2dc20d7b4d880eee98c1b2cf6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  possessionMenuPanel: {fileID: 0}
+  possessionMenuCanvasName: Possession Menu Canvas
+  possessionMenu: {fileID: 0}
   moveSpeed: 5
   flySpeed: 3
   lookSensitivity: 5
+  lockObjectRotation: 0
   fear: 100
   phaseCost: 10
   phaseDuration: 10
   defaultLayerName: Default
   ghostLayerName: Ghost
   phaseableWallLayerName: PhaseableWall
-  promptCanvas: {fileID: 0}
-  promptText: {fileID: 0}
   cameraTransform: {fileID: 4272074462309545225}
   ghostCamera: {fileID: 6027540668835561494}
   ghostRenderer: {fileID: 8466732496915190834}
   rb: {fileID: 4235255242431818843}
+  invertYLook: 0
+  cameraPivot: {fileID: 0}
+  preserveCameraSetup: 0
+  isControllingClone: 0
+  activeClone: {fileID: 0}
 --- !u!136 &6147667372854573218
 CapsuleCollider:
   m_ObjectHideFlags: 0
