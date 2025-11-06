@@ -23,9 +23,6 @@ public class PossessableObject : MonoBehaviour
         possessingGhost = ghost;
         ghost.RegisterPossessedObject(this);
 
-        if (TryGetComponent<Renderer>(out Renderer r))
-            r.material.color = Color.cyan;
-
         return true;
     }
 

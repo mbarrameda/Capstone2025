@@ -10,6 +10,12 @@ public class PossessionMenu : MonoBehaviour
     public Transform buttonParent;
     public GameObject menuRoot;
 
+    [Header("Button Settings")]
+    public Sprite explorerIcon;
+    public Sprite chairIcon;
+    public Sprite tableIcon;
+    public Sprite defaultObjectIcon;
+
     [Header("Controller Navigation")]
     public Button firstSelectedButton;
 
@@ -33,19 +39,16 @@ public class PossessionMenu : MonoBehaviour
         menuButtons.Clear();
 
         // Always add Explorer option first
-        AddMenuButton("Explorer", "Explorer", null);
+        AddMenuButton("Explorer", explorerIcon, null);
 
         // Add possessed objects
         foreach (var obj in possessedObjects)
         {
             if (obj != null)
             {
-                PossessableObject possessable = obj.GetComponent<PossessableObject>();
-                if (possessable != null)
-                {
-                    string displayName = GetDisplayName(obj.name);
-                    AddMenuButton(displayName, obj.name, obj);
-                }
+                string displayName = GetDisplayName(obj.name);
+                Sprite icon = GetIconForObject(obj.name);
+                AddMenuButton(displayName, icon, obj);
             }
         }
 
@@ -63,7 +66,7 @@ public class PossessionMenu : MonoBehaviour
         }
     }
 
-    private void AddMenuButton(string displayText, string objectName, GameObject linkedObject)
+    private void AddMenuButton(string displayText, Sprite icon, GameObject linkedObject)
     {
         if (buttonPrefab == null || buttonParent == null)
         {
@@ -81,26 +84,24 @@ public class PossessionMenu : MonoBehaviour
             if (textComponent != null)
             {
                 textComponent.text = displayText;
-                Debug.Log($"Set button text to: {displayText}");
             }
-            else
+
+            // Set button icon if available
+            Image iconImage = buttonObj.transform.Find("Icon")?.GetComponent<Image>();
+            if (iconImage != null && icon != null)
             {
-                Debug.LogWarning("No Text component found in button prefab!");
+                iconImage.sprite = icon;
+                iconImage.gameObject.SetActive(true);
             }
 
             // Store reference to the object this button represents
             GameObject objRef = linkedObject;
 
             button.onClick.AddListener(() => {
-                Debug.Log($"Button clicked: {displayText} -> {objectName}");
                 OnButtonSelected(objRef);
             });
 
             menuButtons.Add(button);
-        }
-        else
-        {
-            Debug.LogError("No Button component found in button prefab!");
         }
     }
 
@@ -108,6 +109,21 @@ public class PossessionMenu : MonoBehaviour
     {
         // Clean up the name for display
         return originalName.Replace("(Clone)", "").Trim();
+    }
+
+    private Sprite GetIconForObject(string objectName)
+    {
+        string cleanName = GetDisplayName(objectName).ToLower();
+
+        switch (cleanName)
+        {
+            case "chair":
+                return chairIcon;
+            case "table":
+                return tableIcon;
+            default:
+                return defaultObjectIcon;
+        }
     }
 
     private void SetupControllerNavigation()
@@ -128,7 +144,6 @@ public class PossessionMenu : MonoBehaviour
 
     private void OnButtonSelected(GameObject selectedObject)
     {
-        Debug.Log($"Menu selected: {(selectedObject != null ? selectedObject.name : "Explorer")}");
         onSelectObject?.Invoke(selectedObject);
         CloseMenu();
     }
@@ -139,11 +154,6 @@ public class PossessionMenu : MonoBehaviour
         {
             menuRoot.SetActive(true);
             UpdateMenu(possessedObjects);
-            Debug.Log($"Menu opened with {possessedObjects.Count} possessed objects");
-        }
-        else
-        {
-            Debug.LogError("Menu root is null!");
         }
     }
 

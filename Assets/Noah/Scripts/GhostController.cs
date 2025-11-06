@@ -27,19 +27,20 @@ public class GhostController : MonoBehaviour
     public string ghostLayerName = "Ghost";
     public string phaseableWallLayerName = "PhaseableWall";
 
-    [Header("UI References")]
-    public Canvas promptCanvas;
-    public Text promptText;
-
     [Header("References")]
     public Transform cameraTransform;
     public Camera ghostCamera;
     public Renderer ghostRenderer;
     public Rigidbody rb;
 
+    [Header("Camera Settings")]
+    public bool invertYLook = false;
+    public Transform cameraPivot;
+
     private bool isStunned = false;
     private float stunTimer = 0f;
-
+    private Canvas promptCanvas;
+    private Text promptText;
     // Input & physics
     public PlayerInputs playerInputs;
 
@@ -116,6 +117,13 @@ public class GhostController : MonoBehaviour
 
     private void OnMenuOptionSelected(GameObject selectedObject)
     {
+        // Check if this GhostController is still valid
+        if (this == null)
+        {
+            Debug.LogError("GhostController has been destroyed!");
+            return;
+        }
+
         Debug.Log($"Menu option selected: {selectedObject?.name ?? "Explorer"}");
 
         if (selectedObject == null)
@@ -128,7 +136,7 @@ public class GhostController : MonoBehaviour
         {
             // Spawn object clone
             PossessableObject possessable = selectedObject.GetComponent<PossessableObject>();
-            if (possessable != null)
+            if (possessable != null && GameManager.Instance != null)
             {
                 Debug.Log($"Spawning object clone: {possessable.name}");
                 GameManager.Instance.SpawnObjectClone(this, possessable);
@@ -326,14 +334,27 @@ public class GhostController : MonoBehaviour
 
     private void HandleRotation()
     {
+        if (freezeInput) return;
+
         float yRotation = lookInput.x * lookSensitivity;
         rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, yRotation, 0f));
 
-        xRotation -= lookInput.y * lookSensitivity;
+        // Handle Y inversion based on setting
+        float yLook = lookInput.y * lookSensitivity;
+        if (invertYLook)
+            yLook = -yLook;
+
+        xRotation -= yLook;
         xRotation = Mathf.Clamp(xRotation, -80f, 80f);
 
-        if (cameraTransform != null)
+        if (cameraPivot != null)
+        {
+            cameraPivot.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        }
+        else if (cameraTransform != null)
+        {
             cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+        }
     }
 
     private void HandleMovement()

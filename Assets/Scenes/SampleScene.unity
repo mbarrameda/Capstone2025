@@ -30186,7 +30186,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &361626656
 RectTransform:
   m_ObjectHideFlags: 0
@@ -30205,8 +30205,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 28.46289}
-  m_SizeDelta: {x: -1101.448, y: -2234.943}
+  m_AnchoredPosition: {x: 0, y: -0.011779785}
+  m_SizeDelta: {x: -1101.448, y: -1910.3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &361626657
 MonoBehaviour:
@@ -134484,7 +134484,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 70.93, y: -28.462996}
+  m_AnchoredPosition: {x: 70.93, y: 382}
   m_SizeDelta: {x: 341.859, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1566148076
@@ -176839,6 +176839,10 @@ MonoBehaviour:
   buttonPrefab: {fileID: 4898261904955175730, guid: 41614aa646594424b9e89891f4b7a8cd, type: 3}
   buttonParent: {fileID: 1837865992}
   menuRoot: {fileID: 361626655}
+  explorerIcon: {fileID: 21300000, guid: 37cc89c9d8125ac45ad4ce579ea439ba, type: 3}
+  chairIcon: {fileID: 21300000, guid: d76557ebe15c8aa418a27e7520633d9e, type: 3}
+  tableIcon: {fileID: 21300000, guid: deabc3f32d5b7654584fcc30ba997435, type: 3}
+  defaultObjectIcon: {fileID: 21300000, guid: b74c31d447d2f5d41a61081bdf5e7126, type: 3}
   firstSelectedButton: {fileID: 0}
 --- !u!1001 &2090812393
 PrefabInstance:
