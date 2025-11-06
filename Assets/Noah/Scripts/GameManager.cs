@@ -201,7 +201,6 @@ public class GameManager : MonoBehaviour
         activeClones.Remove(ghost);
     }
 
-    // Add this public method to check if a ghost has an active clone
     public bool HasActiveClone(GhostController ghost)
     {
         return activeClones.ContainsKey(ghost);
@@ -209,9 +208,16 @@ public class GameManager : MonoBehaviour
 
     public void SpawnObjectClone(GhostController ghost, PossessableObject obj)
     {
+        // Add null check for ghost
+        if (ghost == null)
+        {
+            Debug.LogError("GhostController is null in SpawnObjectClone!");
+            return;
+        }
+
         if (activeClones.ContainsKey(ghost)) return;
 
-        if (obj.clonePrefab == null)
+        if (obj == null || obj.clonePrefab == null)
         {
             SpawnExplorerClone(ghost);
             return;
@@ -219,31 +225,25 @@ public class GameManager : MonoBehaviour
 
         GameObject clone = Instantiate(obj.clonePrefab, ghost.transform.position + cloneOffset, ghost.transform.rotation);
 
-        ghost.FreezeInput(true);
-        ghost.SetVisibility(false);
+        // Get the GhostController from the clone
+        GhostController objectController = clone.GetComponent<GhostController>();
 
-        // Try to get ObjectMovement first, then fall back to PlayerInputHandler
-        var objectMovement = clone.GetComponent<ObjectMovement>();
-        var playerHandler = clone.GetComponent<PlayerInputHandler>();
+        if (objectController != null)
+        {
+            ghost.FreezeInput(true);
+            ghost.SetVisibility(false);
 
-        if (objectMovement != null)
-        {
-            // Use ObjectMovement for objects
+            // Transfer control to the object's GhostController
             ghost.playerInputs.Disable();
-            objectMovement.TakeControl(ghost.playerInputs);
-        }
-        else if (playerHandler != null)
-        {
-            // Use PlayerInputHandler for explorer clones
-            ghost.playerInputs.Disable();
-            playerHandler.TakeControl(ghost.playerInputs);
+            objectController.AssignInput(ghost.playerInputs);
+
+            activeClones.Add(ghost, new CloneData { cloneObject = clone, timer = cloneDuration });
         }
         else
         {
-            Debug.LogError("Clone prefab has no movement component!");
+            Debug.LogError("Object clone doesn't have GhostController component!");
+            Destroy(clone);
         }
-
-        activeClones.Add(ghost, new CloneData { cloneObject = clone, timer = cloneDuration });
     }
 
     // Make CloneData public
