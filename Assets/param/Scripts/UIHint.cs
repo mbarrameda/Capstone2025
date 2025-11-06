@@ -8,7 +8,7 @@ using TMPro;
 [RequireComponent(typeof(TextMeshProUGUI))]
 public class SimpleUIHintTMP : MonoBehaviour
 {
-    private TextMeshProUGUI uiText;
+    public TextMeshProUGUI uiText;
 
     private void Awake()
     {

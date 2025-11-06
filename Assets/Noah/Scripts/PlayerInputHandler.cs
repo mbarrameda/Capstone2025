@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerInputHandler : MonoBehaviour
