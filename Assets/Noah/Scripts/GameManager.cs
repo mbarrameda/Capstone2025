@@ -108,7 +108,12 @@ public class GameManager : MonoBehaviour
     {
         Transform spawn = explorerSpawns[Mathf.Clamp(explorers.Count, 0, explorerSpawns.Length - 1)];
         var explorer = Instantiate(explorerPrefab, spawn.position, spawn.rotation);
-        explorer.TakeControl(inputSets[controllerIndex]);
+
+        // Create separate input actions for explorer
+        var explorerInputs = new PlayerInputs();
+        explorerInputs.devices = new InputDevice[] { Gamepad.all[controllerIndex] };
+
+        explorer.TakeControl(explorerInputs);
         explorers.Add(explorer);
     }
 
@@ -116,7 +121,12 @@ public class GameManager : MonoBehaviour
     {
         Transform spawn = ghostSpawns[Mathf.Clamp(ghosts.Count, 0, ghostSpawns.Length - 1)];
         var ghost = Instantiate(ghostPrefab, spawn.position, spawn.rotation);
-        ghost.AssignInput(inputSets[controllerIndex]);
+
+        // Create a copy of input actions for the ghost to prevent conflicts
+        var ghostInputs = new PlayerInputs();
+        ghostInputs.devices = new InputDevice[] { Gamepad.all[controllerIndex] };
+
+        ghost.AssignInput(ghostInputs);
         ghosts.Add(ghost);
     }
 
@@ -275,9 +285,10 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // 🔹 Clear any lingering menu callbacks
-        if (ghost.possessionMenu != null)
-            ghost.possessionMenu.ClearCallbacks();
+        // 🔹 Store original ghost state BEFORE modifying it
+        Vector3 originalGhostPosition = ghost.transform.position;
+        Quaternion originalGhostRotation = ghost.transform.rotation;
+        bool originalGhostVisibility = ghost.ghostRenderer?.enabled ?? false;
 
         // 🔹 Instantiate object clone at ghost position
         GameObject clone = Instantiate(
@@ -302,29 +313,18 @@ public class GameManager : MonoBehaviour
             cloneController.rb.constraints = RigidbodyConstraints.FreezeRotation;
             cloneController.rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
         }
-        else
-        {
-            Debug.LogError($"❌ Clone '{clone.name}' has no Rigidbody!");
-        }
 
-        // 🔹 Store original ghost state BEFORE modifying it
-        Vector3 originalGhostPosition = ghost.transform.position;
-        Quaternion originalGhostRotation = ghost.transform.rotation;
-
-        // 🔹 Hide ghost and freeze input, but keep it active in the scene
+        // 🔹 Hide ghost but keep it active and functional
         ghost.FreezeInput(true);
         ghost.SetVisibility(false);
         ghost.isControllingClone = true;
 
-        // 🔹 Give inputs to the clone
+        // 🔹 Transfer inputs to clone
         ghost.playerInputs.Disable();
         cloneController.AssignInput(ghost.playerInputs);
-        cloneController.playerInputs.Enable();
         cloneController.FreezeInput(false);
-
-        // 🔹 Preserve clone camera layout and mark as clone
-        cloneController.preserveCameraSetup = true;
         cloneController.isControllingClone = true;
+        cloneController.preserveCameraSetup = true;
 
         // 🔹 Track active clone
         activeClones[ghost] = new CloneData
@@ -333,30 +333,30 @@ public class GameManager : MonoBehaviour
             timer = cloneDuration
         };
 
-        // 🔹 Setup callback to return control to ghost - FIXED VERSION
+        // 🔹 FIXED: Setup callback to return control to ghost
         cloneController.OnDestroyClone = () =>
         {
-            // Make sure the ghost still exists
             if (ghost != null)
             {
-                // Restore ghost position and rotation
+                // Restore ghost transform
                 ghost.transform.position = originalGhostPosition;
                 ghost.transform.rotation = originalGhostRotation;
 
-                // Reactivate ghost
-                ghost.gameObject.SetActive(true);
+                // Reactivate ghost visuals and inputs
                 ghost.SetVisibility(true);
                 ghost.FreezeInput(false);
                 ghost.isControllingClone = false;
 
-                // Re-enable ghost inputs and refresh subscriptions
+                // 🔹 CRITICAL FIX: Re-enable and reassign ghost inputs
                 if (ghost.playerInputs != null)
                 {
                     ghost.playerInputs.Enable();
-                    ghost.AssignInput(ghost.playerInputs); // This re-subscribes all input handlers
+                    // Remove and reassign inputs to refresh all subscriptions
+                    ghost.RemoveInput();
+                    ghost.AssignInput(ghost.playerInputs);
                 }
 
-                // Reset ghost camera
+                // Reset camera
                 if (ghost.cameraPivot != null)
                 {
                     ghost.cameraPivot.localPosition = Vector3.zero;
@@ -368,17 +368,12 @@ public class GameManager : MonoBehaviour
                     ghost.cameraTransform.localRotation = Quaternion.identity;
                 }
 
-                // Clear the xRotation to reset look direction
                 ghost.xRotation = 0f;
 
                 // Remove from active clones
                 activeClones.Remove(ghost);
 
-                Debug.Log("✅ Successfully returned control to ghost. Ghost should be fully functional.");
-            }
-            else
-            {
-                Debug.LogError("❌ Ghost was destroyed before returning control!");
+                Debug.Log("✅ Ghost fully restored and should be responsive.");
             }
         };
     }
