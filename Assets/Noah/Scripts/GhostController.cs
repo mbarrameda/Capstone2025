@@ -8,13 +8,14 @@ public class GhostController : MonoBehaviour
 {
     [Header("Possession Menu")]
     [SerializeField] private string possessionMenuCanvasName = "Possession Menu Canvas";
-    private PossessionMenu possessionMenu;
+    public PossessionMenu possessionMenu;
     private bool menuOpen = false;
 
     [Header("Movement Settings")]
     public float moveSpeed = 5f;
     public float flySpeed = 3f;
     public float lookSensitivity = 2f;
+    public bool lockObjectRotation = true;
 
     [Header("Phasing & Fear")]
     public float fear = 100f;
@@ -36,11 +37,16 @@ public class GhostController : MonoBehaviour
     [Header("Camera Settings")]
     public bool invertYLook = false;
     public Transform cameraPivot;
+    public bool preserveCameraSetup = false; // prevents camera reset when controlling clones
+
+    [Header("Status Flags")]
+    public bool isControllingClone = false;
 
     private bool isStunned = false;
     private float stunTimer = 0f;
     private Canvas promptCanvas;
     private Text promptText;
+
     // Input & physics
     public PlayerInputs playerInputs;
 
@@ -48,29 +54,46 @@ public class GhostController : MonoBehaviour
     private Vector2 moveInput;
     private Vector2 lookInput;
     private float verticalInput;
-    private float xRotation;
+    public float xRotation;
     private bool isPhasing = false;
     private bool freezeInput = false;
 
     private int defaultLayer;
     private int ghostLayer;
     private int phaseableWallLayer;
+    public GameObject activeClone;
 
     private Quaternion targetRotation;
 
     private List<PossessableObject> possessedObjects = new List<PossessableObject>();
 
+    public System.Action OnDestroyClone;
+    public System.Action OnReturnToGhost;
+
+    private void OnDestroy()
+    {
+        // Clean up input subscriptions when destroyed
+        RemoveInput();
+
+        // Clear any ongoing coroutines
+        StopAllCoroutines();
+    }
+    // -------------------------------
+    // Initialization
+    // -------------------------------
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
         ghostRenderer = ghostRenderer ?? GetComponentInChildren<Renderer>();
         targetRotation = transform.rotation;
 
+        // Rigidbody setup
         rb.useGravity = false;
         rb.constraints = RigidbodyConstraints.FreezeRotation;
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
 
+        // Cache layer indexes
         defaultLayer = LayerMask.NameToLayer(defaultLayerName);
         ghostLayer = LayerMask.NameToLayer(ghostLayerName);
         phaseableWallLayer = LayerMask.NameToLayer(phaseableWallLayerName);
@@ -80,13 +103,12 @@ public class GhostController : MonoBehaviour
         if (promptCanvas != null)
             promptCanvas.enabled = false;
 
-        // Find the possession menu automatically
         FindPossessionMenu();
     }
 
+    // Automatically locate the Possession Menu in the scene
     private void FindPossessionMenu()
     {
-        // Method 1: Find by name
         GameObject canvasObject = GameObject.Find(possessionMenuCanvasName);
         if (canvasObject != null)
         {
@@ -98,7 +120,6 @@ public class GhostController : MonoBehaviour
             }
         }
 
-        // Method 2: Find any PossessionMenu in scene
         if (possessionMenu == null)
         {
             possessionMenu = FindObjectOfType<PossessionMenu>();
@@ -115,9 +136,12 @@ public class GhostController : MonoBehaviour
         }
     }
 
+
+    // -------------------------------
+    // Possession Menu
+    // -------------------------------
     private void OnMenuOptionSelected(GameObject selectedObject)
     {
-        // Check if this GhostController is still valid
         if (this == null)
         {
             Debug.LogError("GhostController has been destroyed!");
@@ -128,13 +152,11 @@ public class GhostController : MonoBehaviour
 
         if (selectedObject == null)
         {
-            // Spawn explorer clone
             Debug.Log("Spawning explorer clone");
             GameManager.Instance.SpawnExplorerClone(this);
         }
         else
         {
-            // Spawn object clone
             PossessableObject possessable = selectedObject.GetComponent<PossessableObject>();
             if (possessable != null && GameManager.Instance != null)
             {
@@ -144,22 +166,43 @@ public class GhostController : MonoBehaviour
             else
             {
                 Debug.LogError($"Selected object {selectedObject.name} doesn't have PossessableObject component!");
-                // Fallback to explorer clone
                 GameManager.Instance.SpawnExplorerClone(this);
             }
+        }
+
+        if (GameManager.Instance.HasActiveClone(this))
+        {
+            Debug.LogWarning("Already controlling a clone — ignoring menu input");
+            return;
         }
 
         ClosePossessionMenu();
     }
 
+
+    // -------------------------------
+    // Input Assignment
+    // -------------------------------
     public void AssignInput(PlayerInputs actions)
     {
-        // First remove any existing input to prevent duplicates
         RemoveInput();
-
         playerInputs = actions;
         SubscribeInputs();
         playerInputs.Enable();
+
+        if (!preserveCameraSetup && !isControllingClone)
+        {
+            if (cameraPivot != null)
+            {
+                cameraPivot.localPosition = Vector3.zero;
+                cameraPivot.localRotation = Quaternion.identity;
+            }
+            else if (cameraTransform != null)
+            {
+                cameraTransform.localPosition = Vector3.zero;
+                cameraTransform.localRotation = Quaternion.identity;
+            }
+        }
     }
 
     public void RemoveInput()
@@ -170,6 +213,10 @@ public class GhostController : MonoBehaviour
         playerInputs = null;
     }
 
+
+    // -------------------------------
+    // Input Subscriptions
+    // -------------------------------
     private void SubscribeInputs()
     {
         if (playerInputs == null) return;
@@ -212,7 +259,10 @@ public class GhostController : MonoBehaviour
         playerInputs.Player.FlyDown.canceled -= OnFlyDownCanceled;
     }
 
+
+    // -------------------------------
     // Input Handlers
+    // -------------------------------
     private void OnMovePerformed(InputAction.CallbackContext ctx) => moveInput = ctx.ReadValue<Vector2>();
     private void OnMoveCanceled(InputAction.CallbackContext ctx) => moveInput = Vector2.zero;
 
@@ -226,36 +276,73 @@ public class GhostController : MonoBehaviour
     private void OnFlyDownCanceled(InputAction.CallbackContext ctx) => verticalInput = 0f;
 
     private void OnPhaseToggle(InputAction.CallbackContext ctx) => TogglePhase();
+    private void OnPossessObject(InputAction.CallbackContext ctx) => TryPossessNearestObject();
 
-    private void OnPossessObject(InputAction.CallbackContext ctx)
-    {
-        TryPossessNearestObject();
-    }
 
+
+    // -------------------------------
+    // Possession Menu Logic
+    // -------------------------------
     private void OnMenuToggle(InputAction.CallbackContext ctx)
     {
+        // Safety check - if this object is destroyed, don't process input
+        if (this == null) return;
+
+        if (isControllingClone)
+        {
+            if (OnDestroyClone != null)
+            {
+                FreezeInput(true);
+                SetVisibility(false);
+
+                // Use a safer approach without coroutine
+                OnDestroyClone?.Invoke();
+                Destroy(gameObject);
+            }
+            return;
+        }
+
+        // Normal ghost menu
         TogglePossessionMenu();
     }
 
+    private System.Collections.IEnumerator DestroyCloneNextFrame()
+    {
+        yield return null; // wait one frame
+        OnDestroyClone?.Invoke();
+        Destroy(gameObject); // now safe to destroy
+    }
     public void TogglePossessionMenu()
     {
-        // Don't open menu if already controlling a clone
+        if (this == null)
+        {
+            Debug.LogError("GhostController has been destroyed!");
+            return;
+        }
+
+        if (isControllingClone)
+        {
+            Debug.Log("Menu disabled while controlling a clone/object.");
+            return;
+        }
+
         if (GameManager.Instance.HasActiveClone(this))
         {
             Debug.Log("Cannot open menu - already controlling a clone");
             return;
         }
 
-        menuOpen = !menuOpen;
+        if (possessionMenu == null)
+        {
+            Debug.LogError("PossessionMenu is null!");
+            return;
+        }
 
+        menuOpen = !menuOpen;
         if (menuOpen)
-        {
             OpenPossessionMenu();
-        }
         else
-        {
             ClosePossessionMenu();
-        }
     }
 
     private void OpenPossessionMenu()
@@ -263,12 +350,9 @@ public class GhostController : MonoBehaviour
         if (possessionMenu == null)
         {
             Debug.LogError("PossessionMenu reference is null!");
-            // Fallback: spawn explorer clone
-            GameManager.Instance.SpawnExplorerClone(this);
             return;
         }
 
-        // Get possessed objects
         List<GameObject> possessedGameObjects = new List<GameObject>();
         foreach (var obj in possessedObjects)
         {
@@ -276,13 +360,10 @@ public class GhostController : MonoBehaviour
                 possessedGameObjects.Add(obj.gameObject);
         }
 
-        // Open the menu
+        // The menu should always show at least the Explorer option
         possessionMenu.OpenMenu(possessedGameObjects);
 
-        // Freeze ghost movement
         FreezeInput(true);
-
-        // Set cursor state
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
@@ -302,6 +383,10 @@ public class GhostController : MonoBehaviour
         Debug.Log("Possession menu closed");
     }
 
+
+    // -------------------------------
+    // Update & Physics
+    // -------------------------------
     private void Update()
     {
         if (isPhasing)
@@ -332,34 +417,60 @@ public class GhostController : MonoBehaviour
         HandleMovement();
     }
 
+
+    // -------------------------------
+    // Movement & Camera
+    // -------------------------------
     private void HandleRotation()
     {
-        if (freezeInput) return;
-
         float yRotation = lookInput.x * lookSensitivity;
         rb.MoveRotation(rb.rotation * Quaternion.Euler(0f, yRotation, 0f));
 
-        // Handle Y inversion based on setting
-        float yLook = lookInput.y * lookSensitivity;
-        if (invertYLook)
-            yLook = -yLook;
-
-        xRotation -= yLook;
-        xRotation = Mathf.Clamp(xRotation, -80f, 80f);
-
-        if (cameraPivot != null)
+        // Control camera pitch (X rotation)
+        if (!preserveCameraSetup)
         {
-            cameraPivot.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
-        }
-        else if (cameraTransform != null)
-        {
-            cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
+            xRotation -= lookInput.y * lookSensitivity * (invertYLook ? -1f : 1f);
+            xRotation = Mathf.Clamp(xRotation, -80f, 80f);
+
+            if (cameraTransform != null)
+                cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
         }
     }
 
     private void HandleMovement()
     {
-        Vector3 moveDir = (transform.forward * moveInput.y + transform.right * moveInput.x).normalized;
+        if (moveInput.sqrMagnitude <= 0f) return;
+
+        Vector3 moveDir;
+
+        if (lockObjectRotation)
+        {
+            // For objects: move relative to camera direction, not object direction
+            if (cameraTransform != null)
+            {
+                // Get camera forward and right vectors, but flatten them to the horizontal plane
+                Vector3 cameraForward = cameraTransform.forward;
+                cameraForward.y = 0;
+                cameraForward.Normalize();
+
+                Vector3 cameraRight = cameraTransform.right;
+                cameraRight.y = 0;
+                cameraRight.Normalize();
+
+                moveDir = (cameraForward * moveInput.y + cameraRight * moveInput.x).normalized;
+            }
+            else
+            {
+                // Fallback: use object's forward/right
+                moveDir = (transform.forward * moveInput.y + transform.right * moveInput.x).normalized;
+            }
+        }
+        else
+        {
+            // For ghost: use object's forward/right (normal behavior)
+            moveDir = (transform.forward * moveInput.y + transform.right * moveInput.x).normalized;
+        }
+
         Vector3 verticalMove = Vector3.up * verticalInput;
         Vector3 moveAmount = (moveDir * moveSpeed + verticalMove * flySpeed) * Time.fixedDeltaTime;
 
@@ -368,7 +479,8 @@ public class GhostController : MonoBehaviour
         if (isPhasing)
         {
             int defaultMask = LayerMask.GetMask(defaultLayerName);
-            if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f, rb.position - Vector3.up * 0.5f, 0.5f,
+            if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
+                rb.position - Vector3.up * 0.5f, 0.5f,
                 moveAmount.normalized, moveAmount.magnitude, defaultMask))
             {
                 rb.MovePosition(rb.position + moveAmount);
@@ -376,7 +488,8 @@ public class GhostController : MonoBehaviour
         }
         else
         {
-            if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f, rb.position - Vector3.up * 0.5f, 0.5f,
+            if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
+                rb.position - Vector3.up * 0.5f, 0.5f,
                 moveAmount.normalized, moveAmount.magnitude))
             {
                 rb.MovePosition(rb.position + moveAmount);
@@ -384,6 +497,10 @@ public class GhostController : MonoBehaviour
         }
     }
 
+
+    // -------------------------------
+    // Abilities & Status
+    // -------------------------------
     public void TogglePhase()
     {
         if (!isPhasing && fear < phaseCost) return;
@@ -432,6 +549,10 @@ public class GhostController : MonoBehaviour
         }
     }
 
+
+    // -------------------------------
+    // Possession System
+    // -------------------------------
     private PossessableObject GetNearestPossessable()
     {
         float range = 3f;
@@ -458,36 +579,30 @@ public class GhostController : MonoBehaviour
     private void TryPossessNearestObject()
     {
         PossessableObject nearest = GetNearestPossessable();
-
         if (nearest != null)
         {
             bool success = nearest.TryPossess(this);
             if (success)
             {
                 Debug.Log($"Successfully possessed object: {nearest.name}");
-                // Make sure it's added to the list
                 if (!possessedObjects.Contains(nearest))
                 {
                     possessedObjects.Add(nearest);
-                    Debug.Log($"Added {nearest.name} to possessed objects list");
+                    Debug.Log($"Added {nearest.name} to possessed list");
                 }
             }
-            else
-            {
-                Debug.Log("Failed to possess object (not enough fear or already possessed)");
-            }
+            else Debug.Log("Failed to possess object.");
         }
-        else
-        {
-            Debug.Log("No possessable object nearby.");
-        }
+        else Debug.Log("No possessable object nearby.");
     }
 
+
+    // -------------------------------
+    // Utility & Helpers
+    // -------------------------------
     public void FreezeInput(bool freeze)
     {
         freezeInput = freeze;
-
-        // Also reset movement inputs when freezing
         if (freeze)
         {
             moveInput = Vector2.zero;
@@ -500,7 +615,6 @@ public class GhostController : MonoBehaviour
     {
         if (ghostRenderer != null)
             ghostRenderer.enabled = visible;
-
         if (ghostCamera != null)
             ghostCamera.enabled = visible;
     }
@@ -524,13 +638,10 @@ public class GhostController : MonoBehaviour
             possessedObjects.Add(obj);
     }
 
-    // Public method to set possession menu (optional)
     public void SetPossessionMenu(PossessionMenu menu)
     {
         possessionMenu = menu;
         if (possessionMenu != null)
-        {
             possessionMenu.Initialize(OnMenuOptionSelected);
-        }
     }
 }

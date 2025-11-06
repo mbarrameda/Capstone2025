@@ -175,31 +175,77 @@ public class GameManager : MonoBehaviour
 
         ghost.FreezeInput(true);
         ghost.SetVisibility(false);
+        ghost.isControllingClone = true;
 
         var handler = clone.GetComponent<PlayerInputHandler>();
         if (handler != null)
         {
             ghost.playerInputs.Disable();
             handler.TakeControl(ghost.playerInputs);
+
+            // Simple release handler for explorer clone (no menu, just timer)
+            // The timer in Update() will automatically call ReleaseClone when it expires
         }
 
         activeClones.Add(ghost, new CloneData { cloneObject = clone, timer = cloneDuration });
+
+        Debug.Log("Explorer clone spawned - will auto-return after timer");
     }
 
-    private void ReleaseClone(GhostController ghost)
+    public void ReleaseClone(GhostController ghost)
     {
-        if (!activeClones.ContainsKey(ghost)) return;
+        // 🔹 Validate input
+        if (ghost == null)
+        {
+            Debug.LogError("❌ ReleaseClone called with null GhostController!");
+            return;
+        }
 
-        var data = activeClones[ghost];
-        if (data.cloneObject != null) Destroy(data.cloneObject);
+        // 🔹 Check if this ghost has an active clone
+        if (!activeClones.TryGetValue(ghost, out CloneData cloneData))
+        {
+            Debug.LogWarning($"⚠️ No active clone found for {ghost.name} to release.");
+            return;
+        }
 
-        ghost.FreezeInput(false);
+        GameObject clone = cloneData.cloneObject;
+        if (clone == null)
+        {
+            Debug.LogWarning("⚠️ Clone object reference is missing, cleaning up entry.");
+            activeClones.Remove(ghost);
+            return;
+        }
+
+        // 🔹 Retrieve the GhostController from the clone (if any)
+        GhostController cloneController = clone.GetComponent<GhostController>();
+
+        // 🔹 Disable clone control and reassign input back to the ghost
+        if (cloneController != null)
+        {
+            cloneController.playerInputs.Disable();
+        }
+
+        ghost.gameObject.SetActive(true);
         ghost.SetVisibility(true);
+        ghost.FreezeInput(false);
         ghost.playerInputs.Enable();
-        ghost.AssignInput(ghost.playerInputs);
 
+        // 🔹 Restore ghost’s camera
+        if (ghost.ghostCamera != null)
+        {
+            ghost.ghostCamera.enabled = true;
+            ghost.ghostCamera.gameObject.SetActive(true);
+        }
+
+        // 🔹 Clean up the clone object
+        Destroy(clone);
+
+        // 🔹 Remove from active clone list
         activeClones.Remove(ghost);
+
+        Debug.Log($"✅ Clone released. Control returned to {ghost.name}");
     }
+
 
     public bool HasActiveClone(GhostController ghost)
     {
@@ -208,43 +254,138 @@ public class GameManager : MonoBehaviour
 
     public void SpawnObjectClone(GhostController ghost, PossessableObject obj)
     {
-        // Add null check for ghost
+        // 🔹 Sanity check
         if (ghost == null)
         {
-            Debug.LogError("GhostController is null in SpawnObjectClone!");
+            Debug.LogError("❌ GhostController is null in SpawnObjectClone!");
             return;
         }
 
-        if (activeClones.ContainsKey(ghost)) return;
+        // 🔹 Prevent multiple clones
+        if (activeClones.ContainsKey(ghost))
+        {
+            Debug.Log("Ghost already has an active clone");
+            return;
+        }
 
+        // 🔹 If no object, spawn explorer clone instead
         if (obj == null || obj.clonePrefab == null)
         {
             SpawnExplorerClone(ghost);
             return;
         }
 
-        GameObject clone = Instantiate(obj.clonePrefab, ghost.transform.position + cloneOffset, ghost.transform.rotation);
+        // 🔹 Clear any lingering menu callbacks
+        if (ghost.possessionMenu != null)
+            ghost.possessionMenu.ClearCallbacks();
 
-        // Get the GhostController from the clone
-        GhostController objectController = clone.GetComponent<GhostController>();
+        // 🔹 Instantiate object clone at ghost position
+        GameObject clone = Instantiate(
+            obj.clonePrefab,
+            ghost.transform.position + cloneOffset,
+            ghost.transform.rotation
+        );
 
-        if (objectController != null)
+        GhostController cloneController = clone.GetComponent<GhostController>();
+        if (cloneController == null)
         {
-            ghost.FreezeInput(true);
-            ghost.SetVisibility(false);
+            Debug.LogError($"❌ Clone '{clone.name}' has no GhostController component!");
+            Destroy(clone);
+            return;
+        }
 
-            // Transfer control to the object's GhostController
-            ghost.playerInputs.Disable();
-            objectController.AssignInput(ghost.playerInputs);
-
-            activeClones.Add(ghost, new CloneData { cloneObject = clone, timer = cloneDuration });
+        // 🔹 Setup Rigidbody if missing
+        cloneController.rb = cloneController.GetComponent<Rigidbody>();
+        if (cloneController.rb != null)
+        {
+            cloneController.rb.isKinematic = false;
+            cloneController.rb.constraints = RigidbodyConstraints.FreezeRotation;
+            cloneController.rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
         }
         else
         {
-            Debug.LogError("Object clone doesn't have GhostController component!");
-            Destroy(clone);
+            Debug.LogError($"❌ Clone '{clone.name}' has no Rigidbody!");
         }
+
+        // 🔹 Store original ghost state BEFORE modifying it
+        Vector3 originalGhostPosition = ghost.transform.position;
+        Quaternion originalGhostRotation = ghost.transform.rotation;
+
+        // 🔹 Hide ghost and freeze input, but keep it active in the scene
+        ghost.FreezeInput(true);
+        ghost.SetVisibility(false);
+        ghost.isControllingClone = true;
+
+        // 🔹 Give inputs to the clone
+        ghost.playerInputs.Disable();
+        cloneController.AssignInput(ghost.playerInputs);
+        cloneController.playerInputs.Enable();
+        cloneController.FreezeInput(false);
+
+        // 🔹 Preserve clone camera layout and mark as clone
+        cloneController.preserveCameraSetup = true;
+        cloneController.isControllingClone = true;
+
+        // 🔹 Track active clone
+        activeClones[ghost] = new CloneData
+        {
+            cloneObject = clone,
+            timer = cloneDuration
+        };
+
+        // 🔹 Setup callback to return control to ghost - FIXED VERSION
+        cloneController.OnDestroyClone = () =>
+        {
+            // Make sure the ghost still exists
+            if (ghost != null)
+            {
+                // Restore ghost position and rotation
+                ghost.transform.position = originalGhostPosition;
+                ghost.transform.rotation = originalGhostRotation;
+
+                // Reactivate ghost
+                ghost.gameObject.SetActive(true);
+                ghost.SetVisibility(true);
+                ghost.FreezeInput(false);
+                ghost.isControllingClone = false;
+
+                // Re-enable ghost inputs and refresh subscriptions
+                if (ghost.playerInputs != null)
+                {
+                    ghost.playerInputs.Enable();
+                    ghost.AssignInput(ghost.playerInputs); // This re-subscribes all input handlers
+                }
+
+                // Reset ghost camera
+                if (ghost.cameraPivot != null)
+                {
+                    ghost.cameraPivot.localPosition = Vector3.zero;
+                    ghost.cameraPivot.localRotation = Quaternion.identity;
+                }
+                else if (ghost.cameraTransform != null)
+                {
+                    ghost.cameraTransform.localPosition = Vector3.zero;
+                    ghost.cameraTransform.localRotation = Quaternion.identity;
+                }
+
+                // Clear the xRotation to reset look direction
+                ghost.xRotation = 0f;
+
+                // Remove from active clones
+                activeClones.Remove(ghost);
+
+                Debug.Log("✅ Successfully returned control to ghost. Ghost should be fully functional.");
+            }
+            else
+            {
+                Debug.LogError("❌ Ghost was destroyed before returning control!");
+            }
+        };
     }
+
+
+
+
 
     // Make CloneData public
     [System.Serializable]
