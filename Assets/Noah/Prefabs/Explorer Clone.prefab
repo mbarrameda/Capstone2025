@@ -112,7 +112,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1.227, z: 2.48}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.5, y: 1, z: 0.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4244039061683105918}
@@ -167,6 +167,11 @@ MonoBehaviour:
   lookSensitivity: 1
   phonePrefab: {fileID: 1107688851397771869, guid: 728bd32e44bd7be46b05ff2ea90a6046, type: 3}
   phoneInstance: {fileID: 0}
+  uiHint: {fileID: 0}
+  interactDistance: 4
+  interactLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
 --- !u!136 &102665299693381459
 CapsuleCollider:
   m_ObjectHideFlags: 0
