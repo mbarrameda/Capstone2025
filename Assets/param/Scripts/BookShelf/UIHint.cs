@@ -1,9 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 
 /// <summary>
-/// Attach this script to a TextMeshProUGUI component.
-/// Used to show/hide the "Press E to interact" prompt.
+/// Displays on-screen "Press □ / X to Interact" hints using TextMeshProUGUI.
+/// Attach this to a TMP text element in your Canvas.
 /// </summary>
 [RequireComponent(typeof(TextMeshProUGUI))]
 public class SimpleUIHintTMP : MonoBehaviour
@@ -13,34 +13,26 @@ public class SimpleUIHintTMP : MonoBehaviour
     private void Awake()
     {
         uiText = GetComponent<TextMeshProUGUI>();
-        if (uiText == null)
-        {
-            Debug.LogError("SimpleUIHintTMP requires a TextMeshProUGUI component.");
-        }
         HideHint();
     }
 
     /// <summary>
-    /// Displays a hint message.
+    /// Show a custom interaction hint.
     /// </summary>
     public void ShowHint(string message)
     {
-        if (uiText != null)
-        {
-            uiText.text = message;
-            uiText.enabled = true;
-        }
+        if (uiText == null) return;
+        uiText.text = message;
+        uiText.enabled = true;
     }
 
     /// <summary>
-    /// Hides the hint message.
+    /// Hide the current hint.
     /// </summary>
     public void HideHint()
     {
-        if (uiText != null)
-        {
-            uiText.text = "";
-            uiText.enabled = false;
-        }
+        if (uiText == null) return;
+        uiText.text = "";
+        uiText.enabled = false;
     }
 }
