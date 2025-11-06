@@ -204,14 +204,12 @@ public class GameManager : MonoBehaviour
 
     public void ReleaseClone(GhostController ghost)
     {
-        // 🔹 Validate input
         if (ghost == null)
         {
             Debug.LogError("❌ ReleaseClone called with null GhostController!");
             return;
         }
 
-        // 🔹 Check if this ghost has an active clone
         if (!activeClones.TryGetValue(ghost, out CloneData cloneData))
         {
             Debug.LogWarning($"⚠️ No active clone found for {ghost.name} to release.");
@@ -219,38 +217,38 @@ public class GameManager : MonoBehaviour
         }
 
         GameObject clone = cloneData.cloneObject;
-        if (clone == null)
+        if (clone != null)
         {
-            Debug.LogWarning("⚠️ Clone object reference is missing, cleaning up entry.");
-            activeClones.Remove(ghost);
-            return;
+            Destroy(clone);
         }
 
-        // 🔹 Retrieve the GhostController from the clone (if any)
-        GhostController cloneController = clone.GetComponent<GhostController>();
-
-        // 🔹 Disable clone control and reassign input back to the ghost
-        if (cloneController != null)
-        {
-            cloneController.playerInputs.Disable();
-        }
-
+        // Re-enable ghost control and camera
         ghost.gameObject.SetActive(true);
         ghost.SetVisibility(true);
         ghost.FreezeInput(false);
-        ghost.playerInputs.Enable();
+        ghost.isControllingClone = false;
 
-        // 🔹 Restore ghost’s camera
+        // 🧩 Ensure input is properly restored
+        if (ghost.playerInputs != null)
+        {
+            ghost.playerInputs.Disable();
+            ghost.RemoveInput();   // clear old bindings
+            ghost.AssignInput(ghost.playerInputs); // resubscribe inputs
+            ghost.playerInputs.Enable();
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ Ghost had no PlayerInputs when returning from clone. Creating new one.");
+            ghost.AssignInput(new PlayerInputs());
+        }
+
+        // Reactivate camera if it got disabled
         if (ghost.ghostCamera != null)
         {
             ghost.ghostCamera.enabled = true;
             ghost.ghostCamera.gameObject.SetActive(true);
         }
 
-        // 🔹 Clean up the clone object
-        Destroy(clone);
-
-        // 🔹 Remove from active clone list
         activeClones.Remove(ghost);
 
         Debug.Log($"✅ Clone released. Control returned to {ghost.name}");
