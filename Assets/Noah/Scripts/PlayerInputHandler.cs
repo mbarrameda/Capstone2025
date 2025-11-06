@@ -21,6 +21,16 @@ public class PlayerInputHandler : MonoBehaviour
     [HideInInspector]
     public Phone phoneInstance;
 
+    [Header("UI Hint")]
+    public SimpleUIHintTMP uiHint;
+
+    //Added for puzzle interaction
+    [Header("Interaction Settings")]
+    [Tooltip("Max distance for interacting with puzzle cubes")]
+    public float interactDistance = 3f;
+    [Tooltip("LayerMask for interactable puzzle cubes (optional)")]
+    public LayerMask interactLayerMask = ~0; // all layers by default
+
     private PlayerInputs inputActions;
     private Vector2 moveInput;
     private Vector2 lookInput;
@@ -73,18 +83,20 @@ public class PlayerInputHandler : MonoBehaviour
                 phoneInstance.TogglePhone();
         };
 
-        
         {
             if (phoneInstance != null)
                 phoneInstance.ToggleFlashlight();
-        };
+        }
+        ;
+
+        //Added: Gamepad interaction (Square / X button)
+        inputActions.Player.Interact.performed += OnInteractPerformed;
 
         inputActions.Enable();
 
         if (playerCamera != null)
             playerCamera.enabled = true;
     }
-
 
     public void ReleaseControl()
     {
@@ -98,6 +110,9 @@ public class PlayerInputHandler : MonoBehaviour
 
         inputActions.Player.Jump.performed -= OnJumpPerformed;
         inputActions.Player.Sprint.performed -= OnSprintPerformed;
+
+        //Clean up event
+        inputActions.Player.Interact.performed -= OnInteractPerformed;
 
         inputActions.Disable();
         inputActions = null;
@@ -121,6 +136,7 @@ public class PlayerInputHandler : MonoBehaviour
     {
         HandleLook();
         HandleMovement();
+        HandleHintRaycast();
     }
 
     private void HandleLook()
@@ -151,5 +167,48 @@ public class PlayerInputHandler : MonoBehaviour
     {
         if (controller.isGrounded)
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+    }
+
+    private void HandleHintRaycast()
+    {
+        if (cameraTransform == null || uiHint == null) return;
+
+        Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
+        if (Physics.Raycast(ray, out RaycastHit hit, 3f))
+        {
+            // Check both cube types
+            if (hit.collider.GetComponent<CubeChildInteract>() != null ||
+                hit.collider.GetComponent<SoundCubeInteract>() != null)
+            {
+                uiHint.ShowHint("Press □ / X to Interact");
+                return;
+            }
+        }
+
+        uiHint.HideHint();
+    }
+
+
+    //Controller-based puzzle interaction
+    private void OnInteractPerformed(InputAction.CallbackContext ctx)
+    {
+        if (cameraTransform == null) return;
+
+        // Raycast forward from camera to detect puzzle cubes
+        Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
+        if (Physics.Raycast(ray, out RaycastHit hit, interactDistance, interactLayerMask))
+        {
+            // If hit an interactable cube, trigger its interaction
+            CubeChildInteract cube = hit.collider.GetComponent<CubeChildInteract>();
+            if (cube != null)
+            {
+                cube.OnInteract();
+                return;
+            }
+        }
+    }
+    private void OnDestroy()
+    {
+        ReleaseControl();
     }
 }
