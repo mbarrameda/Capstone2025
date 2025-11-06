@@ -115,7 +115,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 11.5167, y: 1.319, z: 37.1195}
-  m_LocalScale: {x: 1.0071301, y: 0.10952, z: -2.608036}
+  m_LocalScale: {x: 0.5917091, y: 0.064345196, z: -1.5322733}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4698947630738611019}
@@ -272,6 +272,7 @@ MonoBehaviour:
   cameraPivot: {fileID: 6068968440479057854}
   preserveCameraSetup: 1
   isControllingClone: 1
+  xRotation: 0
   activeClone: {fileID: 0}
 --- !u!1 &2187444537530427869
 GameObject:
@@ -364,7 +365,7 @@ AudioListener:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2187444537530427869}
-  m_Enabled: 1
+  m_Enabled: 0
 --- !u!1 &7715341500481235197
 GameObject:
   m_ObjectHideFlags: 0
