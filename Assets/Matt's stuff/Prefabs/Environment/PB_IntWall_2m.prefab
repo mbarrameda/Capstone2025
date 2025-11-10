@@ -64,7 +64,7 @@ MonoBehaviour:
       m_Anchor: 9
     m_Material: {fileID: 0}
     m_SubmeshIndex: 0
-    m_ManualUV: 1
+    m_ManualUV: 0
     elementGroup: -1
     m_TextureGroup: -1
   - m_Indexes: 040000000500000006000000050000000700000006000000
@@ -81,7 +81,7 @@ MonoBehaviour:
       m_Anchor: 9
     m_Material: {fileID: 0}
     m_SubmeshIndex: 0
-    m_ManualUV: 1
+    m_ManualUV: 0
     elementGroup: -1
     m_TextureGroup: -1
   - m_Indexes: 08000000090000000a000000090000000b0000000a000000
@@ -98,7 +98,7 @@ MonoBehaviour:
       m_Anchor: 9
     m_Material: {fileID: 0}
     m_SubmeshIndex: 0
-    m_ManualUV: 1
+    m_ManualUV: 0
     elementGroup: -1
     m_TextureGroup: -1
   - m_Indexes: 0c0000000d0000000e0000000d0000000f0000000e000000
@@ -115,7 +115,7 @@ MonoBehaviour:
       m_Anchor: 9
     m_Material: {fileID: 0}
     m_SubmeshIndex: 0
-    m_ManualUV: 1
+    m_ManualUV: 0
     elementGroup: -1
     m_TextureGroup: -1
   - m_Indexes: 100000001100000012000000110000001300000012000000
@@ -132,7 +132,7 @@ MonoBehaviour:
       m_Anchor: 9
     m_Material: {fileID: 0}
     m_SubmeshIndex: 0
-    m_ManualUV: 1
+    m_ManualUV: 0
     elementGroup: -1
     m_TextureGroup: -1
   - m_Indexes: 140000001500000016000000150000001700000016000000
@@ -149,7 +149,7 @@ MonoBehaviour:
       m_Anchor: 9
     m_Material: {fileID: 0}
     m_SubmeshIndex: 0
-    m_ManualUV: 1
+    m_ManualUV: 0
     elementGroup: -1
     m_TextureGroup: -1
   m_SharedVertices:
@@ -163,47 +163,47 @@ MonoBehaviour:
   - m_Vertices: 0b0000000e00000012000000
   m_SharedTextures: []
   m_Positions:
-  - {x: -1, y: 0, z: 0.1}
-  - {x: 1, y: 0, z: 0.1}
-  - {x: -1, y: 3.5, z: 0.1}
-  - {x: 1, y: 3.5, z: 0.1}
-  - {x: 1, y: 0, z: 0.1}
-  - {x: 1, y: 0, z: -0.1}
-  - {x: 1, y: 3.5, z: 0.1}
-  - {x: 1, y: 3.5, z: -0.1}
-  - {x: 1, y: 0, z: -0.1}
-  - {x: -1, y: 0, z: -0.1}
-  - {x: 1, y: 3.5, z: -0.1}
-  - {x: -1, y: 3.5, z: -0.1}
-  - {x: -1, y: 0, z: -0.1}
-  - {x: -1, y: 0, z: 0.1}
-  - {x: -1, y: 3.5, z: -0.1}
-  - {x: -1, y: 3.5, z: 0.1}
-  - {x: -1, y: 3.5, z: 0.1}
-  - {x: 1, y: 3.5, z: 0.1}
-  - {x: -1, y: 3.5, z: -0.1}
-  - {x: 1, y: 3.5, z: -0.1}
-  - {x: -1, y: 0, z: -0.1}
-  - {x: 1, y: 0, z: -0.1}
-  - {x: -1, y: 0, z: 0.1}
-  - {x: 1, y: 0, z: 0.1}
+  - {x: -1, y: -2.5, z: 0.1}
+  - {x: 1, y: -2.5, z: 0.1}
+  - {x: -1, y: 2.5, z: 0.1}
+  - {x: 1, y: 2.5, z: 0.1}
+  - {x: 1, y: -2.5, z: 0.1}
+  - {x: 1, y: -2.5, z: -0.1}
+  - {x: 1, y: 2.5, z: 0.1}
+  - {x: 1, y: 2.5, z: -0.1}
+  - {x: 1, y: -2.5, z: -0.1}
+  - {x: -1, y: -2.5, z: -0.1}
+  - {x: 1, y: 2.5, z: -0.1}
+  - {x: -1, y: 2.5, z: -0.1}
+  - {x: -1, y: -2.5, z: -0.1}
+  - {x: -1, y: -2.5, z: 0.1}
+  - {x: -1, y: 2.5, z: -0.1}
+  - {x: -1, y: 2.5, z: 0.1}
+  - {x: -1, y: 2.5, z: 0.1}
+  - {x: 1, y: 2.5, z: 0.1}
+  - {x: -1, y: 2.5, z: -0.1}
+  - {x: 1, y: 2.5, z: -0.1}
+  - {x: -1, y: -2.5, z: -0.1}
+  - {x: 1, y: -2.5, z: -0.1}
+  - {x: -1, y: -2.5, z: 0.1}
+  - {x: 1, y: -2.5, z: 0.1}
   m_Textures0:
-  - {x: 1, y: -1.75}
-  - {x: -1, y: -1.75}
-  - {x: 1, y: 1.75}
-  - {x: -1, y: 1.75}
-  - {x: 0.1, y: -1.75}
-  - {x: -0.1, y: -1.75}
-  - {x: 0.1, y: 1.75}
-  - {x: -0.1, y: 1.75}
-  - {x: 1, y: -1.75}
-  - {x: -1, y: -1.75}
-  - {x: 1, y: 1.75}
-  - {x: -1, y: 1.75}
-  - {x: 0.1, y: -1.75}
-  - {x: -0.1, y: -1.75}
-  - {x: 0.1, y: 1.75}
-  - {x: -0.1, y: 1.75}
+  - {x: 1, y: -2.5}
+  - {x: -1, y: -2.5}
+  - {x: 1, y: 2.5}
+  - {x: -1, y: 2.5}
+  - {x: 0.1, y: -2.5}
+  - {x: -0.1, y: -2.5}
+  - {x: 0.1, y: 2.5}
+  - {x: -0.1, y: 2.5}
+  - {x: 1, y: -2.5}
+  - {x: -1, y: -2.5}
+  - {x: 1, y: 2.5}
+  - {x: -1, y: 2.5}
+  - {x: 0.1, y: -2.5}
+  - {x: -0.1, y: -2.5}
+  - {x: 0.1, y: 2.5}
+  - {x: -0.1, y: 2.5}
   - {x: -1, y: 0.1}
   - {x: 1, y: 0.1}
   - {x: -1, y: -0.1}
@@ -248,7 +248,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 0}
-  m_VersionIndex: 1742
+  m_VersionIndex: 1764
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -267,14 +267,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Shape:
     rid: 3145941471520096288
-  m_Size: {x: 2, y: 3.5, z: 0.2}
+  m_Size: {x: 2, y: 5, z: 0.2}
   m_Rotation: {x: 0, y: 0, z: 0, w: 1}
   m_PivotLocation: 1
   m_PivotPosition: {x: 0, y: 0, z: 0}
-  m_UnmodifiedMeshVersion: 1736
+  m_UnmodifiedMeshVersion: 1764
   m_ShapeBox:
     m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 1, y: 1.75, z: 0.1}
+    m_Extent: {x: 1, y: 2.5, z: 0.1}
   references:
     version: 2
     RefIds:
