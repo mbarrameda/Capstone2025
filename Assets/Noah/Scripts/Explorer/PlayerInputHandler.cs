@@ -1,19 +1,19 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using UnityEngine;
 using UnityEngine.InputSystem;
-using TMPro;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerInputHandler : MonoBehaviour
 {
+    // =======================
+    // 🔹 UI & STAMINA SYSTEM
+    // =======================
     [Header("Stamina UI")]
     [SerializeField] private GameObject staminaBarObject; // Drag the entire stamina bar GameObject here
     private Slider staminaSlider;
     private Image staminaFill;
     private CanvasGroup staminaCanvasGroup;
-
-    [Header("Flashlight Battery UI")]
-    public Slider batterySlider;
 
     [Header("Stamina Colors")]
     public Color fullStaminaColor = Color.green;
@@ -22,17 +22,26 @@ public class PlayerInputHandler : MonoBehaviour
     public float lowStaminaThreshold = 25f;
     public float mediumStaminaThreshold = 60f;
 
+
+    [Header("Flashlight Battery UI")]
+    public Slider batterySlider;
+
+ 
+
     [Header("Stamina Settings")]
     public float maxStamina = 100f;
-    public float staminaDrainRate = 25f; // Stamina drained per second while sprinting
-    public float staminaRegenRate = 15f; // Stamina regenerated per second when not sprinting
-    public float staminaRegenDelay = 1.5f; // Seconds after stopping sprint before regen starts
-    public float minStaminaToSprint = 10f; // Minimum stamina required to start sprinting
+    public float staminaDrainRate = 25f; // drained per sec while sprinting
+    public float staminaRegenRate = 15f; // regen per sec
+    public float staminaRegenDelay = 1.5f; // delay before regen
+    public float minStaminaToSprint = 10f; // min required to sprint
 
     private float currentStamina;
     private float lastSprintTime;
     private bool canSprint = true;
 
+    // =======================
+    // 🔹 MOVEMENT & CAMERA
+    // =======================
     [Header("Movement Settings")]
     public float moveSpeed = 5f;
     public float sprintMultiplier = 2f;
@@ -44,98 +53,181 @@ public class PlayerInputHandler : MonoBehaviour
     public Camera playerCamera;
     public float lookSensitivity = 2f;
 
+    // =======================
+    // 🔹 PHONE & UI HINT
+    // =======================
     [Header("Phone Settings")]
     public GameObject phonePrefab;
-    [HideInInspector]
-    public Phone phoneInstance;
+    [HideInInspector] public Phone phoneInstance;
 
     [Header("UI Hint")]
     public SimpleUIHintTMP uiHint;
 
-    //Added for puzzle interaction
+    // =======================
+    // 🔹 INTERACTION
+    // =======================
     [Header("Interaction Settings")]
     [Tooltip("Max distance for interacting with puzzle cubes")]
     public float interactDistance = 3f;
     [Tooltip("LayerMask for interactable puzzle cubes (optional)")]
     public LayerMask interactLayerMask = ~0; // all layers by default
 
+    // =======================
+    // 🔹 PRIVATE FIELDS
+    // =======================
     private PlayerInputs inputActions;
     private Vector2 moveInput;
     private Vector2 lookInput;
-
     private CharacterController controller;
     private Vector3 velocity;
     private float xRotation = 0f;
     private bool sprinting = false;
 
+    // =======================
+    // 🔹 UNITY EVENTS
+    // =======================
+    private void Awake()
+    {
+        // Find hint text automatically
+        if (uiHint == null)
+            uiHint = FindObjectOfType<SimpleUIHintTMP>();
+
+        // Instantiate phone as a child of player camera
+        if (phonePrefab != null && cameraTransform != null)
+        {
+            GameObject phoneObj = Instantiate(phonePrefab, cameraTransform);
+            phoneInstance = phoneObj.GetComponent<Phone>();
+
+            phoneObj.transform.localPosition = phonePrefab.transform.localPosition;
+            phoneObj.transform.localRotation = phonePrefab.transform.localRotation;
+
+            phoneObj.SetActive(false); // start hidden
+            phoneInstance.explorer = this; // assign reference
+        }
+
+        controller = GetComponent<CharacterController>();
+        currentStamina = maxStamina;
+
+        InitializeStaminaUI();
+    }
+
     private void Start()
     {
-        // Manual assignment if Inspector dragging fails
         if (staminaBarObject == null)
         {
             FindStaminaBarAutomatically();
         }
         InitializeStaminaUI();
     }
-    private void FindStaminaBarAutomatically()
+
+    private void Update()
     {
-        // Try multiple common names
-        string[] possibleNames = { "StaminaBar", "Stamina", "StaminaSlider", "Stamina Bar" };
-
-        foreach (string name in possibleNames)
-        {
-            GameObject found = GameObject.Find(name);
-            if (found != null)
-            {
-                staminaBarObject = found;
-                Debug.Log($"Found stamina bar: {name}");
-                return;
-            }
-        }
-
-        // Search all canvases
-        Canvas[] canvases = FindObjectsOfType<Canvas>();
-        foreach (Canvas canvas in canvases)
-        {
-            Slider[] sliders = canvas.GetComponentsInChildren<Slider>();
-            foreach (Slider slider in sliders)
-            {
-                if (slider.name.Contains("Stamina") || slider.name.Contains("stamina"))
-                {
-                    staminaBarObject = slider.gameObject;
-                    Debug.Log($"Found stamina bar in canvas: {slider.name}");
-                    return;
-                }
-            }
-        }
-
-        Debug.LogError("Could not find stamina bar automatically. Please assign manually in Inspector.");
-    }
-    private void Awake()
-    {
-        // Instantiate phone as a child of player
-        if (phonePrefab != null && cameraTransform != null)
-        {
-            GameObject phoneObj = Instantiate(phonePrefab, cameraTransform);
-            phoneInstance = phoneObj.GetComponent<Phone>();
-
-            // Set position/rotation to prefab defaults
-            phoneObj.transform.localPosition = phonePrefab.transform.localPosition;
-            phoneObj.transform.localRotation = phonePrefab.transform.localRotation;
-
-            phoneObj.SetActive(false); // start hidden
-            phoneInstance.explorer = this; // assign reference
-
-            // NOTE: Battery UI references must be manually assigned to the Phone instance
-            // You'll need to assign these in the Inspector after the phone is instantiated
-        }
-
-        controller = GetComponent<CharacterController>();
-
-        currentStamina = maxStamina;
-        InitializeStaminaUI();
+        HandleLook();
+        HandleMovement();
+        HandleHintRaycast();
+        HandleStamina();
     }
 
+    private void OnDestroy()
+    {
+        ReleaseControl();
+    }
+
+    // =======================
+    // 🔹 CONTROL HANDLING
+    // =======================
+    public void TakeControl(PlayerInputs newInputs)
+    {
+        ReleaseControl();
+        inputActions = newInputs;
+
+        inputActions.Player.Movement.performed += OnMovePerformed;
+        inputActions.Player.Movement.canceled += OnMoveCanceled;
+
+        inputActions.Player.Look.performed += OnLookPerformed;
+        inputActions.Player.Look.canceled += OnLookCanceled;
+
+        inputActions.Player.Jump.performed += OnJumpPerformed;
+        inputActions.Player.Sprint.performed += OnSprintPerformed;
+
+        inputActions.Player.PullOutPhone.performed += ctx =>
+        {
+            if (phoneInstance != null)
+                phoneInstance.TogglePhone();
+        };
+
+        inputActions.Player.Interact.performed += OnInteractPerformed;
+
+        inputActions.Player.Enable();
+        inputActions.Ghost.Disable();
+
+        if (playerCamera != null)
+            playerCamera.enabled = true;
+    }
+
+    public void ReleaseControl()
+    {
+        if (inputActions == null) return;
+
+        inputActions.Player.Movement.performed -= OnMovePerformed;
+        inputActions.Player.Movement.canceled -= OnMoveCanceled;
+        inputActions.Player.Look.performed -= OnLookPerformed;
+        inputActions.Player.Look.canceled -= OnLookCanceled;
+        inputActions.Player.Jump.performed -= OnJumpPerformed;
+        inputActions.Player.Sprint.performed -= OnSprintPerformed;
+        inputActions.Player.Interact.performed -= OnInteractPerformed;
+
+        inputActions.Player.Disable();
+        inputActions = null;
+
+        if (playerCamera != null)
+            playerCamera.enabled = false;
+    }
+
+    // =======================
+    // 🔹 INPUT CALLBACKS
+    // =======================
+    private void OnMovePerformed(InputAction.CallbackContext ctx) => moveInput = ctx.ReadValue<Vector2>();
+    private void OnMoveCanceled(InputAction.CallbackContext _) => moveInput = Vector2.zero;
+    private void OnLookPerformed(InputAction.CallbackContext ctx) => lookInput = ctx.ReadValue<Vector2>();
+    private void OnLookCanceled(InputAction.CallbackContext _) => lookInput = Vector2.zero;
+    private void OnJumpPerformed(InputAction.CallbackContext _) => Jump();
+
+    private void OnSprintPerformed(InputAction.CallbackContext _)
+    {
+        if (currentStamina >= minStaminaToSprint && canSprint)
+        {
+            sprinting = !sprinting;
+            if (sprinting)
+                lastSprintTime = Time.time;
+        }
+        else if (sprinting)
+        {
+            sprinting = false;
+        }
+    }
+
+    // =======================
+    // 🔹 STAMINA SYSTEM
+    // =======================
+
+    public void ModifyStamina(float amount)
+    {
+        currentStamina = Mathf.Clamp(currentStamina + amount, 0f, maxStamina);
+
+        // Update sprinting status if stamina drops too low
+        if (currentStamina < minStaminaToSprint && sprinting)
+        {
+            sprinting = false;
+            Debug.Log("Forced to stop sprinting due to stamina modification");
+        }
+
+        // Update canSprint flag
+        canSprint = currentStamina >= minStaminaToSprint;
+
+        // 🔥 Update UI immediately
+        UpdateStaminaUI();
+    }
     private void InitializeStaminaUI()
     {
         if (staminaBarObject == null)
@@ -197,115 +289,6 @@ public class PlayerInputHandler : MonoBehaviour
 
         Debug.Log("Stamina UI initialized successfully");
     }
-
-    // Called when ghost transfers control to the clone
-    public void TakeControl(PlayerInputs newInputs)
-    {
-        ReleaseControl();
-
-        inputActions = newInputs;
-
-        // Movement/look/jump/sprint
-        inputActions.Player.Movement.performed += OnMovePerformed;
-        inputActions.Player.Movement.canceled += OnMoveCanceled;
-
-        inputActions.Player.Look.performed += OnLookPerformed;
-        inputActions.Player.Look.canceled += OnLookCanceled;
-
-        inputActions.Player.Jump.performed += OnJumpPerformed;
-        inputActions.Player.Sprint.performed += OnSprintPerformed;
-
-        // --- Phone inputs ---
-        inputActions.Player.PullOutPhone.performed += ctx =>
-        {
-            if (phoneInstance != null)
-                phoneInstance.TogglePhone();
-        };
-
-        {
-            if (phoneInstance != null)
-                phoneInstance.ToggleFlashlight();
-        }
-        ;
-
-        //Added: Gamepad interaction (Square / X button)
-        inputActions.Player.Interact.performed += OnInteractPerformed;
-
-        inputActions.Player.Enable();
-        inputActions.Ghost.Disable();
-
-        if (playerCamera != null)
-            playerCamera.enabled = true;
-    }
-
-
-    public void ReleaseControl()
-    {
-        if (inputActions == null) return;
-
-        inputActions.Player.Movement.performed -= OnMovePerformed;
-        inputActions.Player.Movement.canceled -= OnMoveCanceled;
-
-        inputActions.Player.Look.performed -= OnLookPerformed;
-        inputActions.Player.Look.canceled -= OnLookCanceled;
-
-        inputActions.Player.Jump.performed -= OnJumpPerformed;
-        inputActions.Player.Sprint.performed -= OnSprintPerformed;
-
-        //Clean up event
-        inputActions.Player.Interact.performed -= OnInteractPerformed;
-
-        inputActions.Player.Disable();
-        inputActions = null;
-
-        if (playerCamera != null)
-            playerCamera.enabled = false;
-    }
-
-    #region Input Callbacks
-    private void OnMovePerformed(InputAction.CallbackContext ctx) => moveInput = ctx.ReadValue<Vector2>();
-    private void OnMoveCanceled(InputAction.CallbackContext _) => moveInput = Vector2.zero;
-
-    private void OnLookPerformed(InputAction.CallbackContext ctx) => lookInput = ctx.ReadValue<Vector2>();
-    private void OnLookCanceled(InputAction.CallbackContext _) => lookInput = Vector2.zero;
-
-    private void OnJumpPerformed(InputAction.CallbackContext _) => Jump();
-    private void OnSprintPerformed(InputAction.CallbackContext _)
-    {
-        // Check if we have enough stamina to sprint
-        if (currentStamina >= minStaminaToSprint && canSprint)
-        {
-            sprinting = !sprinting;
-            if (sprinting)
-            {
-                lastSprintTime = Time.time;
-                Debug.Log("Sprinting started");
-            }
-            else
-            {
-                Debug.Log("Sprinting stopped");
-            }
-        }
-        else if (sprinting)
-        {
-            // Stop sprinting if we don't have enough stamina
-            sprinting = false;
-            Debug.Log("Sprinting stopped - not enough stamina");
-        }
-        else
-        {
-            Debug.Log("Cannot start sprinting - not enough stamina");
-        }
-    }
-    #endregion
-
-    private void Update()
-    {
-        HandleLook();
-        HandleMovement();
-        HandleHintRaycast();
-        HandleStamina();
-    }
     private void HandleStamina()
     {
         if (sprinting && moveInput != Vector2.zero)
@@ -345,6 +328,7 @@ public class PlayerInputHandler : MonoBehaviour
         // 🔥 Update stamina UI
         UpdateStaminaUI();
     }
+
     private void UpdateStaminaUI()
     {
         if (staminaSlider == null) return;
@@ -391,6 +375,10 @@ public class PlayerInputHandler : MonoBehaviour
             staminaCanvasGroup.alpha = Mathf.Lerp(staminaCanvasGroup.alpha, targetAlpha, Time.deltaTime * 5f);
         }
     }
+
+    // =======================
+    // 🔹 MOVEMENT & LOOK
+    // =======================
     private void HandleLook()
     {
         transform.Rotate(Vector3.up * lookInput.x * lookSensitivity);
@@ -401,36 +389,12 @@ public class PlayerInputHandler : MonoBehaviour
         if (cameraTransform != null)
             cameraTransform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
     }
-    public void ModifyStamina(float amount)
-    {
-        currentStamina = Mathf.Clamp(currentStamina + amount, 0f, maxStamina);
 
-        // Update sprinting status if stamina drops too low
-        if (currentStamina < minStaminaToSprint && sprinting)
-        {
-            sprinting = false;
-            Debug.Log("Forced to stop sprinting due to stamina modification");
-        }
-
-        // Update canSprint flag
-        canSprint = currentStamina >= minStaminaToSprint;
-
-        // 🔥 Update UI immediately
-        UpdateStaminaUI();
-    }
     private void HandleMovement()
     {
-        // Calculate speed based on sprinting and stamina
-        float speed = moveSpeed;
-        if (sprinting && canSprint && currentStamina > 0)
-        {
-            speed = moveSpeed * sprintMultiplier;
-        }
-        else if (sprinting && !canSprint)
-        {
-            // Auto-stop sprinting if we can't sprint but still trying
-            sprinting = false;
-        }
+        float speed = sprinting && canSprint && currentStamina > 0
+            ? moveSpeed * sprintMultiplier
+            : moveSpeed;
 
         Vector3 move = transform.forward * moveInput.y + transform.right * moveInput.x;
         controller.Move(move * speed * Time.deltaTime);
@@ -448,6 +412,9 @@ public class PlayerInputHandler : MonoBehaviour
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
     }
 
+    // =======================
+    // 🔹 INTERACTION
+    // =======================
     private void HandleHintRaycast()
     {
         if (cameraTransform == null || uiHint == null) return;
@@ -455,7 +422,6 @@ public class PlayerInputHandler : MonoBehaviour
         Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, 3f))
         {
-            // Check both cube types
             if (hit.collider.GetComponent<CubeChildInteract>() != null ||
                 hit.collider.GetComponent<SoundCubeInteract>() != null)
             {
@@ -467,17 +433,13 @@ public class PlayerInputHandler : MonoBehaviour
         uiHint.HideHint();
     }
 
-
-    //Controller-based puzzle interaction
     private void OnInteractPerformed(InputAction.CallbackContext ctx)
     {
         if (cameraTransform == null) return;
 
-        // Raycast forward from camera to detect puzzle cubes
         Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, interactDistance, interactLayerMask))
         {
-            // If hit an interactable cube, trigger its interaction
             CubeChildInteract cube = hit.collider.GetComponent<CubeChildInteract>();
             if (cube != null)
             {
@@ -486,8 +448,39 @@ public class PlayerInputHandler : MonoBehaviour
             }
         }
     }
-    private void OnDestroy()
+
+    private void FindStaminaBarAutomatically()
     {
-        ReleaseControl();
+        // Try multiple common names
+        string[] possibleNames = { "StaminaBar", "Stamina", "StaminaSlider", "Stamina Bar" };
+
+        foreach (string name in possibleNames)
+        {
+            GameObject found = GameObject.Find(name);
+            if (found != null)
+            {
+                staminaBarObject = found;
+                Debug.Log($"Found stamina bar: {name}");
+                return;
+            }
+        }
+
+        // Search all canvases
+        Canvas[] canvases = FindObjectsOfType<Canvas>();
+        foreach (Canvas canvas in canvases)
+        {
+            Slider[] sliders = canvas.GetComponentsInChildren<Slider>();
+            foreach (Slider slider in sliders)
+            {
+                if (slider.name.Contains("Stamina") || slider.name.Contains("stamina"))
+                {
+                    staminaBarObject = slider.gameObject;
+                    Debug.Log($"Found stamina bar in canvas: {slider.name}");
+                    return;
+                }
+            }
+        }
+
+        Debug.LogError("Could not find stamina bar automatically. Please assign manually in Inspector.");
     }
 }
