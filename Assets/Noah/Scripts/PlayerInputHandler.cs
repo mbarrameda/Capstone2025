@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using TMPro;
+using Unity.Burst.CompilerServices;
+using UnityEngine;
 using UnityEngine.InputSystem;
-using TMPro;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerInputHandler : MonoBehaviour
@@ -23,7 +24,7 @@ public class PlayerInputHandler : MonoBehaviour
     public Phone phoneInstance;
 
     [Header("UI Hint")]
-    public SimpleUIHintTMP uiHint;
+    public SimpleUIHintTMP hintText;
 
     //Added for puzzle interaction
     [Header("Interaction Settings")]
@@ -43,6 +44,9 @@ public class PlayerInputHandler : MonoBehaviour
 
     private void Awake()
     {
+        // Try to find the UI hint automatically if not assigned
+        if (hintText == null)
+            hintText = FindObjectOfType<SimpleUIHintTMP>();
         // Instantiate phone as a child of player
         if (phonePrefab != null && cameraTransform != null)
         {
@@ -172,7 +176,7 @@ public class PlayerInputHandler : MonoBehaviour
 
     private void HandleHintRaycast()
     {
-        if (cameraTransform == null || uiHint == null) return;
+        if (cameraTransform == null || hintText == null) return;
 
         Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, 3f))
@@ -181,12 +185,12 @@ public class PlayerInputHandler : MonoBehaviour
             if (hit.collider.GetComponent<CubeChildInteract>() != null ||
                 hit.collider.GetComponent<SoundCubeInteract>() != null)
             {
-                uiHint.ShowHint("Press □ / X to Interact");
+                hintText.ShowHint("Press □ / X to Interact");
                 return;
             }
         }
 
-        uiHint.HideHint();
+        hintText.HideHint();
     }
 
 
