@@ -84,7 +84,7 @@ MonoBehaviour:
   lookSensitivity: 2
   phonePrefab: {fileID: 1107688851397771869, guid: 728bd32e44bd7be46b05ff2ea90a6046, type: 3}
   phoneInstance: {fileID: 0}
-  uiHint: {fileID: 0}
+  hintText: {fileID: 0}
   interactDistance: 4
   interactLayerMask:
     serializedVersion: 2
@@ -337,7 +337,7 @@ PrefabInstance:
     - target: {fileID: 7105513499421784003, guid: 728bd32e44bd7be46b05ff2ea90a6046, type: 3}
       propertyPath: explorer
       value: 
-      objectReference: {fileID: 1247150047388275774}
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
