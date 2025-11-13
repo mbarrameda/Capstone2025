@@ -23,6 +23,25 @@ public class GhostController : MonoBehaviour
     public float phaseDuration = 10f;
     private float phaseTimer = 0f;
 
+    [Header("Fear Drain Settings")]
+    public float baseFearDrainRate = 5f;
+    public float phasingFearDrainRate = 7f;
+    public float cloneControlFearDrainRate = 10f;
+    public float stunnedFearDrainRate = 5f;
+
+    [Header("Fear Gain from Player Proximity")]
+    public float maxFearGainDistance = 15f;
+    public float minFearGainDistance = 1f;
+    public float maxFearGainRate = 6f;
+    public float fearGainUpdateInterval = 0.5f;
+    private float fearGainTimer = 0f;
+    private PlayerInputHandler nearestPlayer;
+
+    [Header("Fear Regeneration")]
+    public float fearRegenRate = 3f; // Fear regenerated per second
+    public bool canRegenFear = true;
+
+
     [Header("Layers")]
     public string defaultLayerName = "Default";
     public string ghostLayerName = "Ghost";
@@ -42,7 +61,7 @@ public class GhostController : MonoBehaviour
     [Header("Status Flags")]
     public bool isControllingClone = false;
 
-    private bool isStunned = false;
+    public bool isStunned = false;
     private float stunTimer = 0f;
     private Canvas promptCanvas;
     private Text promptText;
@@ -77,6 +96,165 @@ public class GhostController : MonoBehaviour
 
         // Clear any ongoing coroutines
         StopAllCoroutines();
+    }
+
+    // -------------------------------
+    // Update & Physics
+    // -------------------------------
+  private void Update()
+{
+    // Handle fear drain
+    HandleFearDrain();
+    
+    // Handle fear gain from player proximity
+    HandleFearGainFromPlayer();
+
+    if (isPhasing)
+    {
+        phaseTimer -= Time.deltaTime;
+        if (phaseTimer <= 0f)
+            TogglePhase();
+    }
+
+    if (isStunned)
+    {
+        stunTimer -= Time.deltaTime;
+        if (stunTimer <= 0f)
+        {
+            isStunned = false;
+            FreezeInput(false);
+            Debug.Log("Ghost no longer stunned");
+        }
+    }
+
+    UpdateUIPrompt();
+}
+
+    private void FixedUpdate()
+    {
+        HandleRotation();
+        HandleMovement();
+        if (freezeInput)
+        {
+            Debug.Log("🚫 Input frozen - skipping movement update");
+            return;
+        }
+    }
+
+    // -------------------------------
+    // Fear Management
+    // -------------------------------
+    private void HandleFearDrain()
+    {
+        float drainAmount = 0f;
+
+        // Calculate drain based on current state
+        if (isStunned)
+        {
+            drainAmount = stunnedFearDrainRate * Time.deltaTime;
+        }
+        else if (isControllingClone)
+        {
+            drainAmount = cloneControlFearDrainRate * Time.deltaTime;
+        }
+        else if (isPhasing)
+        {
+            drainAmount = (baseFearDrainRate + phasingFearDrainRate) * Time.deltaTime;
+        }
+        else
+        {
+            drainAmount = baseFearDrainRate * Time.deltaTime;
+        }
+
+        // Apply fear drain
+        fear -= drainAmount;
+        fear = Mathf.Max(fear, 0f);
+
+        // Debug logging to verify it's working
+        if (Time.frameCount % 120 == 0)
+        {
+            Debug.Log($"Fear Drain: {fear:F1} (-{drainAmount / Time.deltaTime:F1}/sec)");
+        }
+
+        // Check if fear is depleted
+        if (fear <= 0f)
+        {
+            HandleFearDepletion();
+        }
+    }
+
+    private void HandleFearGainFromPlayer()
+    {
+        fearGainTimer -= Time.deltaTime;
+        if (fearGainTimer <= 0f)
+        {
+            fearGainTimer = fearGainUpdateInterval;
+
+            // Find nearest player
+            FindNearestPlayer();
+
+            if (nearestPlayer != null)
+            {
+                float distance = Vector3.Distance(transform.position, nearestPlayer.transform.position);
+
+                // Calculate fear gain based on distance (closer = more fear)
+                if (distance <= maxFearGainDistance)
+                {
+                    float distanceFactor = 1f - Mathf.Clamp01((distance - minFearGainDistance) / (maxFearGainDistance - minFearGainDistance));
+                    float fearGain = maxFearGainRate * distanceFactor * fearGainUpdateInterval;
+
+                    fear += fearGain;
+                    fear = Mathf.Min(fear, 100f);
+
+                    // Debug logging
+                    if (Time.frameCount % 120 == 0 && fearGain > 0)
+                    {
+                        Debug.Log($"Fear Gain: +{fearGain:F1} (Distance: {distance:F1})");
+                    }
+                }
+            }
+        }
+    }
+
+    private void FindNearestPlayer()
+    {
+        PlayerInputHandler[] players = FindObjectsOfType<PlayerInputHandler>();
+        float nearestDistance = float.MaxValue;
+        nearestPlayer = null;
+
+        foreach (PlayerInputHandler player in players)
+        {
+            if (player != null && player.gameObject.activeInHierarchy)
+            {
+                float distance = Vector3.Distance(transform.position, player.transform.position);
+                if (distance < nearestDistance)
+                {
+                    nearestDistance = distance;
+                    nearestPlayer = player;
+                }
+            }
+        }
+    }
+
+    private void HandleFearDepletion()
+    {
+        // Auto-exit phase if fear runs out while phasing
+        if (isPhasing)
+        {
+            TogglePhase();
+        }
+
+        // Auto-return from clone if controlling one
+        if (isControllingClone && GameManager.Instance != null)
+        {
+            if (GameManager.Instance.HasActiveClone(this))
+            {
+                GameManager.Instance.ReleaseClone(this);
+            }
+        }
+
+        // Optional: Add other consequences like temporary inability to use abilities
+        Debug.Log("Fear depleted! Ghost abilities limited.");
     }
     // -------------------------------
     // Initialization
@@ -187,8 +365,12 @@ public class GhostController : MonoBehaviour
     {
         RemoveInput();
         playerInputs = actions;
+
+        // IMPORTANT: Enable Ghost map FIRST before subscribing
+        playerInputs.Ghost.Enable();
+        playerInputs.Player.Disable();
+
         SubscribeInputs();
-        playerInputs.Enable();
 
         if (!preserveCameraSetup && !isControllingClone)
         {
@@ -203,13 +385,15 @@ public class GhostController : MonoBehaviour
                 cameraTransform.localRotation = Quaternion.identity;
             }
         }
+
+        Debug.Log("Ghost input assigned and enabled");
     }
 
     public void RemoveInput()
     {
         if (playerInputs == null) return;
         UnsubscribeInputs();
-        playerInputs.Disable();
+        playerInputs.Ghost.Disable();
         playerInputs = null;
     }
 
@@ -221,42 +405,42 @@ public class GhostController : MonoBehaviour
     {
         if (playerInputs == null) return;
 
-        playerInputs.Player.Movement.performed += OnMovePerformed;
-        playerInputs.Player.Movement.canceled += OnMoveCanceled;
+        playerInputs.Ghost.Movement.performed += OnMovePerformed;
+        playerInputs.Ghost.Movement.canceled += OnMoveCanceled;
 
-        playerInputs.Player.Look.performed += OnLookPerformed;
-        playerInputs.Player.Look.canceled += OnLookCanceled;
+        playerInputs.Ghost.Look.performed += OnLookPerformed;
+        playerInputs.Ghost.Look.canceled += OnLookCanceled;
 
-        playerInputs.Player.PhaseToggle.performed += OnPhaseToggle;
-        playerInputs.Player.PossessObject.performed += OnPossessObject;
-        playerInputs.Player.MenuToggle.performed += OnMenuToggle;
+        playerInputs.Ghost.PhaseToggle.performed += OnPhaseToggle;
+        playerInputs.Ghost.PossessObject.performed += OnPossessObject;
+        playerInputs.Ghost.MenuToggle.performed += OnMenuToggle;
 
-        playerInputs.Player.FlyUp.performed += OnFlyUpPerformed;
-        playerInputs.Player.FlyUp.canceled += OnFlyUpCanceled;
+        playerInputs.Ghost.FlyUp.performed += OnFlyUpPerformed;
+        playerInputs.Ghost.FlyUp.canceled += OnFlyUpCanceled;
 
-        playerInputs.Player.FlyDown.performed += OnFlyDownPerformed;
-        playerInputs.Player.FlyDown.canceled += OnFlyDownCanceled;
+        playerInputs.Ghost.FlyDown.performed += OnFlyDownPerformed;
+        playerInputs.Ghost.FlyDown.canceled += OnFlyDownCanceled;
     }
 
     private void UnsubscribeInputs()
     {
         if (playerInputs == null) return;
 
-        playerInputs.Player.Movement.performed -= OnMovePerformed;
-        playerInputs.Player.Movement.canceled -= OnMoveCanceled;
+        playerInputs.Ghost.Movement.performed -= OnMovePerformed;
+        playerInputs.Ghost.Movement.canceled -= OnMoveCanceled;
 
-        playerInputs.Player.Look.performed -= OnLookPerformed;
-        playerInputs.Player.Look.canceled -= OnLookCanceled;
+        playerInputs.Ghost.Look.performed -= OnLookPerformed;
+        playerInputs.Ghost.Look.canceled -= OnLookCanceled;
 
-        playerInputs.Player.PhaseToggle.performed -= OnPhaseToggle;
-        playerInputs.Player.PossessObject.performed -= OnPossessObject;
-        playerInputs.Player.MenuToggle.performed -= OnMenuToggle;
+        playerInputs.Ghost.PhaseToggle.performed -= OnPhaseToggle;
+        playerInputs.Ghost.PossessObject.performed -= OnPossessObject;
+        playerInputs.Ghost.MenuToggle.performed -= OnMenuToggle;
 
-        playerInputs.Player.FlyUp.performed -= OnFlyUpPerformed;
-        playerInputs.Player.FlyUp.canceled -= OnFlyUpCanceled;
+        playerInputs.Ghost.FlyUp.performed -= OnFlyUpPerformed;
+        playerInputs.Ghost.FlyUp.canceled -= OnFlyUpCanceled;
 
-        playerInputs.Player.FlyDown.performed -= OnFlyDownPerformed;
-        playerInputs.Player.FlyDown.canceled -= OnFlyDownCanceled;
+        playerInputs.Ghost.FlyDown.performed -= OnFlyDownPerformed;
+        playerInputs.Ghost.FlyDown.canceled -= OnFlyDownCanceled;
     }
 
 
@@ -278,7 +462,56 @@ public class GhostController : MonoBehaviour
     private void OnPhaseToggle(InputAction.CallbackContext ctx) => TogglePhase();
     private void OnPossessObject(InputAction.CallbackContext ctx) => TryPossessNearestObject();
 
+    public void ResetAllInputState()
+    {
+        moveInput = Vector2.zero;
+        lookInput = Vector2.zero;
+        verticalInput = 0f;
 
+        // Reset any velocity or movement state
+        if (rb != null)
+        {
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        Debug.Log("✅ Ghost input state completely reset");
+    }
+
+    public void EmergencyInputReset()
+    {
+        Debug.Log("🔄 EMERGENCY INPUT RESET");
+
+        // Reset all input variables
+        moveInput = Vector2.zero;
+        lookInput = Vector2.zero;
+        verticalInput = 0f;
+
+        // Reset physics
+        if (rb != null)
+        {
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        // Reset rotation state
+        xRotation = 0f;
+
+        // Reset flags
+        freezeInput = false;
+
+        // Force camera reset
+        if (cameraTransform != null)
+        {
+            cameraTransform.localRotation = Quaternion.identity;
+        }
+        if (cameraPivot != null)
+        {
+            cameraPivot.localRotation = Quaternion.identity;
+        }
+
+        Debug.Log("✅ Emergency reset complete");
+    }
 
     // -------------------------------
     // Possession Menu Logic
@@ -290,16 +523,15 @@ public class GhostController : MonoBehaviour
 
         if (isControllingClone)
         {
-            if (OnDestroyClone != null)
-            {
-                FreezeInput(true);
-                SetVisibility(false);
-
-                // Use a safer approach without coroutine
-                OnDestroyClone?.Invoke();
-                Destroy(gameObject);
-            }
+            // Return control to ghost instead of destroying the ghost
+            ReturnControlToGhost();
             return;
+        }
+
+        GhostUIManager uiManager = GetComponent<GhostUIManager>();
+        if (uiManager != null)
+        {
+            uiManager.TriggerTransformCooldown(0.5f);
         }
 
         // Normal ghost menu
@@ -385,40 +617,6 @@ public class GhostController : MonoBehaviour
 
 
     // -------------------------------
-    // Update & Physics
-    // -------------------------------
-    private void Update()
-    {
-        if (isPhasing)
-        {
-            phaseTimer -= Time.deltaTime;
-            if (phaseTimer <= 0f)
-                TogglePhase();
-        }
-
-        if (isStunned)
-        {
-            stunTimer -= Time.deltaTime;
-            if (stunTimer <= 0f)
-            {
-                isStunned = false;
-                FreezeInput(false);
-            }
-        }
-
-        UpdateUIPrompt();
-    }
-
-    private void FixedUpdate()
-    {
-        if (freezeInput) return;
-
-        HandleRotation();
-        HandleMovement();
-    }
-
-
-    // -------------------------------
     // Movement & Camera
     // -------------------------------
     private void HandleRotation()
@@ -438,11 +636,17 @@ public class GhostController : MonoBehaviour
     }
 
     private void HandleMovement()
+{
+    // 🔥 FIX: Allow movement if EITHER horizontal OR vertical input exists
+    bool hasHorizontalInput = moveInput.sqrMagnitude > 0f;
+    bool hasVerticalInput = Mathf.Abs(verticalInput) > 0.1f;
+    
+    if (!hasHorizontalInput && !hasVerticalInput) return;
+
+    Vector3 moveDir = Vector3.zero;
+
+    if (hasHorizontalInput)
     {
-        if (moveInput.sqrMagnitude <= 0f) return;
-
-        Vector3 moveDir;
-
         if (lockObjectRotation)
         {
             // For objects: move relative to camera direction, not object direction
@@ -470,32 +674,89 @@ public class GhostController : MonoBehaviour
             // For ghost: use object's forward/right (normal behavior)
             moveDir = (transform.forward * moveInput.y + transform.right * moveInput.x).normalized;
         }
+    }
 
-        Vector3 verticalMove = Vector3.up * verticalInput;
-        Vector3 moveAmount = (moveDir * moveSpeed + verticalMove * flySpeed) * Time.fixedDeltaTime;
+    Vector3 horizontalMove = moveDir * moveSpeed * Time.fixedDeltaTime;
+    Vector3 verticalMove = Vector3.up * verticalInput * flySpeed * Time.fixedDeltaTime;
+    
+    // 🔥 SEPARATE COLLISION CHECKS: Allow horizontal movement even when blocked vertically
+    Vector3 finalMove = Vector3.zero;
 
-        if (moveAmount.sqrMagnitude <= 0f) return;
-
+    // Check horizontal movement separately
+    if (horizontalMove.magnitude > 0)
+    {
         if (isPhasing)
         {
             int defaultMask = LayerMask.GetMask(defaultLayerName);
             if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
                 rb.position - Vector3.up * 0.5f, 0.5f,
-                moveAmount.normalized, moveAmount.magnitude, defaultMask))
+                horizontalMove.normalized, horizontalMove.magnitude, defaultMask))
             {
-                rb.MovePosition(rb.position + moveAmount);
+                finalMove += horizontalMove;
+            }
+            else
+            {
+                // 🔥 Even if blocked, try to slide along the surface
+                Vector3 slideDirection = Vector3.ProjectOnPlane(horizontalMove.normalized, Vector3.up).normalized;
+                if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
+                    rb.position - Vector3.up * 0.5f, 0.5f,
+                    slideDirection, horizontalMove.magnitude, defaultMask))
+                {
+                    finalMove += slideDirection * horizontalMove.magnitude;
+                }
             }
         }
         else
         {
             if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
                 rb.position - Vector3.up * 0.5f, 0.5f,
-                moveAmount.normalized, moveAmount.magnitude))
+                horizontalMove.normalized, horizontalMove.magnitude))
             {
-                rb.MovePosition(rb.position + moveAmount);
+                finalMove += horizontalMove;
+            }
+            else
+            {
+                // 🔥 Even if blocked, try to slide along the surface
+                Vector3 slideDirection = Vector3.ProjectOnPlane(horizontalMove.normalized, Vector3.up).normalized;
+                if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
+                    rb.position - Vector3.up * 0.5f, 0.5f,
+                    slideDirection, horizontalMove.magnitude))
+                {
+                    finalMove += slideDirection * horizontalMove.magnitude;
+                }
             }
         }
     }
+
+    // Check vertical movement separately - only apply if not blocked
+    if (verticalMove.magnitude > 0)
+    {
+        if (isPhasing)
+        {
+            int defaultMask = LayerMask.GetMask(defaultLayerName);
+            if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
+                rb.position - Vector3.up * 0.5f, 0.5f,
+                Vector3.up * Mathf.Sign(verticalInput), Mathf.Abs(verticalMove.magnitude), defaultMask))
+            {
+                finalMove += verticalMove;
+            }
+        }
+        else
+        {
+            if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
+                rb.position - Vector3.up * 0.5f, 0.5f,
+                Vector3.up * Mathf.Sign(verticalInput), Mathf.Abs(verticalMove.magnitude)))
+            {
+                finalMove += verticalMove;
+            }
+        }
+    }
+
+    if (finalMove.magnitude > 0)
+    {
+        rb.MovePosition(rb.position + finalMove);
+    }
+}
 
 
     // -------------------------------
@@ -508,8 +769,14 @@ public class GhostController : MonoBehaviour
         if (!isPhasing)
         {
             fear -= phaseCost;
-            fear = Mathf.Max(fear, 0f);
+              fear = Mathf.Max(fear, 0f);
             phaseTimer = phaseDuration;
+        }
+
+        GhostUIManager uiManager = GetComponent<GhostUIManager>();
+        if (uiManager != null)
+        {
+            uiManager.TriggerPhaseCooldown(1f);
         }
 
         isPhasing = !isPhasing;
@@ -590,6 +857,11 @@ public class GhostController : MonoBehaviour
                     possessedObjects.Add(nearest);
                     Debug.Log($"Added {nearest.name} to possessed list");
                 }
+                GhostUIManager uiManager = GetComponent<GhostUIManager>();
+                if (uiManager != null)
+                {
+                    uiManager.TriggerPossessCooldown(1f);
+                }
             }
             else Debug.Log("Failed to possess object.");
         }
@@ -609,6 +881,7 @@ public class GhostController : MonoBehaviour
             lookInput = Vector2.zero;
             verticalInput = 0f;
         }
+        Debug.Log($"FreezeInput called: {freeze}");
     }
 
     public void SetVisibility(bool visible)
@@ -643,5 +916,134 @@ public class GhostController : MonoBehaviour
         possessionMenu = menu;
         if (possessionMenu != null)
             possessionMenu.Initialize(OnMenuOptionSelected);
+    }
+
+    // Add this method to GhostController
+    public void ReturnControlToGhost()
+    {
+        if (activeClone != null)
+        {
+            PlayerInputHandler cloneInputHandler = activeClone.GetComponent<PlayerInputHandler>();
+            if (cloneInputHandler != null)
+            {
+                cloneInputHandler.ReleaseControl();
+            }
+            Destroy(activeClone);
+            activeClone = null;
+        }
+
+        // Use nuclear option
+        NuclearInputReset();
+        SetVisibility(true);
+        isControllingClone = false;
+
+        Debug.Log("Control returned to ghost");
+    }
+
+    public void ForceResetInput()
+    {
+        Debug.Log("🔄 FORCE RESETTING INPUT");
+
+        // Completely reset all input state
+        moveInput = Vector2.zero;
+        lookInput = Vector2.zero;
+        verticalInput = 0f;
+        xRotation = 0f;
+        freezeInput = false;
+
+        // Reset physics
+        if (rb != null)
+        {
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        // Reset camera
+        if (cameraTransform != null)
+        {
+            cameraTransform.localRotation = Quaternion.identity;
+        }
+        if (cameraPivot != null)
+        {
+            cameraPivot.localRotation = Quaternion.identity;
+        }
+
+        // Force re-enable ghost input map
+        if (playerInputs != null)
+        {
+            playerInputs.Ghost.Enable();
+            playerInputs.Player.Disable();
+
+            // Re-subscribe to ensure clean state
+            RemoveInput();
+            SubscribeInputs();
+        }
+
+        Debug.Log("✅ Input force reset complete");
+    }
+
+    private void NuclearInputReset()
+    {
+        Debug.Log("☢️ NUCLEAR INPUT RESET");
+
+        // Kill all coroutines
+        StopAllCoroutines();
+
+        // Reset ALL input variables
+        moveInput = Vector2.zero;
+        lookInput = Vector2.zero;
+        verticalInput = 0f;
+        xRotation = 0f;
+        freezeInput = false;
+        menuOpen = false;
+        isPhasing = false;
+
+        // Reset physics completely
+        if (rb != null)
+        {
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
+
+        // Reset camera
+        if (cameraTransform != null)
+        {
+            cameraTransform.localRotation = Quaternion.identity;
+            cameraTransform.localPosition = Vector3.zero;
+        }
+        if (cameraPivot != null)
+        {
+            cameraPivot.localRotation = Quaternion.identity;
+            cameraPivot.localPosition = Vector3.zero;
+        }
+
+        // Completely rebuild input system
+        if (playerInputs != null)
+        {
+            // Disable everything first
+            playerInputs.Disable();
+
+            // Remove all subscriptions
+            UnsubscribeInputs();
+
+            // Re-enable only ghost actions
+            playerInputs.Ghost.Enable();
+            playerInputs.Player.Disable();
+
+            // Re-subscribe
+            SubscribeInputs();
+        }
+
+        // Force close any open menus
+        if (possessionMenu != null)
+        {
+            possessionMenu.CloseMenu();
+        }
+
+        // Reset cursor
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        Debug.Log("✅ Nuclear reset complete");
     }
 }

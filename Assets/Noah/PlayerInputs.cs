@@ -64,54 +64,9 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Phase Toggle"",
-                    ""type"": ""Button"",
-                    ""id"": ""09b9ac4d-20f6-448b-bd95-8d3351e22661"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""Fly Up"",
-                    ""type"": ""Value"",
-                    ""id"": ""c0334e16-75cd-47d6-8d72-6fe5ece18a8f"",
-                    ""expectedControlType"": ""Vector2"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": true
-                },
-                {
-                    ""name"": ""Fly Down"",
-                    ""type"": ""Value"",
-                    ""id"": ""ab051dcf-c290-4d44-b711-cda8f39b5d3a"",
-                    ""expectedControlType"": ""Vector2"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": true
-                },
-                {
                     ""name"": ""PullOutPhone"",
                     ""type"": ""Button"",
                     ""id"": ""1fe763a7-e123-4c68-8299-1540f309f4dd"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""PossessObject"",
-                    ""type"": ""Button"",
-                    ""id"": ""e7b3c392-2161-437c-8c6c-a2f5034e20a1"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""MenuToggle"",
-                    ""type"": ""Button"",
-                    ""id"": ""0edf0f67-74b2-4689-91ba-58d8069f536a"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
@@ -174,67 +129,12 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""4549073d-e762-40a9-bc61-2d196c94247e"",
-                    ""path"": ""<Gamepad>/buttonWest"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Phase Toggle"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""3bf5d3f5-a96c-4fb1-811d-4ab788ce11ae"",
-                    ""path"": ""<Gamepad>/rightTrigger"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Fly Up"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""a1a6205f-72da-42ba-8db8-8eb658cf6878"",
-                    ""path"": ""<Gamepad>/leftTrigger"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Fly Down"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""718a8222-dd28-4345-bc19-0ccfd520a25d"",
                     ""path"": ""<Gamepad>/buttonNorth"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""PullOutPhone"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""f399e1cf-c4ff-4679-ad20-6ebe022dc0f4"",
-                    ""path"": ""<Gamepad>/buttonEast"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""PossessObject"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""7a79770b-17f0-4591-a000-ea739686108f"",
-                    ""path"": ""<Gamepad>/buttonNorth"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""MenuToggle"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -318,6 +218,154 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": false
                 }
             ]
+        },
+        {
+            ""name"": ""Ghost"",
+            ""id"": ""dd2062b0-b994-494e-a21e-536c9f64d743"",
+            ""actions"": [
+                {
+                    ""name"": ""Fly Up"",
+                    ""type"": ""Button"",
+                    ""id"": ""d8faa842-c446-4e13-9129-f113abc1af6e"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Fly Down"",
+                    ""type"": ""Button"",
+                    ""id"": ""ec456d6b-d491-484b-b0c0-0ce000c587b0"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Movement"",
+                    ""type"": ""Value"",
+                    ""id"": ""f8867b4a-5d0d-459e-bbba-2190facc62f6"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Phase Toggle"",
+                    ""type"": ""Button"",
+                    ""id"": ""c9859559-0642-45fa-b7ac-3418525a824d"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""PossessObject"",
+                    ""type"": ""Button"",
+                    ""id"": ""c8b29f04-8582-4938-9c48-0e26a66db1f0"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""MenuToggle"",
+                    ""type"": ""Button"",
+                    ""id"": ""89f0fa77-7710-4a28-af15-28d8f7eb3d36"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Look"",
+                    ""type"": ""Value"",
+                    ""id"": ""71ccb220-9e2d-4091-8797-5017eb7914b0"",
+                    ""expectedControlType"": ""Vector2"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
+                }
+            ],
+            ""bindings"": [
+                {
+                    ""name"": """",
+                    ""id"": ""85491d3a-9396-4f10-9a17-e7b37d875fc6"",
+                    ""path"": ""<Gamepad>/rightTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Fly Up"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""62633c31-9f57-485e-88c2-b26a84132753"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Fly Down"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b3d146a2-804e-4a10-ae5a-1987a551d01c"",
+                    ""path"": ""<Gamepad>/leftStick"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Movement"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""8f7ce6b6-818a-4746-9fd3-78f944c498eb"",
+                    ""path"": ""<Gamepad>/buttonWest"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Phase Toggle"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""4353e1ab-fb9f-4ad2-967e-92f2eb033720"",
+                    ""path"": ""<Gamepad>/buttonEast"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PossessObject"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d3727d29-d0c2-447e-81f8-e7a4b3d9d4ae"",
+                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""MenuToggle"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""cdca219f-15aa-4c93-bc6d-5d351ff5825c"",
+                    ""path"": ""<Gamepad>/rightStick"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Look"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                }
+            ]
         }
     ],
     ""controlSchemes"": []
@@ -328,18 +376,22 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         m_Player_Look = m_Player.FindAction("Look", throwIfNotFound: true);
         m_Player_Jump = m_Player.FindAction("Jump", throwIfNotFound: true);
         m_Player_Sprint = m_Player.FindAction("Sprint", throwIfNotFound: true);
-        m_Player_PhaseToggle = m_Player.FindAction("Phase Toggle", throwIfNotFound: true);
-        m_Player_FlyUp = m_Player.FindAction("Fly Up", throwIfNotFound: true);
-        m_Player_FlyDown = m_Player.FindAction("Fly Down", throwIfNotFound: true);
         m_Player_PullOutPhone = m_Player.FindAction("PullOutPhone", throwIfNotFound: true);
-        m_Player_PossessObject = m_Player.FindAction("PossessObject", throwIfNotFound: true);
-        m_Player_MenuToggle = m_Player.FindAction("MenuToggle", throwIfNotFound: true);
         m_Player_Interact = m_Player.FindAction("Interact", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
         m_UI_Submit = m_UI.FindAction("Submit", throwIfNotFound: true);
         m_UI_Cancel = m_UI.FindAction("Cancel", throwIfNotFound: true);
+        // Ghost
+        m_Ghost = asset.FindActionMap("Ghost", throwIfNotFound: true);
+        m_Ghost_FlyUp = m_Ghost.FindAction("Fly Up", throwIfNotFound: true);
+        m_Ghost_FlyDown = m_Ghost.FindAction("Fly Down", throwIfNotFound: true);
+        m_Ghost_Movement = m_Ghost.FindAction("Movement", throwIfNotFound: true);
+        m_Ghost_PhaseToggle = m_Ghost.FindAction("Phase Toggle", throwIfNotFound: true);
+        m_Ghost_PossessObject = m_Ghost.FindAction("PossessObject", throwIfNotFound: true);
+        m_Ghost_MenuToggle = m_Ghost.FindAction("MenuToggle", throwIfNotFound: true);
+        m_Ghost_Look = m_Ghost.FindAction("Look", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -405,12 +457,7 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Look;
     private readonly InputAction m_Player_Jump;
     private readonly InputAction m_Player_Sprint;
-    private readonly InputAction m_Player_PhaseToggle;
-    private readonly InputAction m_Player_FlyUp;
-    private readonly InputAction m_Player_FlyDown;
     private readonly InputAction m_Player_PullOutPhone;
-    private readonly InputAction m_Player_PossessObject;
-    private readonly InputAction m_Player_MenuToggle;
     private readonly InputAction m_Player_Interact;
     public struct PlayerActions
     {
@@ -420,12 +467,7 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         public InputAction @Look => m_Wrapper.m_Player_Look;
         public InputAction @Jump => m_Wrapper.m_Player_Jump;
         public InputAction @Sprint => m_Wrapper.m_Player_Sprint;
-        public InputAction @PhaseToggle => m_Wrapper.m_Player_PhaseToggle;
-        public InputAction @FlyUp => m_Wrapper.m_Player_FlyUp;
-        public InputAction @FlyDown => m_Wrapper.m_Player_FlyDown;
         public InputAction @PullOutPhone => m_Wrapper.m_Player_PullOutPhone;
-        public InputAction @PossessObject => m_Wrapper.m_Player_PossessObject;
-        public InputAction @MenuToggle => m_Wrapper.m_Player_MenuToggle;
         public InputAction @Interact => m_Wrapper.m_Player_Interact;
         public InputActionMap Get() { return m_Wrapper.m_Player; }
         public void Enable() { Get().Enable(); }
@@ -448,24 +490,9 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
             @Sprint.started += instance.OnSprint;
             @Sprint.performed += instance.OnSprint;
             @Sprint.canceled += instance.OnSprint;
-            @PhaseToggle.started += instance.OnPhaseToggle;
-            @PhaseToggle.performed += instance.OnPhaseToggle;
-            @PhaseToggle.canceled += instance.OnPhaseToggle;
-            @FlyUp.started += instance.OnFlyUp;
-            @FlyUp.performed += instance.OnFlyUp;
-            @FlyUp.canceled += instance.OnFlyUp;
-            @FlyDown.started += instance.OnFlyDown;
-            @FlyDown.performed += instance.OnFlyDown;
-            @FlyDown.canceled += instance.OnFlyDown;
             @PullOutPhone.started += instance.OnPullOutPhone;
             @PullOutPhone.performed += instance.OnPullOutPhone;
             @PullOutPhone.canceled += instance.OnPullOutPhone;
-            @PossessObject.started += instance.OnPossessObject;
-            @PossessObject.performed += instance.OnPossessObject;
-            @PossessObject.canceled += instance.OnPossessObject;
-            @MenuToggle.started += instance.OnMenuToggle;
-            @MenuToggle.performed += instance.OnMenuToggle;
-            @MenuToggle.canceled += instance.OnMenuToggle;
             @Interact.started += instance.OnInteract;
             @Interact.performed += instance.OnInteract;
             @Interact.canceled += instance.OnInteract;
@@ -485,24 +512,9 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
             @Sprint.started -= instance.OnSprint;
             @Sprint.performed -= instance.OnSprint;
             @Sprint.canceled -= instance.OnSprint;
-            @PhaseToggle.started -= instance.OnPhaseToggle;
-            @PhaseToggle.performed -= instance.OnPhaseToggle;
-            @PhaseToggle.canceled -= instance.OnPhaseToggle;
-            @FlyUp.started -= instance.OnFlyUp;
-            @FlyUp.performed -= instance.OnFlyUp;
-            @FlyUp.canceled -= instance.OnFlyUp;
-            @FlyDown.started -= instance.OnFlyDown;
-            @FlyDown.performed -= instance.OnFlyDown;
-            @FlyDown.canceled -= instance.OnFlyDown;
             @PullOutPhone.started -= instance.OnPullOutPhone;
             @PullOutPhone.performed -= instance.OnPullOutPhone;
             @PullOutPhone.canceled -= instance.OnPullOutPhone;
-            @PossessObject.started -= instance.OnPossessObject;
-            @PossessObject.performed -= instance.OnPossessObject;
-            @PossessObject.canceled -= instance.OnPossessObject;
-            @MenuToggle.started -= instance.OnMenuToggle;
-            @MenuToggle.performed -= instance.OnMenuToggle;
-            @MenuToggle.canceled -= instance.OnMenuToggle;
             @Interact.started -= instance.OnInteract;
             @Interact.performed -= instance.OnInteract;
             @Interact.canceled -= instance.OnInteract;
@@ -585,18 +597,107 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         }
     }
     public UIActions @UI => new UIActions(this);
+
+    // Ghost
+    private readonly InputActionMap m_Ghost;
+    private List<IGhostActions> m_GhostActionsCallbackInterfaces = new List<IGhostActions>();
+    private readonly InputAction m_Ghost_FlyUp;
+    private readonly InputAction m_Ghost_FlyDown;
+    private readonly InputAction m_Ghost_Movement;
+    private readonly InputAction m_Ghost_PhaseToggle;
+    private readonly InputAction m_Ghost_PossessObject;
+    private readonly InputAction m_Ghost_MenuToggle;
+    private readonly InputAction m_Ghost_Look;
+    public struct GhostActions
+    {
+        private @PlayerInputs m_Wrapper;
+        public GhostActions(@PlayerInputs wrapper) { m_Wrapper = wrapper; }
+        public InputAction @FlyUp => m_Wrapper.m_Ghost_FlyUp;
+        public InputAction @FlyDown => m_Wrapper.m_Ghost_FlyDown;
+        public InputAction @Movement => m_Wrapper.m_Ghost_Movement;
+        public InputAction @PhaseToggle => m_Wrapper.m_Ghost_PhaseToggle;
+        public InputAction @PossessObject => m_Wrapper.m_Ghost_PossessObject;
+        public InputAction @MenuToggle => m_Wrapper.m_Ghost_MenuToggle;
+        public InputAction @Look => m_Wrapper.m_Ghost_Look;
+        public InputActionMap Get() { return m_Wrapper.m_Ghost; }
+        public void Enable() { Get().Enable(); }
+        public void Disable() { Get().Disable(); }
+        public bool enabled => Get().enabled;
+        public static implicit operator InputActionMap(GhostActions set) { return set.Get(); }
+        public void AddCallbacks(IGhostActions instance)
+        {
+            if (instance == null || m_Wrapper.m_GhostActionsCallbackInterfaces.Contains(instance)) return;
+            m_Wrapper.m_GhostActionsCallbackInterfaces.Add(instance);
+            @FlyUp.started += instance.OnFlyUp;
+            @FlyUp.performed += instance.OnFlyUp;
+            @FlyUp.canceled += instance.OnFlyUp;
+            @FlyDown.started += instance.OnFlyDown;
+            @FlyDown.performed += instance.OnFlyDown;
+            @FlyDown.canceled += instance.OnFlyDown;
+            @Movement.started += instance.OnMovement;
+            @Movement.performed += instance.OnMovement;
+            @Movement.canceled += instance.OnMovement;
+            @PhaseToggle.started += instance.OnPhaseToggle;
+            @PhaseToggle.performed += instance.OnPhaseToggle;
+            @PhaseToggle.canceled += instance.OnPhaseToggle;
+            @PossessObject.started += instance.OnPossessObject;
+            @PossessObject.performed += instance.OnPossessObject;
+            @PossessObject.canceled += instance.OnPossessObject;
+            @MenuToggle.started += instance.OnMenuToggle;
+            @MenuToggle.performed += instance.OnMenuToggle;
+            @MenuToggle.canceled += instance.OnMenuToggle;
+            @Look.started += instance.OnLook;
+            @Look.performed += instance.OnLook;
+            @Look.canceled += instance.OnLook;
+        }
+
+        private void UnregisterCallbacks(IGhostActions instance)
+        {
+            @FlyUp.started -= instance.OnFlyUp;
+            @FlyUp.performed -= instance.OnFlyUp;
+            @FlyUp.canceled -= instance.OnFlyUp;
+            @FlyDown.started -= instance.OnFlyDown;
+            @FlyDown.performed -= instance.OnFlyDown;
+            @FlyDown.canceled -= instance.OnFlyDown;
+            @Movement.started -= instance.OnMovement;
+            @Movement.performed -= instance.OnMovement;
+            @Movement.canceled -= instance.OnMovement;
+            @PhaseToggle.started -= instance.OnPhaseToggle;
+            @PhaseToggle.performed -= instance.OnPhaseToggle;
+            @PhaseToggle.canceled -= instance.OnPhaseToggle;
+            @PossessObject.started -= instance.OnPossessObject;
+            @PossessObject.performed -= instance.OnPossessObject;
+            @PossessObject.canceled -= instance.OnPossessObject;
+            @MenuToggle.started -= instance.OnMenuToggle;
+            @MenuToggle.performed -= instance.OnMenuToggle;
+            @MenuToggle.canceled -= instance.OnMenuToggle;
+            @Look.started -= instance.OnLook;
+            @Look.performed -= instance.OnLook;
+            @Look.canceled -= instance.OnLook;
+        }
+
+        public void RemoveCallbacks(IGhostActions instance)
+        {
+            if (m_Wrapper.m_GhostActionsCallbackInterfaces.Remove(instance))
+                UnregisterCallbacks(instance);
+        }
+
+        public void SetCallbacks(IGhostActions instance)
+        {
+            foreach (var item in m_Wrapper.m_GhostActionsCallbackInterfaces)
+                UnregisterCallbacks(item);
+            m_Wrapper.m_GhostActionsCallbackInterfaces.Clear();
+            AddCallbacks(instance);
+        }
+    }
+    public GhostActions @Ghost => new GhostActions(this);
     public interface IPlayerActions
     {
         void OnMovement(InputAction.CallbackContext context);
         void OnLook(InputAction.CallbackContext context);
         void OnJump(InputAction.CallbackContext context);
         void OnSprint(InputAction.CallbackContext context);
-        void OnPhaseToggle(InputAction.CallbackContext context);
-        void OnFlyUp(InputAction.CallbackContext context);
-        void OnFlyDown(InputAction.CallbackContext context);
         void OnPullOutPhone(InputAction.CallbackContext context);
-        void OnPossessObject(InputAction.CallbackContext context);
-        void OnMenuToggle(InputAction.CallbackContext context);
         void OnInteract(InputAction.CallbackContext context);
     }
     public interface IUIActions
@@ -604,5 +705,15 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         void OnNavigate(InputAction.CallbackContext context);
         void OnSubmit(InputAction.CallbackContext context);
         void OnCancel(InputAction.CallbackContext context);
+    }
+    public interface IGhostActions
+    {
+        void OnFlyUp(InputAction.CallbackContext context);
+        void OnFlyDown(InputAction.CallbackContext context);
+        void OnMovement(InputAction.CallbackContext context);
+        void OnPhaseToggle(InputAction.CallbackContext context);
+        void OnPossessObject(InputAction.CallbackContext context);
+        void OnMenuToggle(InputAction.CallbackContext context);
+        void OnLook(InputAction.CallbackContext context);
     }
 }
