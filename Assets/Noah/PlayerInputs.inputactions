@@ -42,54 +42,9 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Phase Toggle",
-                    "type": "Button",
-                    "id": "09b9ac4d-20f6-448b-bd95-8d3351e22661",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "Fly Up",
-                    "type": "Value",
-                    "id": "c0334e16-75cd-47d6-8d72-6fe5ece18a8f",
-                    "expectedControlType": "Vector2",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
-                },
-                {
-                    "name": "Fly Down",
-                    "type": "Value",
-                    "id": "ab051dcf-c290-4d44-b711-cda8f39b5d3a",
-                    "expectedControlType": "Vector2",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
-                },
-                {
                     "name": "PullOutPhone",
                     "type": "Button",
                     "id": "1fe763a7-e123-4c68-8299-1540f309f4dd",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "PossessObject",
-                    "type": "Button",
-                    "id": "e7b3c392-2161-437c-8c6c-a2f5034e20a1",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "MenuToggle",
-                    "type": "Button",
-                    "id": "0edf0f67-74b2-4689-91ba-58d8069f536a",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -152,67 +107,12 @@
                 },
                 {
                     "name": "",
-                    "id": "4549073d-e762-40a9-bc61-2d196c94247e",
-                    "path": "<Gamepad>/buttonWest",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Phase Toggle",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "3bf5d3f5-a96c-4fb1-811d-4ab788ce11ae",
-                    "path": "<Gamepad>/rightTrigger",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Fly Up",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "a1a6205f-72da-42ba-8db8-8eb658cf6878",
-                    "path": "<Gamepad>/leftTrigger",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Fly Down",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "718a8222-dd28-4345-bc19-0ccfd520a25d",
                     "path": "<Gamepad>/buttonNorth",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "PullOutPhone",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "f399e1cf-c4ff-4679-ad20-6ebe022dc0f4",
-                    "path": "<Gamepad>/buttonEast",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "PossessObject",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "7a79770b-17f0-4591-a000-ea739686108f",
-                    "path": "<Gamepad>/buttonNorth",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "MenuToggle",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -292,6 +192,154 @@
                     "processors": "",
                     "groups": "",
                     "action": "Cancel",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        },
+        {
+            "name": "Ghost",
+            "id": "dd2062b0-b994-494e-a21e-536c9f64d743",
+            "actions": [
+                {
+                    "name": "Fly Up",
+                    "type": "Button",
+                    "id": "d8faa842-c446-4e13-9129-f113abc1af6e",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Fly Down",
+                    "type": "Button",
+                    "id": "ec456d6b-d491-484b-b0c0-0ce000c587b0",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Movement",
+                    "type": "Value",
+                    "id": "f8867b4a-5d0d-459e-bbba-2190facc62f6",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                },
+                {
+                    "name": "Phase Toggle",
+                    "type": "Button",
+                    "id": "c9859559-0642-45fa-b7ac-3418525a824d",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "PossessObject",
+                    "type": "Button",
+                    "id": "c8b29f04-8582-4938-9c48-0e26a66db1f0",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "MenuToggle",
+                    "type": "Button",
+                    "id": "89f0fa77-7710-4a28-af15-28d8f7eb3d36",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Look",
+                    "type": "Value",
+                    "id": "71ccb220-9e2d-4091-8797-5017eb7914b0",
+                    "expectedControlType": "Vector2",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "85491d3a-9396-4f10-9a17-e7b37d875fc6",
+                    "path": "<Gamepad>/rightTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Fly Up",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "62633c31-9f57-485e-88c2-b26a84132753",
+                    "path": "<Gamepad>/leftTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Fly Down",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b3d146a2-804e-4a10-ae5a-1987a551d01c",
+                    "path": "<Gamepad>/leftStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Movement",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8f7ce6b6-818a-4746-9fd3-78f944c498eb",
+                    "path": "<Gamepad>/buttonWest",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Phase Toggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4353e1ab-fb9f-4ad2-967e-92f2eb033720",
+                    "path": "<Gamepad>/buttonEast",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PossessObject",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d3727d29-d0c2-447e-81f8-e7a4b3d9d4ae",
+                    "path": "<Gamepad>/buttonNorth",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "MenuToggle",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "cdca219f-15aa-4c93-bc6d-5d351ff5825c",
+                    "path": "<Gamepad>/rightStick",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Look",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

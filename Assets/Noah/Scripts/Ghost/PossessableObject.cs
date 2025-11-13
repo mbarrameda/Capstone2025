@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[CreateAssetMenu(fileName = "NewPossessable", menuName = "Possession/Possessable Object")]
 public class PossessableObject : MonoBehaviour
 {
     [Header("Possession Settings")]
@@ -10,6 +11,10 @@ public class PossessableObject : MonoBehaviour
 
     [Header("Clone Prefab")]
     public GameObject clonePrefab; // assign prefab for cloned version
+
+    [Header("UI Info")]
+    public string displayName = "Unnamed Object";
+    public Sprite icon; // add icon in inspector for each object type
 
     private GhostController possessingGhost;
 

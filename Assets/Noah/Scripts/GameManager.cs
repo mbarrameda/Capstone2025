@@ -109,9 +109,13 @@ public class GameManager : MonoBehaviour
         Transform spawn = explorerSpawns[Mathf.Clamp(explorers.Count, 0, explorerSpawns.Length - 1)];
         var explorer = Instantiate(explorerPrefab, spawn.position, spawn.rotation);
 
-        // Create separate input actions for explorer
+        // Create COMPLETELY SEPARATE input actions for explorer
         var explorerInputs = new PlayerInputs();
         explorerInputs.devices = new InputDevice[] { Gamepad.all[controllerIndex] };
+
+        // 🔥 CRITICAL: Make sure explorer uses Explorer action map
+        explorerInputs.Player.Enable();
+        explorerInputs.Ghost.Disable();
 
         explorer.TakeControl(explorerInputs);
         explorers.Add(explorer);
@@ -122,9 +126,13 @@ public class GameManager : MonoBehaviour
         Transform spawn = ghostSpawns[Mathf.Clamp(ghosts.Count, 0, ghostSpawns.Length - 1)];
         var ghost = Instantiate(ghostPrefab, spawn.position, spawn.rotation);
 
-        // Create a copy of input actions for the ghost to prevent conflicts
+        // Create COMPLETELY SEPARATE input actions for ghost
         var ghostInputs = new PlayerInputs();
         ghostInputs.devices = new InputDevice[] { Gamepad.all[controllerIndex] };
+
+        // 🔥 CRITICAL: Make sure ghost uses Ghost action map
+        ghostInputs.Ghost.Enable();
+        ghostInputs.Player.Disable();
 
         ghost.AssignInput(ghostInputs);
         ghosts.Add(ghost);
@@ -190,20 +198,25 @@ public class GameManager : MonoBehaviour
         var handler = clone.GetComponent<PlayerInputHandler>();
         if (handler != null)
         {
-            ghost.playerInputs.Disable();
+            ghost.playerInputs.Ghost.Disable();
+
+            // Transfer inputs to clone
             handler.TakeControl(ghost.playerInputs);
 
-            // Simple release handler for explorer clone (no menu, just timer)
-            // The timer in Update() will automatically call ReleaseClone when it expires
+            ghost.playerInputs.Player.Enable();
         }
 
         activeClones.Add(ghost, new CloneData { cloneObject = clone, timer = cloneDuration });
-
-        Debug.Log("Explorer clone spawned - will auto-return after timer");
     }
 
     public void ReleaseClone(GhostController ghost)
     {
+
+        if (ghost != null)
+        {
+            ghost.ReturnControlToGhost();
+        }
+
         if (ghost == null)
         {
             Debug.LogError("❌ ReleaseClone called with null GhostController!");
@@ -219,6 +232,12 @@ public class GameManager : MonoBehaviour
         GameObject clone = cloneData.cloneObject;
         if (clone != null)
         {
+            // 🔥 Clean up clone inputs first
+            var handler = clone.GetComponent<PlayerInputHandler>();
+            if (handler != null)
+            {
+                handler.ReleaseControl(); // Use ReleaseControl instead of RemoveInput
+            }
             Destroy(clone);
         }
 
@@ -228,18 +247,28 @@ public class GameManager : MonoBehaviour
         ghost.FreezeInput(false);
         ghost.isControllingClone = false;
 
-        // 🧩 Ensure input is properly restored
+        // 🧩 FIXED: Store reference before removing input
+        var storedInputs = ghost.playerInputs;
+
         if (ghost.playerInputs != null)
         {
-            ghost.playerInputs.Disable();
-            ghost.RemoveInput();   // clear old bindings
-            ghost.AssignInput(ghost.playerInputs); // resubscribe inputs
-            ghost.playerInputs.Enable();
+            // Make sure only the Ghost action map is active
+            ghost.playerInputs.Player.Disable();
+            ghost.playerInputs.Ghost.Enable();
+
+            // Rebind input callbacks fresh
+            ghost.RemoveInput();
+            ghost.AssignInput(ghost.playerInputs);
+
+            // Double-check
+            Debug.Log($"✅ Rebound ghost inputs. Ghost map enabled: {ghost.playerInputs.Ghost.enabled}");
         }
         else
         {
             Debug.LogWarning("⚠️ Ghost had no PlayerInputs when returning from clone. Creating new one.");
-            ghost.AssignInput(new PlayerInputs());
+            var newInputs = new PlayerInputs();
+            newInputs.Ghost.Enable();
+            ghost.AssignInput(newInputs);
         }
 
         // Reactivate camera if it got disabled
@@ -250,8 +279,9 @@ public class GameManager : MonoBehaviour
         }
 
         activeClones.Remove(ghost);
-
+        ghost.FreezeInput(false);
         Debug.Log($"✅ Clone released. Control returned to {ghost.name}");
+
     }
 
 
@@ -317,9 +347,21 @@ public class GameManager : MonoBehaviour
         ghost.SetVisibility(false);
         ghost.isControllingClone = true;
 
-        // 🔹 Transfer inputs to clone
-        ghost.playerInputs.Disable();
-        cloneController.AssignInput(ghost.playerInputs);
+        // 🔥 CRITICAL FIX: Proper input transfer for object clones
+        if (ghost.playerInputs != null)
+        {
+            // Disable ghost's Ghost action map before transfer
+            ghost.playerInputs.Ghost.Disable();
+
+            // Transfer inputs to clone
+            ghost.playerInputs.Disable(); // Disable all first
+            cloneController.AssignInput(ghost.playerInputs);
+
+            // 🔥 Ensure object clone uses Ghost action map (not Explorer)
+            ghost.playerInputs.Ghost.Enable();
+            ghost.playerInputs.Player.Disable();
+        }
+
         cloneController.FreezeInput(false);
         cloneController.isControllingClone = true;
         cloneController.preserveCameraSetup = true;
@@ -334,49 +376,79 @@ public class GameManager : MonoBehaviour
         // 🔹 FIXED: Setup callback to return control to ghost
         cloneController.OnDestroyClone = () =>
         {
-            if (ghost != null)
+            if (ghost != null && ghost.gameObject != null)
             {
-                // Restore ghost transform
-                ghost.transform.position = originalGhostPosition;
-                ghost.transform.rotation = originalGhostRotation;
+                Debug.Log("🚨 NUCLEAR RESET - Returning from object clone");
 
-                // Reactivate ghost visuals and inputs
-                ghost.SetVisibility(true);
-                ghost.FreezeInput(false);
-                ghost.isControllingClone = false;
+                // 1. Store the original input devices before we lose them
+                InputDevice[] deviceArray = InputSystem.devices.ToArray();
 
-                // 🔹 CRITICAL FIX: Re-enable and reassign ghost inputs
+                // 2. Completely nuke the current input system
                 if (ghost.playerInputs != null)
                 {
-                    ghost.playerInputs.Enable();
-                    // Remove and reassign inputs to refresh all subscriptions
+                    ghost.playerInputs.Disable();
                     ghost.RemoveInput();
-                    ghost.AssignInput(ghost.playerInputs);
+                    ghost.playerInputs = null; // Complete destruction
                 }
 
-                // Reset camera
-                if (ghost.cameraPivot != null)
+                // 3. Restore ghost transform and visibility
+                ghost.transform.position = originalGhostPosition;
+                ghost.transform.rotation = originalGhostRotation;
+                ghost.gameObject.SetActive(true);
+                ghost.SetVisibility(true);
+                ghost.isControllingClone = false;
+
+                // 4. EMERGENCY RESET all input state
+                ghost.EmergencyInputReset();
+
+                // 5. Create BRAND NEW input system from scratch
+                if (deviceArray != null && deviceArray.Length > 0)
                 {
-                    ghost.cameraPivot.localPosition = Vector3.zero;
-                    ghost.cameraPivot.localRotation = Quaternion.identity;
+                    var freshInputs = new PlayerInputs();
+                    freshInputs.devices = deviceArray;
+
+                    // Only enable Ghost action map
+                    freshInputs.Ghost.Enable();
+                    freshInputs.Player.Disable();
+
+                    // Assign fresh inputs
+                    ghost.AssignInput(freshInputs);
                 }
-                else if (ghost.cameraTransform != null)
+                else
                 {
-                    ghost.cameraTransform.localPosition = Vector3.zero;
-                    ghost.cameraTransform.localRotation = Quaternion.identity;
+                    Debug.LogError("❌ No input devices found for ghost restoration!");
+                    // Fallback: create new inputs with default devices
+                    ghost.AssignInput(new PlayerInputs());
                 }
 
-                ghost.xRotation = 0f;
+                // 6. Ensure input is unfrozen
+                ghost.FreezeInput(false);
 
-                // Remove from active clones
+                // 7. Remove from active clones
                 activeClones.Remove(ghost);
 
-                Debug.Log("✅ Ghost fully restored and should be responsive.");
+                Debug.Log("✅ Nuclear reset complete - Ghost should be fully functional");
             }
         };
     }
 
+    private System.Collections.IEnumerator DelayedInputReassign(GhostController ghost, PlayerInputs storedInputs)
+    {
+        yield return null; // Wait one frame
 
+        if (ghost != null && storedInputs != null)
+        {
+            // Ensure proper action map state
+            storedInputs.Ghost.Enable();
+            storedInputs.Player.Disable();
+
+            // Reassign inputs
+            ghost.AssignInput(storedInputs);
+            ghost.FreezeInput(false); // Ensure input is not frozen
+
+            Debug.Log("✅ Ghost input system fully restored after frame delay");
+        }
+    }
 
 
 

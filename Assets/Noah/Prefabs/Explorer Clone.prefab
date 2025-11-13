@@ -158,6 +158,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8f35567ad2d7dd14d8b33ef287d48ec9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  staminaBarObject: {fileID: 0}
+  batterySlider: {fileID: 0}
+  fullStaminaColor: {r: 0, g: 1, b: 0, a: 1}
+  lowStaminaColor: {r: 1, g: 0, b: 0, a: 1}
+  mediumStaminaColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  lowStaminaThreshold: 25
+  mediumStaminaThreshold: 60
+  maxStamina: 100
+  staminaDrainRate: 25
+  staminaRegenRate: 15
+  staminaRegenDelay: 1.5
+  minStaminaToSprint: 10
   moveSpeed: 5
   sprintMultiplier: 2
   jumpHeight: 1
