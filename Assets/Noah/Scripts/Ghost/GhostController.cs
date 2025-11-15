@@ -39,7 +39,10 @@ public class GhostController : MonoBehaviour
 
     [Header("Fear Regeneration")]
     public float fearRegenRate = 3f; // Fear regenerated per second
+    public float fearRegenDelay = 2f; // Seconds after fear drain before regen starts
     public bool canRegenFear = true;
+    private float fearRegenTimer = 0f;
+    private bool isRegenerating = false;
 
 
     [Header("Layers")]
@@ -101,34 +104,37 @@ public class GhostController : MonoBehaviour
     // -------------------------------
     // Update & Physics
     // -------------------------------
-  private void Update()
-{
-    // Handle fear drain
-    HandleFearDrain();
-    
-    // Handle fear gain from player proximity
-    HandleFearGainFromPlayer();
-
-    if (isPhasing)
+    private void Update()
     {
-        phaseTimer -= Time.deltaTime;
-        if (phaseTimer <= 0f)
-            TogglePhase();
-    }
+        // Handle fear drain
+        HandleFearDrain();
 
-    if (isStunned)
-    {
-        stunTimer -= Time.deltaTime;
-        if (stunTimer <= 0f)
+        // Handle fear gain from player proximity
+        HandleFearGainFromPlayer();
+
+        // Handle fear regeneration when not near players
+        HandleFearRegeneration();
+
+        if (isPhasing)
         {
-            isStunned = false;
-            FreezeInput(false);
-            Debug.Log("Ghost no longer stunned");
+            phaseTimer -= Time.deltaTime;
+            if (phaseTimer <= 0f)
+                TogglePhase();
         }
-    }
 
-    UpdateUIPrompt();
-}
+        if (isStunned)
+        {
+            stunTimer -= Time.deltaTime;
+            if (stunTimer <= 0f)
+            {
+                isStunned = false;
+                FreezeInput(false);
+                Debug.Log("Ghost no longer stunned");
+            }
+        }
+
+        UpdateUIPrompt();
+    }
 
     private void FixedUpdate()
     {
@@ -144,6 +150,47 @@ public class GhostController : MonoBehaviour
     // -------------------------------
     // Fear Management
     // -------------------------------
+
+    private void HandleFearRegeneration()
+    {
+        if (!canRegenFear || fear >= 100f) return;
+
+        // Check if we should start regenerating
+        bool shouldRegen = nearestPlayer == null ||
+                          Vector3.Distance(transform.position, nearestPlayer.transform.position) > maxFearGainDistance;
+
+        if (shouldRegen)
+        {
+            fearRegenTimer += Time.deltaTime;
+
+            // Start regeneration after the delay period
+            if (fearRegenTimer >= fearRegenDelay)
+            {
+                if (!isRegenerating)
+                {
+                    isRegenerating = true;
+                    Debug.Log("Fear regeneration started");
+                }
+
+                float regenAmount = fearRegenRate * Time.deltaTime;
+                fear += regenAmount;
+                fear = Mathf.Min(fear, 100f);
+
+                // Debug logging
+                if (Time.frameCount % 120 == 0)
+                {
+                    Debug.Log($"Fear Regen: {fear:F1} (+{regenAmount / Time.deltaTime:F1}/sec)");
+                }
+            }
+        }
+        else
+        {
+            // Reset regeneration timer when near players
+            fearRegenTimer = 0f;
+            isRegenerating = false;
+        }
+    }
+
     private void HandleFearDrain()
     {
         float drainAmount = 0f;
@@ -205,6 +252,10 @@ public class GhostController : MonoBehaviour
 
                     fear += fearGain;
                     fear = Mathf.Min(fear, 100f);
+
+                    // Reset regeneration when gaining fear from players
+                    fearRegenTimer = 0f;
+                    isRegenerating = false;
 
                     // Debug logging
                     if (Time.frameCount % 120 == 0 && fearGain > 0)
@@ -413,7 +464,11 @@ public class GhostController : MonoBehaviour
 
         playerInputs.Ghost.PhaseToggle.performed += OnPhaseToggle;
         playerInputs.Ghost.PossessObject.performed += OnPossessObject;
-        playerInputs.Ghost.MenuToggle.performed += OnMenuToggle;
+
+        if (!isControllingClone)
+        {
+            playerInputs.Ghost.MenuToggle.performed += OnMenuToggle;
+        }
 
         playerInputs.Ghost.FlyUp.performed += OnFlyUpPerformed;
         playerInputs.Ghost.FlyUp.canceled += OnFlyUpCanceled;
@@ -521,10 +576,17 @@ public class GhostController : MonoBehaviour
         // Safety check - if this object is destroyed, don't process input
         if (this == null) return;
 
+        // 🔥 DISABLE MENU BUTTON ENTIRELY while controlling clone/object
         if (isControllingClone)
         {
-            // Return control to ghost instead of destroying the ghost
-            ReturnControlToGhost();
+            Debug.Log("❌ Menu button disabled - currently controlling a clone/object");
+            return;
+        }
+
+        // 🔥 DOUBLE CHECK with GameManager
+        if (GameManager.Instance != null && GameManager.Instance.HasActiveClone(this))
+        {
+            Debug.Log("❌ Menu button disabled - GameManager reports active clone");
             return;
         }
 
@@ -534,7 +596,7 @@ public class GhostController : MonoBehaviour
             uiManager.TriggerTransformCooldown(0.5f);
         }
 
-        // Normal ghost menu
+        // Normal ghost menu (only when not controlling anything)
         TogglePossessionMenu();
     }
 
@@ -595,7 +657,7 @@ public class GhostController : MonoBehaviour
         // The menu should always show at least the Explorer option
         possessionMenu.OpenMenu(possessedGameObjects);
 
-        FreezeInput(true);
+        FreezeInput(true); // This should prevent movement
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
@@ -608,7 +670,7 @@ public class GhostController : MonoBehaviour
             possessionMenu.CloseMenu();
 
         menuOpen = false;
-        FreezeInput(false);
+        FreezeInput(false); // Re-enable input when menu closes
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
@@ -676,7 +738,14 @@ public class GhostController : MonoBehaviour
         }
     }
 
-    Vector3 horizontalMove = moveDir * moveSpeed * Time.fixedDeltaTime;
+        if (freezeInput)
+        {
+            // Ensure all input is zeroed out when frozen
+            moveInput = Vector2.zero;
+            verticalInput = 0f;
+            return;
+        }
+        Vector3 horizontalMove = moveDir * moveSpeed * Time.fixedDeltaTime;
     Vector3 verticalMove = Vector3.up * verticalInput * flySpeed * Time.fixedDeltaTime;
     
     // 🔥 SEPARATE COLLISION CHECKS: Allow horizontal movement even when blocked vertically

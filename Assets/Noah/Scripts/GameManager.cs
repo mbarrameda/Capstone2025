@@ -196,93 +196,76 @@ public class GameManager : MonoBehaviour
         ghost.isControllingClone = true;
 
         var handler = clone.GetComponent<PlayerInputHandler>();
-        if (handler != null)
+        if (handler != null && ghost.playerInputs != null)
         {
-            ghost.playerInputs.Ghost.Disable();
+            // 🔥 CRITICAL FIX: Create a SEPARATE input instance for the clone
+            var cloneInputs = new PlayerInputs();
+            cloneInputs.devices = ghost.playerInputs.devices; // Copy devices from ghost
 
-            // Transfer inputs to clone
-            handler.TakeControl(ghost.playerInputs);
+            // Clone uses Player action map
+            cloneInputs.Player.Enable();
+            cloneInputs.Ghost.Disable();
 
-            ghost.playerInputs.Player.Enable();
+            handler.TakeControl(cloneInputs);
+
+            // 🔥 Ghost retains its own input instance with Ghost map enabled
+            ghost.playerInputs.Ghost.Enable();
+            ghost.playerInputs.Player.Disable();
         }
 
         activeClones.Add(ghost, new CloneData { cloneObject = clone, timer = cloneDuration });
     }
 
     public void ReleaseClone(GhostController ghost)
+{
+    if (ghost == null)
     {
-
-        if (ghost != null)
-        {
-            ghost.ReturnControlToGhost();
-        }
-
-        if (ghost == null)
-        {
-            Debug.LogError("❌ ReleaseClone called with null GhostController!");
-            return;
-        }
-
-        if (!activeClones.TryGetValue(ghost, out CloneData cloneData))
-        {
-            Debug.LogWarning($"⚠️ No active clone found for {ghost.name} to release.");
-            return;
-        }
-
-        GameObject clone = cloneData.cloneObject;
-        if (clone != null)
-        {
-            // 🔥 Clean up clone inputs first
-            var handler = clone.GetComponent<PlayerInputHandler>();
-            if (handler != null)
-            {
-                handler.ReleaseControl(); // Use ReleaseControl instead of RemoveInput
-            }
-            Destroy(clone);
-        }
-
-        // Re-enable ghost control and camera
-        ghost.gameObject.SetActive(true);
-        ghost.SetVisibility(true);
-        ghost.FreezeInput(false);
-        ghost.isControllingClone = false;
-
-        // 🧩 FIXED: Store reference before removing input
-        var storedInputs = ghost.playerInputs;
-
-        if (ghost.playerInputs != null)
-        {
-            // Make sure only the Ghost action map is active
-            ghost.playerInputs.Player.Disable();
-            ghost.playerInputs.Ghost.Enable();
-
-            // Rebind input callbacks fresh
-            ghost.RemoveInput();
-            ghost.AssignInput(ghost.playerInputs);
-
-            // Double-check
-            Debug.Log($"✅ Rebound ghost inputs. Ghost map enabled: {ghost.playerInputs.Ghost.enabled}");
-        }
-        else
-        {
-            Debug.LogWarning("⚠️ Ghost had no PlayerInputs when returning from clone. Creating new one.");
-            var newInputs = new PlayerInputs();
-            newInputs.Ghost.Enable();
-            ghost.AssignInput(newInputs);
-        }
-
-        // Reactivate camera if it got disabled
-        if (ghost.ghostCamera != null)
-        {
-            ghost.ghostCamera.enabled = true;
-            ghost.ghostCamera.gameObject.SetActive(true);
-        }
-
-        activeClones.Remove(ghost);
-        ghost.FreezeInput(false);
-        Debug.Log($"✅ Clone released. Control returned to {ghost.name}");
-
+        Debug.LogError("❌ ReleaseClone called with null GhostController!");
+        return;
     }
+
+    if (!activeClones.TryGetValue(ghost, out CloneData cloneData))
+    {
+        Debug.LogWarning($"⚠️ No active clone found for {ghost.name}");
+        return;
+    }
+
+    GameObject clone = cloneData.cloneObject;
+    if (clone != null)
+    {
+        // Clean up clone inputs
+        var handler = clone.GetComponent<PlayerInputHandler>();
+        var cloneController = clone.GetComponent<GhostController>();
+        
+        if (handler != null)
+        {
+            handler.ReleaseControl();
+        }
+        if (cloneController != null)
+        {
+            cloneController.RemoveInput();
+        }
+        
+        Destroy(clone);
+    }
+
+    // Restore ghost
+    ghost.gameObject.SetActive(true);
+    ghost.SetVisibility(true);
+    ghost.FreezeInput(false);
+    ghost.isControllingClone = false;
+
+    // 🔥 CRITICAL: Ensure ghost input is properly restored
+    if (ghost.playerInputs != null)
+    {
+        ghost.playerInputs.Player.Disable();
+        ghost.playerInputs.Ghost.Enable();
+        ghost.AssignInput(ghost.playerInputs);
+    }
+
+    activeClones.Remove(ghost);
+    Debug.Log($"✅ Clone released. Control returned to {ghost.name}");
+}
 
 
     public bool HasActiveClone(GhostController ghost)
@@ -292,38 +275,27 @@ public class GameManager : MonoBehaviour
 
     public void SpawnObjectClone(GhostController ghost, PossessableObject obj)
     {
-        // 🔹 Sanity check
+        ghost.isControllingClone = true;
+
         if (ghost == null)
         {
             Debug.LogError("❌ GhostController is null in SpawnObjectClone!");
             return;
         }
 
-        // 🔹 Prevent multiple clones
         if (activeClones.ContainsKey(ghost))
         {
             Debug.Log("Ghost already has an active clone");
             return;
         }
 
-        // 🔹 If no object, spawn explorer clone instead
         if (obj == null || obj.clonePrefab == null)
         {
             SpawnExplorerClone(ghost);
             return;
         }
 
-        // 🔹 Store original ghost state BEFORE modifying it
-        Vector3 originalGhostPosition = ghost.transform.position;
-        Quaternion originalGhostRotation = ghost.transform.rotation;
-        bool originalGhostVisibility = ghost.ghostRenderer?.enabled ?? false;
-
-        // 🔹 Instantiate object clone at ghost position
-        GameObject clone = Instantiate(
-            obj.clonePrefab,
-            ghost.transform.position + cloneOffset,
-            ghost.transform.rotation
-        );
+        GameObject clone = Instantiate(obj.clonePrefab, ghost.transform.position + cloneOffset, ghost.transform.rotation);
 
         GhostController cloneController = clone.GetComponent<GhostController>();
         if (cloneController == null)
@@ -333,7 +305,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // 🔹 Setup Rigidbody if missing
+        // Setup clone
         cloneController.rb = cloneController.GetComponent<Rigidbody>();
         if (cloneController.rb != null)
         {
@@ -342,92 +314,58 @@ public class GameManager : MonoBehaviour
             cloneController.rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
         }
 
-        // 🔹 Hide ghost but keep it active and functional
+        // Hide ghost but keep it active
         ghost.FreezeInput(true);
         ghost.SetVisibility(false);
         ghost.isControllingClone = true;
 
-        // 🔥 CRITICAL FIX: Proper input transfer for object clones
+        // 🔥 CRITICAL FIX: Create SEPARATE input for object clone
         if (ghost.playerInputs != null)
         {
-            // Disable ghost's Ghost action map before transfer
-            ghost.playerInputs.Ghost.Disable();
+            var cloneInputs = new PlayerInputs();
+            cloneInputs.devices = ghost.playerInputs.devices;
 
-            // Transfer inputs to clone
-            ghost.playerInputs.Disable(); // Disable all first
-            cloneController.AssignInput(ghost.playerInputs);
+            // Object clone uses Ghost action map (since it's still a ghost-type entity)
+            cloneInputs.Ghost.Enable();
+            cloneInputs.Player.Disable();
 
-            // 🔥 Ensure object clone uses Ghost action map (not Explorer)
-            ghost.playerInputs.Ghost.Enable();
-            ghost.playerInputs.Player.Disable();
+            cloneController.AssignInput(cloneInputs);
         }
 
         cloneController.FreezeInput(false);
         cloneController.isControllingClone = true;
         cloneController.preserveCameraSetup = true;
 
-        // 🔹 Track active clone
+        // Track active clone
         activeClones[ghost] = new CloneData
         {
             cloneObject = clone,
             timer = cloneDuration
         };
 
-        // 🔹 FIXED: Setup callback to return control to ghost
+        // Setup return callback
         cloneController.OnDestroyClone = () =>
         {
-            if (ghost != null && ghost.gameObject != null)
+            if (ghost != null)
             {
-                Debug.Log("🚨 NUCLEAR RESET - Returning from object clone");
+                Debug.Log("Returning from object clone");
 
-                // 1. Store the original input devices before we lose them
-                InputDevice[] deviceArray = InputSystem.devices.ToArray();
-
-                // 2. Completely nuke the current input system
-                if (ghost.playerInputs != null)
-                {
-                    ghost.playerInputs.Disable();
-                    ghost.RemoveInput();
-                    ghost.playerInputs = null; // Complete destruction
-                }
-
-                // 3. Restore ghost transform and visibility
-                ghost.transform.position = originalGhostPosition;
-                ghost.transform.rotation = originalGhostRotation;
+                // Restore ghost
                 ghost.gameObject.SetActive(true);
                 ghost.SetVisibility(true);
                 ghost.isControllingClone = false;
-
-                // 4. EMERGENCY RESET all input state
-                ghost.EmergencyInputReset();
-
-                // 5. Create BRAND NEW input system from scratch
-                if (deviceArray != null && deviceArray.Length > 0)
-                {
-                    var freshInputs = new PlayerInputs();
-                    freshInputs.devices = deviceArray;
-
-                    // Only enable Ghost action map
-                    freshInputs.Ghost.Enable();
-                    freshInputs.Player.Disable();
-
-                    // Assign fresh inputs
-                    ghost.AssignInput(freshInputs);
-                }
-                else
-                {
-                    Debug.LogError("❌ No input devices found for ghost restoration!");
-                    // Fallback: create new inputs with default devices
-                    ghost.AssignInput(new PlayerInputs());
-                }
-
-                // 6. Ensure input is unfrozen
                 ghost.FreezeInput(false);
 
-                // 7. Remove from active clones
-                activeClones.Remove(ghost);
+                // 🔥 CRITICAL: Re-enable ghost's original input
+                if (ghost.playerInputs != null)
+                {
+                    ghost.playerInputs.Ghost.Enable();
+                    ghost.playerInputs.Player.Disable();
+                    ghost.AssignInput(ghost.playerInputs);
+                }
 
-                Debug.Log("✅ Nuclear reset complete - Ghost should be fully functional");
+                // Remove from active clones
+                activeClones.Remove(ghost);
             }
         };
     }

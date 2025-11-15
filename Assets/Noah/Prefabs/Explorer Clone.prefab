@@ -159,12 +159,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   staminaBarObject: {fileID: 0}
-  batterySlider: {fileID: 0}
   fullStaminaColor: {r: 0, g: 1, b: 0, a: 1}
   lowStaminaColor: {r: 1, g: 0, b: 0, a: 1}
   mediumStaminaColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   lowStaminaThreshold: 25
   mediumStaminaThreshold: 60
+  batterySlider: {fileID: 0}
   maxStamina: 100
   staminaDrainRate: 25
   staminaRegenRate: 15
@@ -176,7 +176,7 @@ MonoBehaviour:
   gravity: -9.81
   cameraTransform: {fileID: 8458238811085099424}
   playerCamera: {fileID: 4934358297328321311}
-  lookSensitivity: 1
+  lookSensitivity: 3
   phonePrefab: {fileID: 1107688851397771869, guid: 728bd32e44bd7be46b05ff2ea90a6046, type: 3}
   phoneInstance: {fileID: 0}
   uiHint: {fileID: 0}
