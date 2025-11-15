@@ -162,12 +162,12 @@ MonoBehaviour:
   possessionMenuCanvasName: Possession Menu Canvas
   possessionMenu: {fileID: 0}
   moveSpeed: 5
-  flySpeed: 3
+  flySpeed: 5
   lookSensitivity: 5
   lockObjectRotation: 0
   fear: 100
-  phaseCost: 10
-  phaseDuration: 10
+  phaseCost: 5
+  phaseDuration: 5
   baseFearDrainRate: 0
   phasingFearDrainRate: 1
   cloneControlFearDrainRate: 5
@@ -176,7 +176,8 @@ MonoBehaviour:
   minFearGainDistance: 2
   maxFearGainRate: 2
   fearGainUpdateInterval: 0.5
-  fearRegenRate: 3
+  fearRegenRate: 1
+  fearRegenDelay: 2
   canRegenFear: 1
   defaultLayerName: Default
   ghostLayerName: Ghost
