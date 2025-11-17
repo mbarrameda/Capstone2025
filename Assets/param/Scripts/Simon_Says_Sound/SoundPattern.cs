@@ -57,7 +57,6 @@ public class SoundPatternPuzzle : MonoBehaviour
 
     /// <summary>
     /// Called by the pattern cube — generates and plays a random 6-sound sequence.
-    /// </summary>
     public void PlayRandomPattern()
     {
         if (puzzleCompleted || patternPlaying)
