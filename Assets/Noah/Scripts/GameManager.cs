@@ -19,8 +19,8 @@ public class GameManager : MonoBehaviour
     public float cloneDuration = 15f;
     public float cloneFearCost = 25f;
 
-    private List<PlayerInputHandler> explorers = new List<PlayerInputHandler>();
-    private List<GhostController> ghosts = new List<GhostController>();
+    public List<PlayerInputHandler> explorers = new List<PlayerInputHandler>();
+    public List<GhostController> ghosts = new List<GhostController>();
     private List<PlayerInputs> inputSets = new List<PlayerInputs>();
 
     // Change from private to public and make CloneData public
@@ -118,6 +118,7 @@ public class GameManager : MonoBehaviour
         explorerInputs.Ghost.Disable();
 
         explorer.TakeControl(explorerInputs);
+        explorer.SetSanityActive(true);
         explorers.Add(explorer);
     }
 
@@ -175,7 +176,7 @@ public class GameManager : MonoBehaviour
         GameObject clone = Instantiate(obj.clonePrefab, ghost.transform.position + cloneOffset, ghost.transform.rotation);
 
         ghost.FreezeInput(true);
-        ghost.SetVisibility(false);
+        ghost.SetVisibility(false); 
 
         var handler = clone.GetComponent<PlayerInputHandler>();
         if (handler != null)
@@ -206,8 +207,10 @@ public class GameManager : MonoBehaviour
             cloneInputs.Player.Enable();
             cloneInputs.Ghost.Disable();
 
+            handler.SetAsClone();
             handler.TakeControl(cloneInputs);
 
+            handler.SetSanityActive(false);
             // 🔥 Ghost retains its own input instance with Ghost map enabled
             ghost.playerInputs.Ghost.Enable();
             ghost.playerInputs.Player.Disable();
@@ -239,7 +242,8 @@ public class GameManager : MonoBehaviour
         
         if (handler != null)
         {
-            handler.ReleaseControl();
+                handler.SetSanityActive(false);
+                handler.ReleaseControl();
         }
         if (cloneController != null)
         {

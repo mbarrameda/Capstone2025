@@ -11,5 +11,8 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/WinExplorer.unity
     guid: a76dd7af52a0bd2418cc242582c69303
+  - enabled: 1
+    path: Assets/Scenes/GhostWinScene.unity
+    guid: a50648581e883e849aee8081e38ac470
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 9e7be553448fa2546aea5752021cbcf7, type: 2}

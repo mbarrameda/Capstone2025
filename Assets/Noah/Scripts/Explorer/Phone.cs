@@ -129,6 +129,13 @@ public class Phone : MonoBehaviour
 
     public void TogglePhone()
     {
+
+        if (explorer != null && !explorer.shouldFindUI)
+        {
+            // Clone phone - do nothing or handle differently
+            return;
+        }
+
         isOut = !isOut;
         gameObject.SetActive(isOut);
 

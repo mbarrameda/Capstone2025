@@ -9,7 +9,7 @@ public class GhostController : MonoBehaviour
     [Header("Possession Menu")]
     [SerializeField] private string possessionMenuCanvasName = "Possession Menu Canvas";
     public PossessionMenu possessionMenu;
-    private bool menuOpen = false;
+    public bool menuOpen = false;
 
     [Header("Movement Settings")]
     public float moveSpeed = 5f;
@@ -78,7 +78,7 @@ public class GhostController : MonoBehaviour
     private float verticalInput;
     public float xRotation;
     private bool isPhasing = false;
-    private bool freezeInput = false;
+    public bool freezeInput = false;
 
     private int defaultLayer;
     private int ghostLayer;
@@ -87,7 +87,7 @@ public class GhostController : MonoBehaviour
 
     private Quaternion targetRotation;
 
-    private List<PossessableObject> possessedObjects = new List<PossessableObject>();
+    public List<PossessableObject> possessedObjects = new List<PossessableObject>();
 
     public System.Action OnDestroyClone;
     public System.Action OnReturnToGhost;
