@@ -1,4 +1,5 @@
-﻿using TMPro;
+﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -38,6 +39,30 @@ public class PlayerInputHandler : MonoBehaviour
     private float currentStamina;
     private float lastSprintTime;
     private bool canSprint = true;
+
+    [Header("Sanity System")]
+    public float maxSanity = 100f;
+    public float currentSanity = 0f;
+    public float sanityIncreaseRate = 10f;
+    public float sanityDecreaseRate = 5f;
+    public float sanityUpdateInterval = 0.5f;
+    public float sanityEffectDistance = 15f;
+
+    // Add this new field to track if player should have sanity
+    private bool shouldUpdateSanity = true;
+
+    [Header("Sanity UI")]
+    public Slider sanitySlider;
+    public Image sanityFill;
+    public Color lowSanityColor = Color.blue;
+    public Color mediumSanityColor = Color.yellow;
+    public Color highSanityColor = Color.red;
+    public float highSanityThreshold = 70f;
+    public float mediumSanityThreshold = 30f;
+
+    private float sanityTimer = 0f;
+    private CanvasGroup sanityCanvasGroup;
+    private GameObject sanityBarObject;
 
     // =======================
     // 🔹 MOVEMENT & CAMERA
@@ -83,6 +108,15 @@ public class PlayerInputHandler : MonoBehaviour
     private float xRotation = 0f;
     private bool sprinting = false;
 
+    public bool shouldFindUI = true;
+    private bool isRealExplorer = true;
+
+
+
+    [Header("Sanity Game Over")]
+    public string ghostWinSceneName = "GhostWinScene"; // Name of the scene to load when sanity reaches 100
+    private bool hasTriggeredGameOver = false;
+
     // =======================
     // 🔹 UNITY EVENTS
     // =======================
@@ -92,8 +126,8 @@ public class PlayerInputHandler : MonoBehaviour
         if (uiHint == null)
             uiHint = FindObjectOfType<SimpleUIHintTMP>();
 
-        // Instantiate phone as a child of player camera
-        if (phonePrefab != null && cameraTransform != null)
+        // Only instantiate phone for real explorers, not clones
+        if (shouldFindUI && phonePrefab != null && cameraTransform != null)
         {
             GameObject phoneObj = Instantiate(phonePrefab, cameraTransform);
             phoneInstance = phoneObj.GetComponent<Phone>();
@@ -108,7 +142,11 @@ public class PlayerInputHandler : MonoBehaviour
         controller = GetComponent<CharacterController>();
         currentStamina = maxStamina;
 
-        InitializeStaminaUI();
+        // Only initialize stamina UI if this is a real explorer
+        if (shouldFindUI)
+        {
+            InitializeStaminaUI();
+        }
     }
 
     private void Start()
@@ -117,7 +155,14 @@ public class PlayerInputHandler : MonoBehaviour
         {
             FindStaminaBarAutomatically();
         }
-        InitializeStaminaUI();
+
+        if (shouldFindUI)
+        {
+            InitializeStaminaUI();
+            InitializeSanityUI();
+        }
+
+        isRealExplorer = GameManager.Instance != null && GameManager.Instance.explorers.Contains(this);
     }
 
     private void Update()
@@ -126,11 +171,420 @@ public class PlayerInputHandler : MonoBehaviour
         HandleMovement();
         HandleHintRaycast();
         HandleStamina();
+        HandleSanity();
     }
 
     private void OnDestroy()
     {
         ReleaseControl();
+    }
+
+    public void SetAsClone()
+    {
+        shouldFindUI = false;
+        isRealExplorer = false;
+
+        // Don't try to find or control any UI elements
+        sanitySlider = null;
+        sanityBarObject = null;
+        staminaSlider = null;
+        staminaBarObject = null;
+        batterySlider = null;
+
+        // Disable phone functionality for clones
+        if (phoneInstance != null)
+        {
+            phoneInstance.gameObject.SetActive(false);
+            phoneInstance.enabled = false;
+        }
+
+        Debug.Log("Set as clone - UI and phone disabled");
+    }
+
+    // =======================
+    // 🔹 SANITY SETTINGS
+    // =======================
+    private void InitializeSanityUI()
+    {
+        if (!shouldFindUI) return;
+
+        // Try to find sanity bar automatically
+        FindSanityBarAutomatically();
+
+        if (sanitySlider != null)
+        {
+            sanitySlider.minValue = 0f;
+            sanitySlider.maxValue = maxSanity;
+            sanitySlider.value = currentSanity;
+
+            // Get or add canvas group
+            sanityCanvasGroup = sanitySlider.GetComponent<CanvasGroup>();
+            if (sanityCanvasGroup == null)
+            {
+                sanityCanvasGroup = sanitySlider.gameObject.AddComponent<CanvasGroup>();
+            }
+
+            // 🔥 CHANGE: Always visible, no fading
+            sanityCanvasGroup.alpha = 1f;
+            sanitySlider.gameObject.SetActive(true);
+
+            Debug.Log("Sanity UI initialized successfully - always visible");
+        }
+        else
+        {
+            Debug.LogError("Failed to initialize sanity UI");
+        }
+    }
+
+    private void FindSanityBarAutomatically()
+    {
+        // Try multiple common names for the sanity bar
+        string[] possibleNames = { "SanityBar", "Sanity", "SanitySlider", "Sanity Bar" };
+
+        foreach (string name in possibleNames)
+        {
+            GameObject found = GameObject.Find(name);
+            if (found != null)
+            {
+                sanityBarObject = found;
+                sanitySlider = found.GetComponent<Slider>();
+                if (sanitySlider != null)
+                {
+                    Debug.Log($"Found sanity bar: {name}");
+
+                    // Try to find the fill image automatically
+                    FindSanityFillAutomatically();
+                    return;
+                }
+            }
+        }
+
+        // If not found, search all canvases
+        Canvas[] canvases = FindObjectsOfType<Canvas>();
+        foreach (Canvas canvas in canvases)
+        {
+            Slider[] sliders = canvas.GetComponentsInChildren<Slider>();
+            foreach (Slider slider in sliders)
+            {
+                if (slider.name.Contains("Sanity") || slider.name.Contains("sanity"))
+                {
+                    sanityBarObject = slider.gameObject;
+                    sanitySlider = slider;
+                    Debug.Log($"Found sanity bar in canvas: {slider.name}");
+
+                    // Try to find the fill image automatically
+                    FindSanityFillAutomatically();
+                    return;
+                }
+            }
+        }
+
+        Debug.Log("Could not find sanity bar automatically. It will be created when needed.");
+    }
+
+    private void FindSanityFillAutomatically()
+    {
+        if (sanitySlider == null || sanityFill != null) return;
+
+        // Common paths for slider fill
+        Transform fillArea = sanitySlider.transform.Find("Fill Area");
+        if (fillArea != null)
+        {
+            Transform fill = fillArea.Find("Fill");
+            if (fill != null)
+            {
+                sanityFill = fill.GetComponent<Image>();
+            }
+        }
+
+        // Alternative path
+        if (sanityFill == null)
+        {
+            sanityFill = sanitySlider.fillRect?.GetComponent<Image>();
+        }
+
+        if (sanityFill != null)
+        {
+            Debug.Log("Found sanity fill image automatically");
+        }
+    }
+
+    private void HandleSanity()
+    {
+        // Don't update sanity if player shouldn't have it (like when controlling objects)
+        if (!shouldUpdateSanity)
+        {
+            // 🔥 ONLY reset sanity if we're not a real explorer
+            // Real explorers should keep their sanity value even when not actively updating
+            if (currentSanity != 0f && !IsRealExplorer())
+            {
+                currentSanity = 0f;
+                UpdateSanityUI();
+            }
+            return;
+        }
+
+        sanityTimer -= Time.deltaTime;
+        if (sanityTimer <= 0f)
+        {
+            sanityTimer = sanityUpdateInterval;
+
+            // Find nearest ACTIVE ghost (not frozen/invisible ones)
+            GhostController nearestGhost = FindNearestActiveGhost();
+
+            if (nearestGhost != null)
+            {
+                float distance = Vector3.Distance(transform.position, nearestGhost.transform.position);
+
+                if (distance <= sanityEffectDistance)
+                {
+                    // Increase sanity when ghost is nearby
+                    float distanceFactor = 1f - (distance / sanityEffectDistance);
+                    float sanityGain = sanityIncreaseRate * distanceFactor * sanityUpdateInterval;
+
+                    currentSanity += sanityGain;
+                    currentSanity = Mathf.Min(currentSanity, maxSanity);
+
+                    CheckSanityGameOver();
+                    // Debug logging
+                    if (Time.frameCount % 120 == 0 && sanityGain > 0)
+                    {
+                        Debug.Log($"Sanity Gain: +{sanityGain:F1} (Distance: {distance:F1})");
+                    }
+                }
+                else
+                {
+                    // Decrease sanity when ghosts are too far
+                    float sanityLoss = sanityDecreaseRate * sanityUpdateInterval;
+                    currentSanity -= sanityLoss;
+                    currentSanity = Mathf.Max(currentSanity, 0f);
+                }
+            }
+            else
+            {
+                // Decrease sanity when no active ghosts in scene
+                float sanityLoss = sanityDecreaseRate * sanityUpdateInterval;
+                currentSanity -= sanityLoss;
+                currentSanity = Mathf.Max(currentSanity, 0f);
+            }
+
+            UpdateSanityUI();
+        }
+
+        // Ensure UI is always active
+        if (sanitySlider != null && !sanitySlider.gameObject.activeInHierarchy)
+        {
+            sanitySlider.gameObject.SetActive(true);
+        }
+    }
+
+    private GhostController FindNearestActiveGhost()
+    {
+        if (GameManager.Instance != null && GameManager.Instance.ghosts != null)
+        {
+            float nearestDistance = float.MaxValue;
+            GhostController nearestGhost = null;
+
+            foreach (GhostController ghost in GameManager.Instance.ghosts)
+            {
+                // More thorough check - skip inactive, disabled, or frozen ghosts
+                bool isInactive = ghost == null ||
+                    !ghost.gameObject.activeInHierarchy ||
+                    !ghost.enabled ||
+                    IsGhostFrozenOrInactive(ghost);
+
+                if (isInactive)
+                {
+                    // Debug why this ghost is considered inactive
+                    if (ghost != null && Time.frameCount % 120 == 0)
+                    {
+                        Debug.Log($"🧠 Ghost {ghost.name} is inactive - " +
+                                  $"ControllingClone: {ghost.isControllingClone}, " +
+                                  $"Visible: {ghost.ghostRenderer?.enabled}, " +
+                                  $"Frozen: {ghost.freezeInput}, " +
+                                  $"Stunned: {ghost.isStunned}");
+                    }
+                    continue;
+                }
+
+                float distance = Vector3.Distance(transform.position, ghost.transform.position);
+                if (distance < nearestDistance)
+                {
+                    nearestDistance = distance;
+                    nearestGhost = ghost;
+                }
+            }
+
+            if (nearestGhost != null && Time.frameCount % 120 == 0)
+            {
+                Debug.Log($"🧠 Nearest active ghost: {nearestGhost.name} at {nearestDistance:F1} units");
+            }
+
+            return nearestGhost;
+        }
+
+        return null;
+    }
+
+    private void CheckSanityGameOver()
+    {
+        // Check if sanity reached 100% and we haven't already triggered game over
+        if (currentSanity == maxSanity && !hasTriggeredGameOver && shouldUpdateSanity)
+        {
+            hasTriggeredGameOver = true;
+
+            
+            // Load the ghost win scene
+            if (!string.IsNullOrEmpty(ghostWinSceneName))
+            {
+                UnityEngine.SceneManagement.SceneManager.LoadScene(ghostWinSceneName);
+            }
+            else
+            {
+                Debug.LogError("Ghost win scene name is not set in PlayerInputHandler!");
+            }
+        }
+    }
+    private bool IsGhostFrozenOrInactive(GhostController ghost)
+    {
+        if (ghost == null) return true;
+
+        // 🔥 FIX: Check if ghost is controlling a clone AND is currently hidden
+        // A ghost that has returned from a clone should be active again
+        if (ghost.isControllingClone &&
+            ghost.ghostRenderer != null && !ghost.ghostRenderer.enabled)
+            return true;
+
+        // Check if ghost is stunned
+        if (ghost.isStunned)
+            return true;
+
+        // Check if ghost input is frozen (but allow for menu state)
+        if (ghost.freezeInput && !ghost.menuOpen) // 🔥 Only consider frozen if not in menu
+            return true;
+
+        // Check if ghost is not visible (hidden when controlling clones)
+        if (ghost.ghostRenderer != null && !ghost.ghostRenderer.enabled)
+            return true;
+
+        // Check if ghost camera is disabled
+        if (ghost.ghostCamera != null && !ghost.ghostCamera.enabled)
+            return true;
+
+        // Check if ghost is possessing an object (through the possession system)
+        if (ghost.possessedObjects != null && ghost.possessedObjects.Count > 0)
+        {
+            // Check if any possessed objects are currently active
+            foreach (var possessedObj in ghost.possessedObjects)
+            {
+                if (possessedObj != null && possessedObj.isPossessed)
+                    return true;
+            }
+        }
+
+        // Additional safety check - if the ghost has been destroyed or disabled
+        if (!ghost.gameObject.activeInHierarchy || !ghost.enabled)
+            return true;
+
+        return false;
+    }
+    private GhostController FindNearestGhost()
+    {
+
+        if (GameManager.Instance != null && GameManager.Instance.ghosts != null)
+        {
+            float nearestDistance = float.MaxValue;
+            GhostController nearestGhost = null;
+
+            foreach (GhostController ghost in GameManager.Instance.ghosts)
+            {
+                if (ghost == null || !ghost.gameObject.activeInHierarchy) continue;
+
+                // Always track the original ghost player's position
+                // Even when they're controlling clones, the original ghost object
+                // still exists in the scene (just hidden)
+                float distance = Vector3.Distance(transform.position, ghost.transform.position);
+                if (distance < nearestDistance)
+                {
+                    nearestDistance = distance;
+                    nearestGhost = ghost;
+                }
+            }
+
+            return nearestGhost;
+        }
+
+        return null;
+    }
+
+    public void SetSanityActive(bool active)
+    {
+        shouldUpdateSanity = active;
+
+        Debug.Log($"Sanity system {(active ? "enabled" : "disabled")}");
+    }
+    public void ForceSanityUpdate()
+    {
+        // Force an immediate sanity check
+        sanityTimer = 0f;
+        HandleSanity();
+
+        Debug.Log($"🧠 Forced sanity update - Current: {currentSanity}");
+    }
+    private void UpdateSanityUI()
+    {
+        if (sanitySlider == null) return;
+
+        // Smoothly update slider value to prevent glitching
+        sanitySlider.value = Mathf.Lerp(sanitySlider.value, currentSanity, Time.deltaTime * 5f);
+
+        // Update fill color based on sanity level
+        if (sanityFill != null)
+        {
+            if (currentSanity >= highSanityThreshold)
+            {
+                sanityFill.color = highSanityColor;
+            }
+            else if (currentSanity >= mediumSanityThreshold)
+            {
+                sanityFill.color = mediumSanityColor;
+            }
+            else
+            {
+                sanityFill.color = lowSanityColor;
+            }
+        }
+
+        // Debug to verify sanity is changing
+        if (Time.frameCount % 120 == 0)
+        {
+            Debug.Log($"Sanity UI Update: {currentSanity} | Slider Value: {sanitySlider.value}");
+        }
+    }
+
+    // Public method to modify sanity (for external effects)
+    public void ModifySanity(float amount)
+    {
+        currentSanity = Mathf.Clamp(currentSanity + amount, 0f, maxSanity);
+        if (amount > 0) // Only check if sanity is increasing
+        {
+            CheckSanityGameOver();
+        }
+
+        UpdateSanityUI();
+
+        Debug.Log($"Sanity modified: {amount}. Current: {currentSanity}");
+    }
+
+    private bool IsRealExplorer()
+    {
+        // Real explorers are the ones spawned initially, not clones
+        // You might need to add a flag to track this, or check if this is in the GameManager's explorers list
+        if (GameManager.Instance != null && GameManager.Instance.explorers != null)
+        {
+            return GameManager.Instance.explorers.Contains(this);
+        }
+        return false;
     }
 
     // =======================
@@ -140,7 +594,6 @@ public class PlayerInputHandler : MonoBehaviour
     {
         ReleaseControl();
         inputActions = newInputs;
-
         inputActions.Player.Movement.performed += OnMovePerformed;
         inputActions.Player.Movement.canceled += OnMoveCanceled;
 
@@ -168,7 +621,6 @@ public class PlayerInputHandler : MonoBehaviour
     public void ReleaseControl()
     {
         if (inputActions == null) return;
-
         inputActions.Player.Movement.performed -= OnMovePerformed;
         inputActions.Player.Movement.canceled -= OnMoveCanceled;
         inputActions.Player.Look.performed -= OnLookPerformed;
@@ -230,6 +682,8 @@ public class PlayerInputHandler : MonoBehaviour
     }
     private void InitializeStaminaUI()
     {
+        if (!shouldFindUI) return;
+
         if (staminaBarObject == null)
         {
             // Try to find it automatically
