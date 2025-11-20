@@ -100,7 +100,7 @@ public class PlayerInputHandler : MonoBehaviour
     // =======================
     // 🔹 PRIVATE FIELDS
     // =======================
-    private PlayerInputs inputActions;
+    public PlayerInputs inputActions;
     private Vector2 moveInput;
     private Vector2 lookInput;
     private CharacterController controller;
@@ -387,7 +387,7 @@ public class PlayerInputHandler : MonoBehaviour
 
             foreach (GhostController ghost in GameManager.Instance.ghosts)
             {
-                // More thorough check - skip inactive, disabled, or frozen ghosts
+                // Use the updated check that allows object-controlling ghosts
                 bool isInactive = ghost == null ||
                     !ghost.gameObject.activeInHierarchy ||
                     !ghost.enabled ||
@@ -395,18 +395,11 @@ public class PlayerInputHandler : MonoBehaviour
 
                 if (isInactive)
                 {
-                    // Debug why this ghost is considered inactive
-                    if (ghost != null && Time.frameCount % 120 == 0)
-                    {
-                        Debug.Log($"🧠 Ghost {ghost.name} is inactive - " +
-                                  $"ControllingClone: {ghost.isControllingClone}, " +
-                                  $"Visible: {ghost.ghostRenderer?.enabled}, " +
-                                  $"Frozen: {ghost.freezeInput}, " +
-                                  $"Stunned: {ghost.isStunned}");
-                    }
                     continue;
                 }
 
+                // 🔥 IMPORTANT: Use the ghost's CURRENT position, even if they're controlling an object
+                // The ghost transform should follow the object they're controlling
                 float distance = Vector3.Distance(transform.position, ghost.transform.position);
                 if (distance < nearestDistance)
                 {
@@ -417,7 +410,8 @@ public class PlayerInputHandler : MonoBehaviour
 
             if (nearestGhost != null && Time.frameCount % 120 == 0)
             {
-                Debug.Log($"🧠 Nearest active ghost: {nearestGhost.name} at {nearestDistance:F1} units");
+                Debug.Log($"🧠 Nearest active ghost: {nearestGhost.name} at {nearestDistance:F1} units. " +
+                         $"ControllingClone: {nearestGhost.isControllingClone}");
             }
 
             return nearestGhost;
@@ -449,43 +443,29 @@ public class PlayerInputHandler : MonoBehaviour
     {
         if (ghost == null) return true;
 
-        // 🔥 FIX: Check if ghost is controlling a clone AND is currently hidden
-        // A ghost that has returned from a clone should be active again
-        if (ghost.isControllingClone &&
-            ghost.ghostRenderer != null && !ghost.ghostRenderer.enabled)
-            return true;
+        // 🔥 FIX: Ghosts controlling objects should STILL affect sanity
+        // Only consider ghosts inactive if they're actually disabled or in a state where they shouldn't affect sanity
 
-        // Check if ghost is stunned
+        // Check if ghost is stunned - stunned ghosts don't affect sanity
         if (ghost.isStunned)
             return true;
 
-        // Check if ghost input is frozen (but allow for menu state)
-        if (ghost.freezeInput && !ghost.menuOpen) // 🔥 Only consider frozen if not in menu
-            return true;
-
-        // Check if ghost is not visible (hidden when controlling clones)
-        if (ghost.ghostRenderer != null && !ghost.ghostRenderer.enabled)
-            return true;
-
-        // Check if ghost camera is disabled
-        if (ghost.ghostCamera != null && !ghost.ghostCamera.enabled)
-            return true;
-
-        // Check if ghost is possessing an object (through the possession system)
-        if (ghost.possessedObjects != null && ghost.possessedObjects.Count > 0)
-        {
-            // Check if any possessed objects are currently active
-            foreach (var possessedObj in ghost.possessedObjects)
-            {
-                if (possessedObj != null && possessedObj.isPossessed)
-                    return true;
-            }
-        }
-
-        // Additional safety check - if the ghost has been destroyed or disabled
+        // Check if ghost is completely disabled
         if (!ghost.gameObject.activeInHierarchy || !ghost.enabled)
             return true;
 
+        // 🔥 FIX: Ghosts controlling clones OR possessing objects should STILL affect sanity
+        // The key insight: when a ghost is controlling something (clone or object), 
+        // they're still "active" in the world and should affect sanity
+
+        // Check if ghost is temporarily frozen (like during menu) but not permanently disabled
+        if (ghost.freezeInput && !ghost.menuOpen)
+        {
+            // Only return true if this is a permanent freeze, not temporary
+            return true;
+        }
+
+        // If we get here, the ghost is active and should affect sanity
         return false;
     }
     private GhostController FindNearestGhost()
@@ -610,7 +590,7 @@ public class PlayerInputHandler : MonoBehaviour
         };
 
         inputActions.Player.Interact.performed += OnInteractPerformed;
-
+        inputActions.UI.Pause.performed += OnPausePerformed;
         inputActions.Player.Enable();
         inputActions.Ghost.Disable();
 
@@ -628,12 +608,41 @@ public class PlayerInputHandler : MonoBehaviour
         inputActions.Player.Jump.performed -= OnJumpPerformed;
         inputActions.Player.Sprint.performed -= OnSprintPerformed;
         inputActions.Player.Interact.performed -= OnInteractPerformed;
-
+        inputActions.UI.Pause.performed -= OnPausePerformed;
         inputActions.Player.Disable();
         inputActions = null;
 
         if (playerCamera != null)
             playerCamera.enabled = false;
+    }
+
+    private void OnPausePerformed(InputAction.CallbackContext ctx)
+    {
+        if (PauseMenuManager.Instance != null && !PauseMenuManager.Instance.IsGamePaused())
+        {
+            PauseMenuManager.Instance.PauseGame(this);
+        }
+    }
+    public void FreezeInput(bool freeze)
+    {
+        if (freeze)
+        {
+            // Store current input state and zero it out
+            moveInput = Vector2.zero;
+            lookInput = Vector2.zero;
+            sprinting = false;
+
+            // Also freeze the character controller
+            if (controller != null)
+            {
+                velocity = Vector3.zero;
+                inputActions.UI.Enable();
+            }
+        }
+        // Note: We don't re-enable input here because the input callbacks will handle it automatically
+        // when the game is unpaused and player starts moving again
+
+        Debug.Log($"Player input {(freeze ? "frozen" : "unfrozen")}");
     }
 
     // =======================

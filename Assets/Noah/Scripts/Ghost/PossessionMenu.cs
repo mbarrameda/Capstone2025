@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
 public class PossessionMenu : MonoBehaviour
 {
@@ -17,6 +18,7 @@ public class PossessionMenu : MonoBehaviour
     [Header("Controller Navigation")]
     public Button firstSelectedButton;
 
+    private PlayerInput menuOwner; // The player who opened the menu
     private List<Button> menuButtons = new List<Button>();
     private System.Action<GameObject> onSelectObject;
 
