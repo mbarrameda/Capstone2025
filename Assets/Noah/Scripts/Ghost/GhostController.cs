@@ -419,6 +419,7 @@ public class GhostController : MonoBehaviour
 
         // IMPORTANT: Enable Ghost map FIRST before subscribing
         playerInputs.Ghost.Enable();
+        playerInputs.UI.Enable();
         playerInputs.Player.Disable();
 
         SubscribeInputs();
@@ -445,6 +446,7 @@ public class GhostController : MonoBehaviour
         if (playerInputs == null) return;
         UnsubscribeInputs();
         playerInputs.Ghost.Disable();
+        playerInputs.UI.Disable();
         playerInputs = null;
     }
 
@@ -475,6 +477,7 @@ public class GhostController : MonoBehaviour
 
         playerInputs.Ghost.FlyDown.performed += OnFlyDownPerformed;
         playerInputs.Ghost.FlyDown.canceled += OnFlyDownCanceled;
+        playerInputs.UI.Pause.performed += OnPausePerformed;
     }
 
     private void UnsubscribeInputs()
@@ -496,6 +499,7 @@ public class GhostController : MonoBehaviour
 
         playerInputs.Ghost.FlyDown.performed -= OnFlyDownPerformed;
         playerInputs.Ghost.FlyDown.canceled -= OnFlyDownCanceled;
+        playerInputs.UI.Pause.performed -= OnPausePerformed;
     }
 
 
@@ -926,6 +930,7 @@ public class GhostController : MonoBehaviour
                     possessedObjects.Add(nearest);
                     Debug.Log($"Added {nearest.name} to possessed list");
                 }
+                UpdateGhostTracking();
                 GhostUIManager uiManager = GetComponent<GhostUIManager>();
                 if (uiManager != null)
                 {
@@ -949,8 +954,27 @@ public class GhostController : MonoBehaviour
             moveInput = Vector2.zero;
             lookInput = Vector2.zero;
             verticalInput = 0f;
+            playerInputs.UI.Enable();
         }
         Debug.Log($"FreezeInput called: {freeze}");
+    }
+
+    public void UpdateGhostTracking()
+    {
+        // This method should be called by the GhostController when they start/stop controlling objects
+        // to ensure their transform position is accurate for sanity calculations
+
+        // Find all explorers and force a sanity update
+        PlayerInputHandler[] explorers = FindObjectsOfType<PlayerInputHandler>();
+        foreach (PlayerInputHandler explorer in explorers)
+        {
+            if (explorer != null)
+            {
+                explorer.ForceSanityUpdate();
+            }
+        }
+
+        Debug.Log("Ghost tracking updated - forced sanity recalculation on all explorers");
     }
 
     public void SetVisibility(bool visible)
@@ -1006,9 +1030,17 @@ public class GhostController : MonoBehaviour
         SetVisibility(true);
         isControllingClone = false;
 
+            UpdateGhostTracking();
         Debug.Log("Control returned to ghost");
     }
 
+    private void OnPausePerformed(InputAction.CallbackContext ctx)
+    {
+        if (PauseMenuManager.Instance != null && !PauseMenuManager.Instance.IsGamePaused())
+        {
+            PauseMenuManager.Instance.PauseGame(this);
+        }
+    }
     public void ForceResetInput()
     {
         Debug.Log("🔄 FORCE RESETTING INPUT");

@@ -5967,6 +5967,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4460530275303074, guid: 56c82061e6c4de742a208837848be55a, type: 3}
   m_PrefabInstance: {fileID: 78056719}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &81558688
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 81558690}
+  - component: {fileID: 81558689}
+  m_Layer: 0
+  m_Name: PauseMenuManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &81558689
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 81558688}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13ab51b89e71a7f4282e83d3893ae6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  pauseMenuPrefab: {fileID: 2625715358006906350, guid: e42286a381a3a89439ac4c786162bafb, type: 3}
+  menuNavigationCooldown: 0.2
+  mainMenuSceneName: MainMenu
+--- !u!4 &81558690
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 81558688}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 792.4459, y: 534.7902, z: -1318.6077}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &82355108
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -112935,15 +112982,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3936713562259517935, guid: d6b86c0fc6af80840a9fc14b245b1b55, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -37.796764
+      value: -38.69
       objectReference: {fileID: 0}
     - target: {fileID: 3936713562259517935, guid: d6b86c0fc6af80840a9fc14b245b1b55, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.28
+      value: 0.253
       objectReference: {fileID: 0}
     - target: {fileID: 3936713562259517935, guid: d6b86c0fc6af80840a9fc14b245b1b55, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 25.77
+      value: 23.723
       objectReference: {fileID: 0}
     - target: {fileID: 3936713562259517935, guid: d6b86c0fc6af80840a9fc14b245b1b55, type: 3}
       propertyPath: m_LocalRotation.w
@@ -112988,6 +113035,10 @@ PrefabInstance:
     - target: {fileID: 5239025307111840663, guid: d6b86c0fc6af80840a9fc14b245b1b55, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
       value: 26.436
+      objectReference: {fileID: 0}
+    - target: {fileID: 7277762636150156098, guid: d6b86c0fc6af80840a9fc14b245b1b55, type: 3}
+      propertyPath: m_UseGravity
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -147596,10 +147647,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e63f407b9dd042444ac5768cbb42b04d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sanitySlider: {fileID: 0}
-  sanityFill: {fileID: 0}
-  staminaSlider: {fileID: 0}
-  staminaFill: {fileID: 0}
+  sanitySlider: {fileID: 151666418}
+  sanityFill: {fileID: 1011348642}
+  staminaSlider: {fileID: 1828269853}
+  staminaFill: {fileID: 1292244792}
   fearBar: {fileID: 2057509136}
   fearFill: {fileID: 1538180798}
   stunStatusText: {fileID: 548652497}
@@ -147659,7 +147710,7 @@ MonoBehaviour:
   m_TrackedDeviceOrientationAction: {fileID: 1025543830046995696, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
   m_DeselectOnBackgroundClick: 1
   m_PointerBehavior: 0
-  m_CursorLockBehavior: 0
+  m_CursorLockBehavior: 1
 --- !u!1001 &1693989645
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -193344,3 +193395,4 @@ SceneRoots:
   - {fileID: 1937926344}
   - {fileID: 1408719376}
   - {fileID: 1143387665}
+  - {fileID: 81558690}
