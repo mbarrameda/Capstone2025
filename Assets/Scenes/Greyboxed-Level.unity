@@ -25836,7 +25836,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 349.7}
+  m_AnchoredPosition: {x: 0, y: 410}
   m_SizeDelta: {x: 160, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &151666418
@@ -63365,6 +63365,18 @@ PrefabInstance:
       propertyPath: m_Name
       value: Possesion Menu Canvas
       objectReference: {fileID: 0}
+    - target: {fileID: 3595191764584789169, guid: 6d6846fafffd0d64ea5a1efcf99cc4b2, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 1.8131
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595191764584789169, guid: 6d6846fafffd0d64ea5a1efcf99cc4b2, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 1.8131
+      objectReference: {fileID: 0}
+    - target: {fileID: 3595191764584789169, guid: 6d6846fafffd0d64ea5a1efcf99cc4b2, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1.8131
+      objectReference: {fileID: 0}
     - target: {fileID: 4195611201709092132, guid: 6d6846fafffd0d64ea5a1efcf99cc4b2, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -63484,6 +63496,10 @@ PrefabInstance:
     - target: {fileID: 7947964863689327867, guid: 6d6846fafffd0d64ea5a1efcf99cc4b2, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 4.347412
+      objectReference: {fileID: 0}
+    - target: {fileID: 8182246670081956359, guid: 6d6846fafffd0d64ea5a1efcf99cc4b2, type: 3}
+      propertyPath: m_Value
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: 9084640458433717212, guid: 6d6846fafffd0d64ea5a1efcf99cc4b2, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -149084,6 +149100,7 @@ GameObject:
   - component: {fileID: 1693928581}
   - component: {fileID: 1693928580}
   - component: {fileID: 1693928579}
+  - component: {fileID: 1693928583}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -149197,6 +149214,19 @@ MonoBehaviour:
   m_DeselectOnBackgroundClick: 1
   m_PointerBehavior: 0
   m_CursorLockBehavior: 1
+--- !u!114 &1693928583
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1693928575}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b42dfcda9a4958e459e88cb780553a2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stunTextObject: {fileID: 299261682}
 --- !u!1001 &1693989645
 PrefabInstance:
   m_ObjectHideFlags: 0
