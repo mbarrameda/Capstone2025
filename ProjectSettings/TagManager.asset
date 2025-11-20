@@ -8,6 +8,8 @@ TagManager:
   - Explorer
   - Ground
   - Ghost
+  - Relic
+  - Altar
   layers:
   - Default
   - TransparentFX

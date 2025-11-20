@@ -191,6 +191,8 @@ MonoBehaviour:
   interactLayerMask:
     serializedVersion: 2
     m_Bits: 512
+  shouldFindUI: 1
+  ghostWinSceneName: GhostWinScene
 --- !u!136 &4646947839042228124
 CapsuleCollider:
   m_ObjectHideFlags: 0

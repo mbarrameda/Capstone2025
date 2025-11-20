@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -912,6 +913,7 @@ public class PlayerInputHandler : MonoBehaviour
         }
     }
 
+
     private void FindStaminaBarAutomatically()
     {
         // Try multiple common names
@@ -946,4 +948,14 @@ public class PlayerInputHandler : MonoBehaviour
 
         Debug.LogError("Could not find stamina bar automatically. Please assign manually in Inspector.");
     }
+    public static event System.Action OnInteractPressed;
+
+    public void Interact(InputAction.CallbackContext context)
+    {
+        if (context.performed)
+        {
+            OnInteractPressed?.Invoke(); // Notify all interactable objects
+        }
+    }
+
 }
