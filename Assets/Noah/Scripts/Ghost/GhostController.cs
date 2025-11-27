@@ -11,6 +11,12 @@ public class GhostController : MonoBehaviour
     public PossessionMenu possessionMenu;
     public bool menuOpen = false;
 
+    [Header("Ghost Sanity UI")]
+    public GameObject ghostSanityBarPrefab;   // Drag prefab here
+    private Slider ghostSanitySlider;
+    private Image ghostSanityFill;
+
+
     [Header("Movement Settings")]
     public float moveSpeed = 5f;
     public float flySpeed = 3f;
@@ -99,11 +105,19 @@ public class GhostController : MonoBehaviour
 
         // Clear any ongoing coroutines
         StopAllCoroutines();
+
+        PlayerInputHandler.OnExplorerSanityChanged -= UpdateGhostSanityBar;
     }
 
     // -------------------------------
     // Update & Physics
     // -------------------------------
+    private void Start()
+    {
+        SetupGhostSanityUI();
+
+        PlayerInputHandler.OnExplorerSanityChanged += UpdateGhostSanityBar;
+    }
     private void Update()
     {
         // Handle fear drain
@@ -146,6 +160,78 @@ public class GhostController : MonoBehaviour
             return;
         }
     }
+
+    private void UpdateGhostSanityBar(float sanity)
+    {
+        if (ghostSanitySlider == null) return;
+
+        ghostSanitySlider.value = sanity;
+
+        if (ghostSanityFill != null)
+        {
+            float percent = sanity / 100f;
+            ghostSanityFill.color = Color.Lerp(Color.blue, Color.red, 1f - percent);
+        }
+    }
+
+    void UpdateGhostSanityUI(float sanity)
+    {
+        if (ghostSanitySlider == null) return;
+
+        ghostSanitySlider.value = sanity;
+
+        if (ghostSanityFill != null)
+        {
+            ghostSanityFill.color = Color.Lerp(Color.green, Color.red, sanity / 100f);
+        }
+    }
+
+    private void SetupGhostSanityUI()
+    {
+        if (ghostSanityBarPrefab == null)
+        {
+            Debug.LogError("Ghost sanity bar prefab is missing!");
+            return;
+        }
+
+        // Find the canvas that is set to Display 2
+        Canvas[] canvases = FindObjectsOfType<Canvas>();
+
+        Canvas targetCanvas = null;
+
+        foreach (Canvas canvas in canvases)
+        {
+            if (canvas.targetDisplay == 1) // Display 2 = index 1
+            {
+                targetCanvas = canvas;
+                break;
+            }
+        }
+
+        if (targetCanvas == null)
+        {
+            Debug.LogError("No canvas found for Display 2! Set one canvas to Target Display = 2.");
+            return;
+        }
+
+        // Create the sanity bar on the ghost's display
+        GameObject uiObj = Instantiate(ghostSanityBarPrefab, targetCanvas.transform);
+
+        ghostSanitySlider = uiObj.GetComponent<Slider>();
+
+        if (ghostSanitySlider == null)
+        {
+            Debug.LogError("The prefab needs a Slider component at the root!");
+            return;
+        }
+
+        // Try to find the Fill image
+        if (ghostSanitySlider.fillRect != null)
+            ghostSanityFill = ghostSanitySlider.fillRect.GetComponent<Image>();
+
+        Debug.Log("Ghost sanity UI successfully created on Display 2.");
+    }
+
 
     // -------------------------------
     // Fear Management

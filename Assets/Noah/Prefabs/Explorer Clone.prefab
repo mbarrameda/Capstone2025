@@ -170,6 +170,19 @@ MonoBehaviour:
   staminaRegenRate: 15
   staminaRegenDelay: 1.5
   minStaminaToSprint: 10
+  maxSanity: 100
+  currentSanity: 0
+  sanityIncreaseRate: 0.5
+  sanityDecreaseRate: 0.5
+  sanityUpdateInterval: 0.5
+  sanityEffectDistance: 500
+  sanitySlider: {fileID: 0}
+  sanityFill: {fileID: 0}
+  lowSanityColor: {r: 0, g: 0, b: 1, a: 1}
+  mediumSanityColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  highSanityColor: {r: 1, g: 0, b: 0, a: 1}
+  highSanityThreshold: 70
+  mediumSanityThreshold: 30
   moveSpeed: 5
   sprintMultiplier: 2
   jumpHeight: 1
@@ -184,6 +197,8 @@ MonoBehaviour:
   interactLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295
+  shouldFindUI: 1
+  ghostWinSceneName: GhostWinScene
 --- !u!136 &102665299693381459
 CapsuleCollider:
   m_ObjectHideFlags: 0

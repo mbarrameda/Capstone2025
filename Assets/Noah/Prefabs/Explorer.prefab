@@ -165,18 +165,18 @@ MonoBehaviour:
   staminaRegenDelay: 1.5
   minStaminaToSprint: 10
   maxSanity: 100
-  currentSanity: 1
-  sanityIncreaseRate: 5
-  sanityDecreaseRate: 1
+  currentSanity: 100
+  sanityIncreaseRate: 15
+  sanityDecreaseRate: 0.5
   sanityUpdateInterval: 0.5
-  sanityEffectDistance: 15
+  sanityEffectDistance: 7.5
   sanitySlider: {fileID: 0}
   sanityFill: {fileID: 0}
-  lowSanityColor: {r: 0, g: 0, b: 1, a: 1}
+  lowSanityColor: {r: 1, g: 0, b: 0, a: 1}
   mediumSanityColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  highSanityColor: {r: 1, g: 0, b: 0, a: 1}
-  highSanityThreshold: 80
-  mediumSanityThreshold: 40
+  highSanityColor: {r: 0, g: 0.23198485, b: 1, a: 1}
+  highSanityThreshold: 75
+  mediumSanityThreshold: 50
   moveSpeed: 5
   sprintMultiplier: 2
   jumpHeight: 1

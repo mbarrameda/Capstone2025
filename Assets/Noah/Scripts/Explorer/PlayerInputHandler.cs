@@ -28,7 +28,8 @@ public class PlayerInputHandler : MonoBehaviour
     [Header("Flashlight Battery UI")]
     public Slider batterySlider;
 
- 
+    public static System.Action<float> OnExplorerSanityChanged;
+
 
     [Header("Stamina Settings")]
     public float maxStamina = 100f;
@@ -152,6 +153,8 @@ public class PlayerInputHandler : MonoBehaviour
 
     private void Start()
     {
+        currentSanity = maxSanity;
+
         if (staminaBarObject == null)
         {
             FindStaminaBarAutomatically();
@@ -312,14 +315,13 @@ public class PlayerInputHandler : MonoBehaviour
 
     private void HandleSanity()
     {
-        // Don't update sanity if player shouldn't have it (like when controlling objects)
+
+
         if (!shouldUpdateSanity)
         {
-            // 🔥 ONLY reset sanity if we're not a real explorer
-            // Real explorers should keep their sanity value even when not actively updating
-            if (currentSanity != 0f && !IsRealExplorer())
+            if (currentSanity != maxSanity && !IsRealExplorer())
             {
-                currentSanity = 0f;
+                currentSanity = maxSanity;
                 UpdateSanityUI();
             }
             return;
@@ -330,7 +332,6 @@ public class PlayerInputHandler : MonoBehaviour
         {
             sanityTimer = sanityUpdateInterval;
 
-            // Find nearest ACTIVE ghost (not frozen/invisible ones)
             GhostController nearestGhost = FindNearestActiveGhost();
 
             if (nearestGhost != null)
@@ -339,45 +340,41 @@ public class PlayerInputHandler : MonoBehaviour
 
                 if (distance <= sanityEffectDistance)
                 {
-                    // Increase sanity when ghost is nearby
+                    // 👻 NEAR A GHOST → SANITY DROPS
                     float distanceFactor = 1f - (distance / sanityEffectDistance);
-                    float sanityGain = sanityIncreaseRate * distanceFactor * sanityUpdateInterval;
+                    float sanityLoss = sanityIncreaseRate * distanceFactor * sanityUpdateInterval;
 
-                    currentSanity += sanityGain;
-                    currentSanity = Mathf.Min(currentSanity, maxSanity);
+                    currentSanity -= sanityLoss;
+                    currentSanity = Mathf.Max(currentSanity, 0f);
 
-                    CheckSanityGameOver();
-                    // Debug logging
-                    if (Time.frameCount % 120 == 0 && sanityGain > 0)
-                    {
-                        Debug.Log($"Sanity Gain: +{sanityGain:F1} (Distance: {distance:F1})");
-                    }
+                    if (Time.frameCount % 120 == 0)
+                        Debug.Log($"Sanity Loss: -{sanityLoss:F1} (Distance: {distance:F1})");
                 }
                 else
                 {
-                    // Decrease sanity when ghosts are too far
-                    float sanityLoss = sanityDecreaseRate * sanityUpdateInterval;
-                    currentSanity -= sanityLoss;
-                    currentSanity = Mathf.Max(currentSanity, 0f);
+                    // 🧠 FAR AWAY → SANITY REGENERATES
+                    float sanityRegen = sanityDecreaseRate * sanityUpdateInterval;
+
+                    currentSanity += sanityRegen;
+                    currentSanity = Mathf.Min(currentSanity, maxSanity);
                 }
             }
             else
             {
-                // Decrease sanity when no active ghosts in scene
-                float sanityLoss = sanityDecreaseRate * sanityUpdateInterval;
-                currentSanity -= sanityLoss;
-                currentSanity = Mathf.Max(currentSanity, 0f);
+                // No ghosts active → regenerate
+                float sanityRegen = sanityDecreaseRate * sanityUpdateInterval;
+                currentSanity += sanityRegen;
+                currentSanity = Mathf.Min(currentSanity, maxSanity);
             }
 
+            CheckSanityGameOver();
             UpdateSanityUI();
         }
 
-        // Ensure UI is always active
         if (sanitySlider != null && !sanitySlider.gameObject.activeInHierarchy)
-        {
             sanitySlider.gameObject.SetActive(true);
-        }
     }
+
 
     private GhostController FindNearestActiveGhost()
     {
@@ -424,7 +421,7 @@ public class PlayerInputHandler : MonoBehaviour
     private void CheckSanityGameOver()
     {
         // Check if sanity reached 100% and we haven't already triggered game over
-        if (currentSanity == maxSanity && !hasTriggeredGameOver && shouldUpdateSanity)
+        if (currentSanity == 0f && !hasTriggeredGameOver)
         {
             hasTriggeredGameOver = true;
 
@@ -516,32 +513,22 @@ public class PlayerInputHandler : MonoBehaviour
     {
         if (sanitySlider == null) return;
 
-        // Smoothly update slider value to prevent glitching
-        sanitySlider.value = Mathf.Lerp(sanitySlider.value, currentSanity, Time.deltaTime * 5f);
+        sanitySlider.value = currentSanity;
 
-        // Update fill color based on sanity level
         if (sanityFill != null)
         {
             if (currentSanity >= highSanityThreshold)
-            {
                 sanityFill.color = highSanityColor;
-            }
             else if (currentSanity >= mediumSanityThreshold)
-            {
                 sanityFill.color = mediumSanityColor;
-            }
             else
-            {
                 sanityFill.color = lowSanityColor;
-            }
         }
 
-        // Debug to verify sanity is changing
-        if (Time.frameCount % 120 == 0)
-        {
-            Debug.Log($"Sanity UI Update: {currentSanity} | Slider Value: {sanitySlider.value}");
-        }
+        // 🔥 Send update to ghosts
+        OnExplorerSanityChanged?.Invoke(currentSanity);
     }
+
 
     // Public method to modify sanity (for external effects)
     public void ModifySanity(float amount)

@@ -334,11 +334,12 @@ MonoBehaviour:
   possessionMenuCanvasName: Possession Menu Canvas
   possessionMenu: {fileID: 0}
   menuOpen: 0
+  ghostSanityBarPrefab: {fileID: 2748786851199801456, guid: 40f6ceffba3f733479fc4450f64cfb44, type: 3}
   moveSpeed: 5
   flySpeed: 5
   lookSensitivity: 5
   lockObjectRotation: 0
-  fear: 100
+  fear: 50
   phaseCost: 5
   phaseDuration: 5
   baseFearDrainRate: 0
