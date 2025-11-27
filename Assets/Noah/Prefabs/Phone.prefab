@@ -101,10 +101,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   flashlight: {fileID: 4137290024574517383}
   batteryMax: 100
-  batteryDrainPerSecond: 0.5
-  stunDuration: 0
-  stunAngle: 15
-  stunDistance: 10
+  batteryDrainPerSecond: 1.5
+  stunDuration: 5
+  stunAngle: 25
+  stunDistance: 25
   explorer: {fileID: 1247150047388275774, guid: dd08a6db167c3934caf5c2f08442fa96, type: 3}
   batterySlider: {fileID: 0}
   batteryFill: {fileID: 0}
