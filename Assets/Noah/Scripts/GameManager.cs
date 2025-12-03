@@ -42,7 +42,6 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         SetupPlayers();
-        SetupDisplays();
     }
 
     private void Update()
@@ -139,29 +138,6 @@ public class GameManager : MonoBehaviour
         ghosts.Add(ghost);
     }
 
-    private void SetupDisplays()
-    {
-        if (Display.displays.Length > 1)
-        {
-            Display.displays[0].Activate();
-            Display.displays[1].Activate();
-        }
-
-        for (int i = 0; i < explorers.Count; i++)
-        {
-            Camera cam = explorers[i].playerCamera;
-            cam.targetDisplay = 0;
-            cam.rect = explorers.Count == 1 ? new Rect(0, 0, 1, 1) : i == 0 ? new Rect(0, 0.5f, 1, 0.5f) : new Rect(0, 0, 1, 0.5f);
-        }
-
-        for (int i = 0; i < ghosts.Count; i++)
-        {
-            Camera cam = ghosts[i].ghostCamera;
-            cam.targetDisplay = 1;
-            cam.rect = ghosts.Count == 1 ? new Rect(0, 0, 1, 1) : i == 0 ? new Rect(0, 0.5f, 1, 0.5f) : new Rect(0, 0, 1, 0.5f);
-        }
-    }
-
     // ------------------ Clone Handling ------------------ //
 
     public void SpawnPossessedClone(GhostController ghost, PossessableObject obj)
@@ -176,7 +152,7 @@ public class GameManager : MonoBehaviour
         GameObject clone = Instantiate(obj.clonePrefab, ghost.transform.position + cloneOffset, ghost.transform.rotation);
 
         ghost.FreezeInput(true);
-        ghost.SetVisibility(false); 
+        ghost.SetVisibility(false);
 
         var handler = clone.GetComponent<PlayerInputHandler>();
         if (handler != null)
@@ -220,57 +196,56 @@ public class GameManager : MonoBehaviour
     }
 
     public void ReleaseClone(GhostController ghost)
-{
-    if (ghost == null)
     {
-        Debug.LogError("❌ ReleaseClone called with null GhostController!");
-        return;
-    }
-
-    if (!activeClones.TryGetValue(ghost, out CloneData cloneData))
-    {
-        Debug.LogWarning($"⚠️ No active clone found for {ghost.name}");
-        return;
-    }
-
-    GameObject clone = cloneData.cloneObject;
-    if (clone != null)
-    {
-        // Clean up clone inputs
-        var handler = clone.GetComponent<PlayerInputHandler>();
-        var cloneController = clone.GetComponent<GhostController>();
-        
-        if (handler != null)
+        if (ghost == null)
         {
+            Debug.LogError("❌ ReleaseClone called with null GhostController!");
+            return;
+        }
+
+        if (!activeClones.TryGetValue(ghost, out CloneData cloneData))
+        {
+            Debug.LogWarning($"⚠️ No active clone found for {ghost.name}");
+            return;
+        }
+
+        GameObject clone = cloneData.cloneObject;
+        if (clone != null)
+        {
+            // Clean up clone inputs
+            var handler = clone.GetComponent<PlayerInputHandler>();
+            var cloneController = clone.GetComponent<GhostController>();
+
+            if (handler != null)
+            {
                 handler.SetSanityActive(false);
                 handler.ReleaseControl();
+            }
+            if (cloneController != null)
+            {
+                cloneController.RemoveInput();
+            }
+
+            Destroy(clone);
         }
-        if (cloneController != null)
+
+        // Restore ghost
+        ghost.gameObject.SetActive(true);
+        ghost.SetVisibility(true);
+        ghost.FreezeInput(false);
+        ghost.isControllingClone = false;
+
+        // 🔥 CRITICAL: Ensure ghost input is properly restored
+        if (ghost.playerInputs != null)
         {
-            cloneController.RemoveInput();
+            ghost.playerInputs.Player.Disable();
+            ghost.playerInputs.Ghost.Enable();
+            ghost.AssignInput(ghost.playerInputs);
         }
-        
-        Destroy(clone);
+
+        activeClones.Remove(ghost);
+        Debug.Log($"✅ Clone released. Control returned to {ghost.name}");
     }
-
-    // Restore ghost
-    ghost.gameObject.SetActive(true);
-    ghost.SetVisibility(true);
-    ghost.FreezeInput(false);
-    ghost.isControllingClone = false;
-
-    // 🔥 CRITICAL: Ensure ghost input is properly restored
-    if (ghost.playerInputs != null)
-    {
-        ghost.playerInputs.Player.Disable();
-        ghost.playerInputs.Ghost.Enable();
-        ghost.AssignInput(ghost.playerInputs);
-    }
-
-    activeClones.Remove(ghost);
-    Debug.Log($"✅ Clone released. Control returned to {ghost.name}");
-}
-
 
     public bool HasActiveClone(GhostController ghost)
     {
@@ -391,8 +366,6 @@ public class GameManager : MonoBehaviour
             Debug.Log("✅ Ghost input system fully restored after frame delay");
         }
     }
-
-
 
     // Make CloneData public
     [System.Serializable]

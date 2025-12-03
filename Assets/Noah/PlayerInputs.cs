@@ -305,6 +305,15 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
+                },
+                {
+                    ""name"": ""Confirm"",
+                    ""type"": ""Button"",
+                    ""id"": ""af4904a8-fd45-447a-831c-ba59920eb610"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -384,6 +393,17 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                     ""action"": ""Look"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""7cfc559d-bd96-4a3b-b028-f5f4328890da"",
+                    ""path"": ""<Gamepad>/buttonSouth"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Confirm"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -413,6 +433,7 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         m_Ghost_PossessObject = m_Ghost.FindAction("PossessObject", throwIfNotFound: true);
         m_Ghost_MenuToggle = m_Ghost.FindAction("MenuToggle", throwIfNotFound: true);
         m_Ghost_Look = m_Ghost.FindAction("Look", throwIfNotFound: true);
+        m_Ghost_Confirm = m_Ghost.FindAction("Confirm", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -637,6 +658,7 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_Ghost_PossessObject;
     private readonly InputAction m_Ghost_MenuToggle;
     private readonly InputAction m_Ghost_Look;
+    private readonly InputAction m_Ghost_Confirm;
     public struct GhostActions
     {
         private @PlayerInputs m_Wrapper;
@@ -648,6 +670,7 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         public InputAction @PossessObject => m_Wrapper.m_Ghost_PossessObject;
         public InputAction @MenuToggle => m_Wrapper.m_Ghost_MenuToggle;
         public InputAction @Look => m_Wrapper.m_Ghost_Look;
+        public InputAction @Confirm => m_Wrapper.m_Ghost_Confirm;
         public InputActionMap Get() { return m_Wrapper.m_Ghost; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -678,6 +701,9 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
             @Look.started += instance.OnLook;
             @Look.performed += instance.OnLook;
             @Look.canceled += instance.OnLook;
+            @Confirm.started += instance.OnConfirm;
+            @Confirm.performed += instance.OnConfirm;
+            @Confirm.canceled += instance.OnConfirm;
         }
 
         private void UnregisterCallbacks(IGhostActions instance)
@@ -703,6 +729,9 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
             @Look.started -= instance.OnLook;
             @Look.performed -= instance.OnLook;
             @Look.canceled -= instance.OnLook;
+            @Confirm.started -= instance.OnConfirm;
+            @Confirm.performed -= instance.OnConfirm;
+            @Confirm.canceled -= instance.OnConfirm;
         }
 
         public void RemoveCallbacks(IGhostActions instance)
@@ -745,5 +774,6 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         void OnPossessObject(InputAction.CallbackContext context);
         void OnMenuToggle(InputAction.CallbackContext context);
         void OnLook(InputAction.CallbackContext context);
+        void OnConfirm(InputAction.CallbackContext context);
     }
 }
