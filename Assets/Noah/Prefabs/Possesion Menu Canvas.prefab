@@ -271,6 +271,7 @@ MonoBehaviour:
   activeColor: {r: 0.654902, g: 0.42352945, b: 0.9607844, a: 1}
   cooldownColor: {r: 0.7686275, g: 0.7686275, b: 0.7686275, a: 1}
   unavailableColor: {r: 0.3, g: 0.3, b: 0.3, a: 0.5}
+  notEnoughFearColor: {r: 1, g: 0.5, b: 0, a: 0.6}
 --- !u!1 &2808432609033221604
 GameObject:
   m_ObjectHideFlags: 0
