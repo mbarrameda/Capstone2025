@@ -873,8 +873,7 @@ public class PlayerInputHandler : MonoBehaviour
         Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
         if (Physics.Raycast(ray, out RaycastHit hit, 3f))
         {
-            if (hit.collider.GetComponent<CubeChildInteract>() != null ||
-                hit.collider.GetComponent<SoundCubeInteract>() != null)
+            if (hit.collider.GetComponent<CubeChildInteract>() != null)
             {
                 uiHint.ShowHint("Press □ / X to Interact");
                 return;
