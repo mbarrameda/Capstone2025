@@ -500,6 +500,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   possessionMenuCanvasName: Possession Menu Canvas
   possessionMenu: {fileID: 0}
+  menuOpen: 0
+  ghostSanityBarPrefab: {fileID: 0}
   moveSpeed: 5
   flySpeed: 3
   lookSensitivity: 2
@@ -507,6 +509,17 @@ MonoBehaviour:
   fear: 100
   phaseCost: 25
   phaseDuration: 10
+  baseFearDrainRate: 5
+  phasingFearDrainRate: 7
+  cloneControlFearDrainRate: 10
+  stunnedFearDrainRate: 5
+  maxFearGainDistance: 15
+  minFearGainDistance: 1
+  maxFearGainRate: 6
+  fearGainUpdateInterval: 0.5
+  fearRegenRate: 3
+  fearRegenDelay: 2
+  canRegenFear: 1
   defaultLayerName: Default
   ghostLayerName: Ghost
   phaseableWallLayerName: PhaseableWall
@@ -518,8 +531,11 @@ MonoBehaviour:
   cameraPivot: {fileID: 2241170041584696880}
   preserveCameraSetup: 1
   isControllingClone: 1
+  isStunned: 0
   xRotation: 0
+  freezeInput: 0
   activeClone: {fileID: 0}
+  possessedObjects: []
 --- !u!65 &6889943768177795699
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -768,7 +784,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &5168866906429453483
 Transform:
   m_ObjectHideFlags: 0
@@ -826,7 +842,7 @@ Camera:
     m_Bits: 4294967295
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
-  m_TargetDisplay: 1
+  m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
   m_AllowMSAA: 1

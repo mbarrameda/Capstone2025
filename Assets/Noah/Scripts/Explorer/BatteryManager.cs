@@ -55,8 +55,8 @@ public class BatteryManager : MonoBehaviour
 
             // Set up rect transform
             RectTransform rt = sliderObject.GetComponent<RectTransform>();
-            rt.anchorMin = new Vector2(0.5f, 0.9f);
-            rt.anchorMax = new Vector2(0.5f, 0.9f);
+            rt.anchorMin = new Vector2(0.15f, 0.9f);  // Left side
+            rt.anchorMax = new Vector2(0.15f, 0.9f);
             rt.pivot = new Vector2(0.5f, 0.5f);
             rt.sizeDelta = new Vector2(200, 20);
             rt.anchoredPosition = Vector2.zero;

@@ -114,45 +114,11 @@ public class PauseMenuManager : MonoBehaviour
 
     private void SetCanvasToPlayerDisplay(MonoBehaviour player, Canvas canvas)
     {
-        Camera playerCamera = null;
-        int targetDisplay = 0;
+        // All UI is on Display 1 for split-screen
+        canvas.targetDisplay = 0;
+        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
 
-        // Determine the player's camera and display
-        if (player is PlayerInputHandler explorer)
-        {
-            playerCamera = explorer.playerCamera;
-            if (playerCamera != null)
-            {
-                targetDisplay = playerCamera.targetDisplay;
-            }
-        }
-        else if (player is GhostController ghost)
-        {
-            playerCamera = ghost.ghostCamera;
-            if (playerCamera != null)
-            {
-                targetDisplay = playerCamera.targetDisplay;
-            }
-        }
-
-        // Set canvas to target display
-        canvas.targetDisplay = targetDisplay;
-
-        // If using world space canvas, set it to follow the player's camera
-        if (canvas.renderMode == RenderMode.ScreenSpaceOverlay)
-        {
-            // Overlay canvas automatically appears on the correct display
-            Debug.Log($"Pause menu set to display {targetDisplay}");
-        }
-        else if (canvas.renderMode == RenderMode.ScreenSpaceCamera)
-        {
-            if (playerCamera != null)
-            {
-                canvas.worldCamera = playerCamera;
-            }
-        }
-
-        Debug.Log($"Pause menu created on display {targetDisplay} for {player.GetType().Name}");
+        Debug.Log($"Pause menu created for {player.GetType().Name} on split-screen");
     }
 
     public void ResumeGame()
