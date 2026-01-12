@@ -194,27 +194,16 @@ public class GhostController : MonoBehaviour
             return;
         }
 
-        // Find the canvas that is set to Display 2
-        Canvas[] canvases = FindObjectsOfType<Canvas>();
-
-        Canvas targetCanvas = null;
-
-        foreach (Canvas canvas in canvases)
-        {
-            if (canvas.targetDisplay == 1) // Display 2 = index 1
-            {
-                targetCanvas = canvas;
-                break;
-            }
-        }
+        // Find main canvas (Display 1)
+        Canvas targetCanvas = FindObjectOfType<Canvas>();
 
         if (targetCanvas == null)
         {
-            Debug.LogError("No canvas found for Display 2! Set one canvas to Target Display = 2.");
+            Debug.LogError("No canvas found!");
             return;
         }
 
-        // Create the sanity bar on the ghost's display
+        // Create the sanity bar on the main canvas
         GameObject uiObj = Instantiate(ghostSanityBarPrefab, targetCanvas.transform);
 
         ghostSanitySlider = uiObj.GetComponent<Slider>();
@@ -229,9 +218,8 @@ public class GhostController : MonoBehaviour
         if (ghostSanitySlider.fillRect != null)
             ghostSanityFill = ghostSanitySlider.fillRect.GetComponent<Image>();
 
-        Debug.Log("Ghost sanity UI successfully created on Display 2.");
+        Debug.Log("Ghost sanity UI successfully created on split-screen display.");
     }
-
 
     // -------------------------------
     // Fear Management
@@ -463,6 +451,16 @@ public class GhostController : MonoBehaviour
             return;
         }
 
+        // 🔥 FIX: Close menu FIRST before doing anything
+        ClosePossessionMenu();
+
+        // 🔥 FIX: Check if already controlling clone BEFORE spawning
+        if (GameManager.Instance.HasActiveClone(this))
+        {
+            Debug.LogWarning("Already controlling a clone — ignoring menu input");
+            return;
+        }
+
         Debug.Log($"Menu option selected: {selectedObject?.name ?? "Explorer"}");
 
         if (selectedObject == null)
@@ -484,14 +482,6 @@ public class GhostController : MonoBehaviour
                 GameManager.Instance.SpawnExplorerClone(this);
             }
         }
-
-        if (GameManager.Instance.HasActiveClone(this))
-        {
-            Debug.LogWarning("Already controlling a clone — ignoring menu input");
-            return;
-        }
-
-        ClosePossessionMenu();
     }
 
 
@@ -757,14 +747,21 @@ public class GhostController : MonoBehaviour
     private void ClosePossessionMenu()
     {
         if (possessionMenu != null)
+        {
             possessionMenu.CloseMenu();
+            Debug.Log("Possession menu close requested");
+        }
 
         menuOpen = false;
-        FreezeInput(false); // Re-enable input when menu closes
+
+        // 🔥 FIX: Force unfreeze input when closing menu
+        FreezeInput(false);
+
+        // 🔥 FIX: Reset cursor state
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
 
-        Debug.Log("Possession menu closed");
+        Debug.Log("Possession menu closed - input unfrozen");
     }
 
 

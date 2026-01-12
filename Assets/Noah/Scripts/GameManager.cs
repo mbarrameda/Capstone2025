@@ -72,35 +72,21 @@ public class GameManager : MonoBehaviour
         int controllerCount = Gamepad.all.Count;
         if (controllerCount < 2)
         {
-            Debug.LogError("At least 2 controllers required!");
+            Debug.LogError("2 controllers required for split-screen!");
             return;
         }
 
-        for (int i = 0; i < controllerCount; i++)
+        // Only setup for 2 players
+        for (int i = 0; i < 2; i++)
         {
             var input = new PlayerInputs();
             input.devices = new InputDevice[] { Gamepad.all[i] };
             inputSets.Add(input);
         }
 
-        switch (controllerCount)
-        {
-            case 2:
-                SpawnExplorer(0);
-                SpawnGhost(1);
-                break;
-            case 3:
-                SpawnExplorer(0);
-                SpawnExplorer(1);
-                SpawnGhost(2);
-                break;
-            default:
-                SpawnExplorer(0);
-                SpawnExplorer(1);
-                SpawnGhost(2);
-                SpawnGhost(3);
-                break;
-        }
+        // Always spawn 1 Explorer + 1 Ghost
+        SpawnExplorer(0);  // Controller 1 = Explorer (left screen)
+        SpawnGhost(1);     // Controller 2 = Ghost (right screen)
     }
 
     private void SpawnExplorer(int controllerIndex)
@@ -293,6 +279,35 @@ public class GameManager : MonoBehaviour
             cloneController.rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
         }
 
+        // 🔥 NEW: REUSE GHOST'S CAMERA INSTEAD OF CLONE'S CAMERA
+        Camera cloneCamera = clone.GetComponentInChildren<Camera>();
+        if (cloneCamera != null)
+        {
+            // Disable the clone's camera - we'll use the ghost's camera instead
+            cloneCamera.enabled = false;
+            Debug.Log("Disabled clone's camera - using ghost's camera");
+        }
+
+        // Transfer the ghost's camera to the clone
+        if (ghost.cameraTransform != null && ghost.ghostCamera != null)
+        {
+            // Store original parent
+            Transform originalCameraParent = ghost.cameraTransform.parent;
+
+            // Move camera to clone
+            ghost.cameraTransform.SetParent(clone.transform);
+
+            // Reset local position/rotation to match clone's setup
+            ghost.cameraTransform.localPosition = Vector3.zero;
+            ghost.cameraTransform.localRotation = Quaternion.identity;
+
+            // Set the clone to use the ghost's camera
+            cloneController.cameraTransform = ghost.cameraTransform;
+            cloneController.ghostCamera = ghost.ghostCamera;
+
+            Debug.Log("Transferred ghost camera to object clone");
+        }
+
         // Hide ghost but keep it active
         ghost.FreezeInput(true);
         ghost.SetVisibility(false);
@@ -328,6 +343,20 @@ public class GameManager : MonoBehaviour
             if (ghost != null)
             {
                 Debug.Log("Returning from object clone");
+
+                // 🔥 NEW: RETURN CAMERA TO GHOST
+                if (cloneController.cameraTransform != null)
+                {
+                    // Move camera back to ghost
+                    cloneController.cameraTransform.SetParent(ghost.transform);
+                    cloneController.cameraTransform.localPosition = Vector3.zero;
+                    cloneController.cameraTransform.localRotation = Quaternion.identity;
+
+                    ghost.cameraTransform = cloneController.cameraTransform;
+                    ghost.ghostCamera = cloneController.ghostCamera;
+
+                    Debug.Log("Returned camera to ghost");
+                }
 
                 // Restore ghost
                 ghost.gameObject.SetActive(true);
