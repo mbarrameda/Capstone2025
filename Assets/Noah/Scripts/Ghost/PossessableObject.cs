@@ -1,6 +1,5 @@
-using UnityEngine;
+﻿using UnityEngine;
 
-[CreateAssetMenu(fileName = "NewPossessable", menuName = "Possession/Possessable Object")]
 public class PossessableObject : MonoBehaviour
 {
     [Header("Possession Settings")]
@@ -10,13 +9,44 @@ public class PossessableObject : MonoBehaviour
     public bool canBeTransformedInto = true;
 
     [Header("Clone Prefab")]
-    public GameObject clonePrefab; // assign prefab for cloned version
+    [Tooltip("The prefab that represents what this object looks like when transformed into")]
+    public GameObject clonePrefab;
 
     [Header("UI Info")]
     public string displayName = "Unnamed Object";
-    public Sprite icon; // add icon in inspector for each object type
+    [Tooltip("Icon to show in the possession menu")]
+    public Sprite icon;
 
     private GhostController possessingGhost;
+
+    private void Start()
+    {
+        // Validate setup
+        if (clonePrefab == null)
+        {
+            Debug.LogWarning($"⚠️ {displayName} has no clone prefab assigned! Ghost won't be able to transform into this object.");
+        }
+        else
+        {
+            // Verify the prefab has a mesh
+            MeshFilter mf = clonePrefab.GetComponentInChildren<MeshFilter>();
+            MeshRenderer mr = clonePrefab.GetComponentInChildren<MeshRenderer>();
+
+            if (mf == null || mr == null)
+            {
+                Debug.LogError($"❌ {displayName}'s clone prefab ({clonePrefab.name}) is missing MeshFilter or MeshRenderer! Add these components.");
+            }
+            else
+            {
+                Debug.Log($"✅ {displayName} properly configured with mesh: {mf.sharedMesh?.name}");
+            }
+        }
+
+        if (string.IsNullOrEmpty(displayName))
+        {
+            displayName = gameObject.name.Replace("(Clone)", "").Trim();
+        }
+    }
 
     public bool TryPossess(GhostController ghost)
     {
@@ -28,6 +58,13 @@ public class PossessableObject : MonoBehaviour
         possessingGhost = ghost;
         ghost.RegisterPossessedObject(this);
 
+        // Visual feedback
+        if (TryGetComponent<Renderer>(out Renderer r))
+        {
+            r.material.color = new Color(0.5f, 0.8f, 1f); // Light blue tint
+        }
+
+        Debug.Log($"✅ {displayName} possessed by ghost");
         return true;
     }
 
@@ -39,8 +76,11 @@ public class PossessableObject : MonoBehaviour
             possessingGhost.fear = Mathf.Min(possessingGhost.fear, 100f);
             isPossessed = false;
 
+            // Visual feedback
             if (TryGetComponent<Renderer>(out Renderer r))
                 r.material.color = Color.white;
+
+            Debug.Log($"✅ {displayName} unpossessed - ghost gained {fearCost + fearReturnBonus} fear");
         }
     }
 }

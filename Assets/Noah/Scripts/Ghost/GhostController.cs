@@ -249,12 +249,7 @@ public class GhostController : MonoBehaviour
                 float regenAmount = fearRegenRate * Time.deltaTime;
                 fear += regenAmount;
                 fear = Mathf.Min(fear, 100f);
-
-                // Debug logging
-                if (Time.frameCount % 120 == 0)
-                {
-                    Debug.Log($"Fear Regen: {fear:F1} (+{regenAmount / Time.deltaTime:F1}/sec)");
-                }
+                
             }
         }
         else
@@ -291,11 +286,7 @@ public class GhostController : MonoBehaviour
         fear -= drainAmount;
         fear = Mathf.Max(fear, 0f);
 
-        // Debug logging to verify it's working
-        if (Time.frameCount % 120 == 0)
-        {
-            Debug.Log($"Fear Drain: {fear:F1} (-{drainAmount / Time.deltaTime:F1}/sec)");
-        }
+       
 
         // Check if fear is depleted
         if (fear <= 0f)
@@ -331,11 +322,7 @@ public class GhostController : MonoBehaviour
                     fearRegenTimer = 0f;
                     isRegenerating = false;
 
-                    // Debug logging
-                    if (Time.frameCount % 120 == 0 && fearGain > 0)
-                    {
-                        Debug.Log($"Fear Gain: +{fearGain:F1} (Distance: {distance:F1})");
-                    }
+                   
                 }
             }
         }
@@ -445,44 +432,44 @@ public class GhostController : MonoBehaviour
     // -------------------------------
     private void OnMenuOptionSelected(GameObject selectedObject)
     {
-        if (this == null)
-        {
-            Debug.LogError("GhostController has been destroyed!");
-            return;
-        }
+        Debug.Log($"🎯 Menu option selected: {(selectedObject != null ? selectedObject.name : "Explorer")}");
 
-        // 🔥 FIX: Close menu FIRST before doing anything
+        // Close menu FIRST
         ClosePossessionMenu();
 
-        // 🔥 FIX: Check if already controlling clone BEFORE spawning
+        // Safety: prevent double possession
         if (GameManager.Instance.HasActiveClone(this))
         {
-            Debug.LogWarning("Already controlling a clone — ignoring menu input");
+            Debug.LogWarning("Already controlling a disguise — ignoring menu input");
             return;
         }
 
-        Debug.Log($"Menu option selected: {selectedObject?.name ?? "Explorer"}");
-
+        // 🔥 FIX: Handle Explorer selection separately (selectedObject == null)
         if (selectedObject == null)
         {
-            Debug.Log("Spawning explorer clone");
-            GameManager.Instance.SpawnExplorerClone(this);
+            Debug.Log("🟢 EXPLORER selected - calling SpawnPossessedClone");
+            GameManager.Instance.SpawnPossessedClone(this, null);
+            return;
         }
-        else
+
+        // 🔥 FIX: Handle Object selection (selectedObject != null)
+        PossessableObject possessable = selectedObject.GetComponent<PossessableObject>();
+        if (possessable == null)
         {
-            PossessableObject possessable = selectedObject.GetComponent<PossessableObject>();
-            if (possessable != null && GameManager.Instance != null)
-            {
-                Debug.Log($"Spawning object clone: {possessable.name}");
-                GameManager.Instance.SpawnObjectClone(this, possessable);
-            }
-            else
-            {
-                Debug.LogError($"Selected object {selectedObject.name} doesn't have PossessableObject component!");
-                GameManager.Instance.SpawnExplorerClone(this);
-            }
+            Debug.LogError($"❌ Selected object '{selectedObject.name}' does not have a PossessableObject component!");
+            return;
         }
+
+        if (possessable.clonePrefab == null)
+        {
+            Debug.LogError($"❌ {possessable.displayName} has no clone prefab assigned!");
+            return;
+        }
+
+        Debug.Log($"🔵 OBJECT selected - calling SpawnObjectClone for {possessable.displayName}");
+        GameManager.Instance.SpawnObjectClone(this, possessable);
     }
+
 
 
     // -------------------------------
