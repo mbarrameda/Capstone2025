@@ -101,42 +101,10 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1.2374266, z: 1}
   m_Center: {x: 0, y: 0.11871495, z: 0}
---- !u!1 &1624926918441446620
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2241170041584696880}
-  m_Layer: 0
-  m_Name: CameraPosition
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &2241170041584696880
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1624926918441446620}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7071068, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -47.6, y: 0.178, z: 0.052}
-  m_LocalScale: {x: 13.736262, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 5168866906429453483}
-  m_Father: {fileID: 2036173747861972420}
-  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!1 &2886160884558728864
 GameObject:
   m_ObjectHideFlags: 0
@@ -238,7 +206,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 0.9999999, y: 1, z: 0.99999994}
   m_Center: {x: 0.0000009536743, y: 0.00000011920929, z: 0}
@@ -343,7 +311,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 0.9999999, y: 1, z: 0.99999994}
   m_Center: {x: 0, y: 0.00000011920929, z: 0.000030517578}
@@ -359,8 +327,6 @@ GameObject:
   - component: {fileID: 3313367967417706165}
   - component: {fileID: 1715008455597252578}
   - component: {fileID: 2620993390525838914}
-  - component: {fileID: 1305986224422549869}
-  - component: {fileID: 4595780281876597840}
   - component: {fileID: 6889943768177795699}
   m_Layer: 0
   m_Name: Chair
@@ -387,7 +353,6 @@ Transform:
   - {fileID: 8710572301688208999}
   - {fileID: 5034118684743495581}
   - {fileID: 8396150483095795796}
-  - {fileID: 2241170041584696880}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &3313367967417706165
@@ -459,83 +424,6 @@ MonoBehaviour:
   clonePrefab: {fileID: 4227542348200219666}
   displayName: Chair
   icon: {fileID: 21300000, guid: d76557ebe15c8aa418a27e7520633d9e, type: 3}
---- !u!54 &1305986224422549869
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4227542348200219666}
-  serializedVersion: 4
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
---- !u!114 &4595780281876597840
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4227542348200219666}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 090e8ca2dc20d7b4d880eee98c1b2cf6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  possessionMenuCanvasName: Possession Menu Canvas
-  possessionMenu: {fileID: 0}
-  menuOpen: 0
-  ghostSanityBarPrefab: {fileID: 0}
-  moveSpeed: 5
-  flySpeed: 3
-  lookSensitivity: 2
-  lockObjectRotation: 1
-  fear: 100
-  phaseCost: 25
-  phaseDuration: 10
-  baseFearDrainRate: 5
-  phasingFearDrainRate: 7
-  cloneControlFearDrainRate: 10
-  stunnedFearDrainRate: 5
-  maxFearGainDistance: 15
-  minFearGainDistance: 1
-  maxFearGainRate: 6
-  fearGainUpdateInterval: 0.5
-  fearRegenRate: 3
-  fearRegenDelay: 2
-  canRegenFear: 1
-  defaultLayerName: Default
-  ghostLayerName: Ghost
-  phaseableWallLayerName: PhaseableWall
-  cameraTransform: {fileID: 2241170041584696880}
-  ghostCamera: {fileID: 3813287215102775645}
-  ghostRenderer: {fileID: 1715008455597252578}
-  rb: {fileID: 1305986224422549869}
-  invertYLook: 0
-  cameraPivot: {fileID: 2241170041584696880}
-  preserveCameraSetup: 1
-  isControllingClone: 1
-  isStunned: 0
-  xRotation: 0
-  freezeInput: 0
-  activeClone: {fileID: 0}
-  possessedObjects: []
 --- !u!65 &6889943768177795699
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -555,8 +443,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 0.99999994, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 13.710868, y: 1.8320546, z: 1}
+  m_Center: {x: 6.355433, y: -0.41602778, z: 0}
 --- !u!1 &4542573530358255661
 GameObject:
   m_ObjectHideFlags: 0
@@ -658,7 +546,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 0.9999999, y: 1, z: 0.99999994}
   m_Center: {x: 0.0000009536743, y: 0.00000011920929, z: 0.000030517578}
@@ -763,99 +651,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 0.9999999, y: 1, z: 0.99999994}
   m_Center: {x: 0, y: 0.00000011920929, z: 0}
---- !u!1 &6099291928795444047
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 5168866906429453483}
-  - component: {fileID: 3813287215102775645}
-  - component: {fileID: 2384079977088292414}
-  m_Layer: 0
-  m_Name: Camera
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!4 &5168866906429453483
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6099291928795444047}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0.22771943, y: -0, z: -0.000000022351742, w: 0.97372687}
-  m_LocalPosition: {x: 0.0029, y: 0.9, z: 23.4}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2241170041584696880}
-  m_LocalEulerAnglesHint: {x: 26.326, y: 0, z: 0}
---- !u!20 &3813287215102775645
-Camera:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6099291928795444047}
-  m_Enabled: 1
-  serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
-  m_projectionMatrixMode: 1
-  m_GateFitMode: 2
-  m_FOVAxisMode: 0
-  m_Iso: 200
-  m_ShutterSpeed: 0.005
-  m_Aperture: 16
-  m_FocusDistance: 10
-  m_FocalLength: 50
-  m_BladeCount: 5
-  m_Curvature: {x: 2, y: 11}
-  m_BarrelClipping: 0.25
-  m_Anamorphism: 0
-  m_SensorSize: {x: 36, y: 24}
-  m_LensShift: {x: 0, y: 0}
-  m_NormalizedViewPortRect:
-    serializedVersion: 2
-    x: 0
-    y: 0
-    width: 1
-    height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
-  field of view: 60
-  orthographic: 0
-  orthographic size: 5
-  m_Depth: 0
-  m_CullingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_RenderingPath: -1
-  m_TargetTexture: {fileID: 0}
-  m_TargetDisplay: 0
-  m_TargetEye: 3
-  m_HDR: 1
-  m_AllowMSAA: 1
-  m_AllowDynamicResolution: 0
-  m_ForceIntoRT: 0
-  m_OcclusionCulling: 1
-  m_StereoConvergence: 10
-  m_StereoSeparation: 0.022
---- !u!81 &2384079977088292414
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6099291928795444047}
-  m_Enabled: 0

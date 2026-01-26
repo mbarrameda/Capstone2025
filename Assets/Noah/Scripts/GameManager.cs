@@ -23,7 +23,6 @@ public class GameManager : MonoBehaviour
     public List<GhostController> ghosts = new List<GhostController>();
     private List<PlayerInputs> inputSets = new List<PlayerInputs>();
 
-    // Change from private to public and make CloneData public
     public Dictionary<GhostController, CloneData> activeClones = new Dictionary<GhostController, CloneData>();
 
     public static GameManager Instance { get; private set; }
@@ -76,7 +75,6 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // Only setup for 2 players
         for (int i = 0; i < 2; i++)
         {
             var input = new PlayerInputs();
@@ -84,9 +82,8 @@ public class GameManager : MonoBehaviour
             inputSets.Add(input);
         }
 
-        // Always spawn 1 Explorer + 1 Ghost
-        SpawnExplorer(0);  // Controller 1 = Explorer (left screen)
-        SpawnGhost(1);     // Controller 2 = Ghost (right screen)
+        SpawnExplorer(0);
+        SpawnGhost(1);
     }
 
     private void SpawnExplorer(int controllerIndex)
@@ -94,11 +91,9 @@ public class GameManager : MonoBehaviour
         Transform spawn = explorerSpawns[Mathf.Clamp(explorers.Count, 0, explorerSpawns.Length - 1)];
         var explorer = Instantiate(explorerPrefab, spawn.position, spawn.rotation);
 
-        // Create COMPLETELY SEPARATE input actions for explorer
         var explorerInputs = new PlayerInputs();
         explorerInputs.devices = new InputDevice[] { Gamepad.all[controllerIndex] };
 
-        // 🔥 CRITICAL: Make sure explorer uses Explorer action map
         explorerInputs.Player.Enable();
         explorerInputs.Ghost.Disable();
 
@@ -112,11 +107,9 @@ public class GameManager : MonoBehaviour
         Transform spawn = ghostSpawns[Mathf.Clamp(ghosts.Count, 0, ghostSpawns.Length - 1)];
         var ghost = Instantiate(ghostPrefab, spawn.position, spawn.rotation);
 
-        // Create COMPLETELY SEPARATE input actions for ghost
         var ghostInputs = new PlayerInputs();
         ghostInputs.devices = new InputDevice[] { Gamepad.all[controllerIndex] };
 
-        // 🔥 CRITICAL: Make sure ghost uses Ghost action map
         ghostInputs.Ghost.Enable();
         ghostInputs.Player.Disable();
 
@@ -124,62 +117,187 @@ public class GameManager : MonoBehaviour
         ghosts.Add(ghost);
     }
 
-    // ------------------ Clone Handling ------------------ //
+    // ------------------ Transform into Explorer (Mesh Swap) ------------------ //
 
     public void SpawnPossessedClone(GhostController ghost, PossessableObject obj)
     {
-        if (obj == null || obj.clonePrefab == null)
+        Debug.Log("🟢 Transforming into EXPLORER...");
+
+        if (ghost == null)
         {
-            Debug.Log("Spawning explorer clone instead.");
-            SpawnExplorerClone(ghost);
+            Debug.LogError("❌ GhostController is null!");
             return;
         }
 
-        GameObject clone = Instantiate(obj.clonePrefab, ghost.transform.position + cloneOffset, ghost.transform.rotation);
-
-        ghost.FreezeInput(true);
-        ghost.SetVisibility(false);
-
-        var handler = clone.GetComponent<PlayerInputHandler>();
-        if (handler != null)
+        if (activeClones.ContainsKey(ghost))
         {
-            ghost.playerInputs.Disable();
-            handler.TakeControl(ghost.playerInputs);
+            Debug.Log("Ghost already has an active clone");
+            return;
         }
 
-        activeClones.Add(ghost, new CloneData { cloneObject = clone, timer = cloneDuration });
-    }
+        if (explorerClonePrefab == null)
+        {
+            Debug.LogWarning("No explorer clone prefab assigned!");
+            return;
+        }
 
-    public void SpawnExplorerClone(GhostController ghost)
-    {
-        GameObject clone = Instantiate(explorerClonePrefab, ghost.transform.position + cloneOffset, ghost.transform.rotation);
+        // Store original ghost appearance
+        CloneData cloneData = StoreGhostAppearance(ghost);
+        cloneData.timer = cloneDuration;
 
-        ghost.FreezeInput(true);
-        ghost.SetVisibility(false);
+        // Get explorer appearance from the prefab
+        MeshFilter explorerMeshFilter = explorerClonePrefab.GetComponentInChildren<MeshFilter>();
+        MeshRenderer explorerMeshRenderer = explorerClonePrefab.GetComponentInChildren<MeshRenderer>();
+
+        if (explorerMeshFilter == null || explorerMeshRenderer == null)
+        {
+            Debug.LogError("❌ Explorer prefab is missing MeshFilter or MeshRenderer!");
+            return;
+        }
+
+        // Apply explorer appearance to ghost
+        ApplyAppearanceToGhost(ghost, explorerMeshFilter.sharedMesh, explorerMeshRenderer.sharedMaterial);
+
+        // Mark as controlling clone
         ghost.isControllingClone = true;
 
-        var handler = clone.GetComponent<PlayerInputHandler>();
-        if (handler != null && ghost.playerInputs != null)
+        // Switch to Player controls
+        if (ghost.playerInputs != null)
         {
-            // 🔥 CRITICAL FIX: Create a SEPARATE input instance for the clone
-            var cloneInputs = new PlayerInputs();
-            cloneInputs.devices = ghost.playerInputs.devices; // Copy devices from ghost
-
-            // Clone uses Player action map
-            cloneInputs.Player.Enable();
-            cloneInputs.Ghost.Disable();
-
-            handler.SetAsClone();
-            handler.TakeControl(cloneInputs);
-
-            handler.SetSanityActive(false);
-            // 🔥 Ghost retains its own input instance with Ghost map enabled
-            ghost.playerInputs.Ghost.Enable();
-            ghost.playerInputs.Player.Disable();
+            ghost.playerInputs.Ghost.Disable();
+            ghost.playerInputs.Player.Enable();
         }
 
-        activeClones.Add(ghost, new CloneData { cloneObject = clone, timer = cloneDuration });
+        // Track active transformation
+        activeClones[ghost] = cloneData;
+
+        Debug.Log("✅ Transformed into Explorer!");
     }
+
+    // ------------------ Transform into Object (Mesh Swap) ------------------ //
+
+    public void SpawnObjectClone(GhostController ghost, PossessableObject obj)
+    {
+        Debug.Log("🔵 Transforming into OBJECT...");
+
+        if (ghost == null)
+        {
+            Debug.LogError("❌ GhostController is null!");
+            return;
+        }
+
+        if (activeClones.ContainsKey(ghost))
+        {
+            Debug.Log("Ghost already has an active clone");
+            return;
+        }
+
+        if (obj == null || obj.clonePrefab == null)
+        {
+            Debug.LogWarning("No valid disguise prefab");
+            return;
+        }
+
+        Debug.Log($"🔵 Transforming into: {obj.clonePrefab.name}");
+
+        // Store original ghost appearance
+        CloneData cloneData = StoreGhostAppearance(ghost);
+        cloneData.timer = cloneDuration;
+
+        // Get object appearance from the prefab
+        MeshFilter objectMeshFilter = obj.clonePrefab.GetComponentInChildren<MeshFilter>();
+        MeshRenderer objectMeshRenderer = obj.clonePrefab.GetComponentInChildren<MeshRenderer>();
+
+        if (objectMeshFilter == null || objectMeshRenderer == null)
+        {
+            Debug.LogError("❌ Object prefab is missing MeshFilter or MeshRenderer!");
+            Debug.LogError($"Prefab structure: {obj.clonePrefab.name}");
+
+            // Debug: print all components
+            foreach (var component in obj.clonePrefab.GetComponentsInChildren<Component>())
+            {
+                Debug.Log($"  - {component.GetType().Name} on {component.gameObject.name}");
+            }
+            return;
+        }
+
+        // Apply object appearance to ghost
+        ApplyAppearanceToGhost(ghost, objectMeshFilter.sharedMesh, objectMeshRenderer.sharedMaterial);
+
+        // Mark as controlling clone
+        ghost.isControllingClone = true;
+
+        // Track active transformation
+        activeClones[ghost] = cloneData;
+
+        Debug.Log($"✅ Transformed into {obj.displayName}!");
+    }
+
+    // ------------------ Helper Methods for Mesh Swapping ------------------ //
+
+    private CloneData StoreGhostAppearance(GhostController ghost)
+    {
+        MeshFilter ghostMeshFilter = ghost.GetComponentInChildren<MeshFilter>();
+        MeshRenderer ghostMeshRenderer = ghost.GetComponentInChildren<MeshRenderer>();
+        Collider ghostCollider = ghost.GetComponent<Collider>();
+
+        CloneData cloneData = new CloneData
+        {
+            cloneObject = null, // No actual clone object for mesh swap
+            originalMesh = ghostMeshFilter != null ? ghostMeshFilter.sharedMesh : null,
+            originalMaterials = ghostMeshRenderer != null ? ghostMeshRenderer.sharedMaterials : null,
+            originalColliderType = ghostCollider != null ? ghostCollider.GetType().Name : null
+        };
+
+        // Store collider properties based on type
+        if (ghostCollider is BoxCollider boxCol)
+        {
+            cloneData.boxCenter = boxCol.center;
+            cloneData.boxSize = boxCol.size;
+        }
+        else if (ghostCollider is SphereCollider sphereCol)
+        {
+            cloneData.sphereCenter = sphereCol.center;
+            cloneData.sphereRadius = sphereCol.radius;
+        }
+        else if (ghostCollider is CapsuleCollider capsuleCol)
+        {
+            cloneData.capsuleCenter = capsuleCol.center;
+            cloneData.capsuleRadius = capsuleCol.radius;
+            cloneData.capsuleHeight = capsuleCol.height;
+            cloneData.capsuleDirection = capsuleCol.direction;
+        }
+
+        return cloneData;
+    }
+
+    private void ApplyAppearanceToGhost(GhostController ghost, Mesh newMesh, Material newMaterial)
+    {
+        MeshFilter ghostMeshFilter = ghost.GetComponentInChildren<MeshFilter>();
+        MeshRenderer ghostMeshRenderer = ghost.GetComponentInChildren<MeshRenderer>();
+
+        if (ghostMeshFilter != null && newMesh != null)
+        {
+            ghostMeshFilter.sharedMesh = newMesh;
+            Debug.Log($"✅ Applied mesh: {newMesh.name}");
+        }
+        else
+        {
+            Debug.LogError("❌ Failed to apply mesh!");
+        }
+
+        if (ghostMeshRenderer != null && newMaterial != null)
+        {
+            ghostMeshRenderer.sharedMaterial = newMaterial;
+            Debug.Log($"✅ Applied material: {newMaterial.name}");
+        }
+        else
+        {
+            Debug.LogError("❌ Failed to apply material!");
+        }
+    }
+
+    // ------------------ Release Clone (Restore Original Appearance) ------------------ //
 
     public void ReleaseClone(GhostController ghost)
     {
@@ -195,33 +313,55 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        GameObject clone = cloneData.cloneObject;
-        if (clone != null)
+        Debug.Log("🔵 Releasing transformation...");
+
+        // Restore original ghost appearance
+        MeshFilter ghostMeshFilter = ghost.GetComponentInChildren<MeshFilter>();
+        MeshRenderer ghostMeshRenderer = ghost.GetComponentInChildren<MeshRenderer>();
+        Collider ghostCollider = ghost.GetComponent<Collider>();
+
+        if (ghostMeshFilter != null && cloneData.originalMesh != null)
         {
-            // Clean up clone inputs
-            var handler = clone.GetComponent<PlayerInputHandler>();
-            var cloneController = clone.GetComponent<GhostController>();
-
-            if (handler != null)
-            {
-                handler.SetSanityActive(false);
-                handler.ReleaseControl();
-            }
-            if (cloneController != null)
-            {
-                cloneController.RemoveInput();
-            }
-
-            Destroy(clone);
+            ghostMeshFilter.sharedMesh = cloneData.originalMesh;
+            Debug.Log("✅ Restored original mesh");
         }
 
-        // Restore ghost
+        if (ghostMeshRenderer != null && cloneData.originalMaterials != null)
+        {
+            ghostMeshRenderer.sharedMaterials = cloneData.originalMaterials;
+            Debug.Log("✅ Restored original materials");
+        }
+
+        // Restore original collider shape
+        if (ghostCollider != null && !string.IsNullOrEmpty(cloneData.originalColliderType))
+        {
+            if (cloneData.originalColliderType == "BoxCollider" && ghostCollider is BoxCollider ghostBox)
+            {
+                ghostBox.center = cloneData.boxCenter;
+                ghostBox.size = cloneData.boxSize;
+            }
+            else if (cloneData.originalColliderType == "SphereCollider" && ghostCollider is SphereCollider ghostSphere)
+            {
+                ghostSphere.center = cloneData.sphereCenter;
+                ghostSphere.radius = cloneData.sphereRadius;
+            }
+            else if (cloneData.originalColliderType == "CapsuleCollider" && ghostCollider is CapsuleCollider ghostCapsule)
+            {
+                ghostCapsule.center = cloneData.capsuleCenter;
+                ghostCapsule.radius = cloneData.capsuleRadius;
+                ghostCapsule.height = cloneData.capsuleHeight;
+                ghostCapsule.direction = cloneData.capsuleDirection;
+            }
+            Debug.Log("✅ Restored original collider");
+        }
+
+        // Reset ghost state
         ghost.gameObject.SetActive(true);
         ghost.SetVisibility(true);
         ghost.FreezeInput(false);
         ghost.isControllingClone = false;
 
-        // 🔥 CRITICAL: Ensure ghost input is properly restored
+        // Re-enable ghost input
         if (ghost.playerInputs != null)
         {
             ghost.playerInputs.Player.Disable();
@@ -230,7 +370,7 @@ public class GameManager : MonoBehaviour
         }
 
         activeClones.Remove(ghost);
-        Debug.Log($"✅ Clone released. Control returned to {ghost.name}");
+        Debug.Log("✅ Transformation released - back to ghost form");
     }
 
     public bool HasActiveClone(GhostController ghost)
@@ -238,169 +378,32 @@ public class GameManager : MonoBehaviour
         return activeClones.ContainsKey(ghost);
     }
 
-    public void SpawnObjectClone(GhostController ghost, PossessableObject obj)
-    {
-        ghost.isControllingClone = true;
-
-        if (ghost == null)
-        {
-            Debug.LogError("❌ GhostController is null in SpawnObjectClone!");
-            return;
-        }
-
-        if (activeClones.ContainsKey(ghost))
-        {
-            Debug.Log("Ghost already has an active clone");
-            return;
-        }
-
-        if (obj == null || obj.clonePrefab == null)
-        {
-            SpawnExplorerClone(ghost);
-            return;
-        }
-
-        GameObject clone = Instantiate(obj.clonePrefab, ghost.transform.position + cloneOffset, ghost.transform.rotation);
-
-        GhostController cloneController = clone.GetComponent<GhostController>();
-        if (cloneController == null)
-        {
-            Debug.LogError($"❌ Clone '{clone.name}' has no GhostController component!");
-            Destroy(clone);
-            return;
-        }
-
-        // Setup clone
-        cloneController.rb = cloneController.GetComponent<Rigidbody>();
-        if (cloneController.rb != null)
-        {
-            cloneController.rb.isKinematic = false;
-            cloneController.rb.constraints = RigidbodyConstraints.FreezeRotation;
-            cloneController.rb.collisionDetectionMode = CollisionDetectionMode.Continuous;
-        }
-
-        // 🔥 NEW: REUSE GHOST'S CAMERA INSTEAD OF CLONE'S CAMERA
-        Camera cloneCamera = clone.GetComponentInChildren<Camera>();
-        if (cloneCamera != null)
-        {
-            // Disable the clone's camera - we'll use the ghost's camera instead
-            cloneCamera.enabled = false;
-            Debug.Log("Disabled clone's camera - using ghost's camera");
-        }
-
-        // Transfer the ghost's camera to the clone
-        if (ghost.cameraTransform != null && ghost.ghostCamera != null)
-        {
-            // Store original parent
-            Transform originalCameraParent = ghost.cameraTransform.parent;
-
-            // Move camera to clone
-            ghost.cameraTransform.SetParent(clone.transform);
-
-            // Reset local position/rotation to match clone's setup
-            ghost.cameraTransform.localPosition = Vector3.zero;
-            ghost.cameraTransform.localRotation = Quaternion.identity;
-
-            // Set the clone to use the ghost's camera
-            cloneController.cameraTransform = ghost.cameraTransform;
-            cloneController.ghostCamera = ghost.ghostCamera;
-
-            Debug.Log("Transferred ghost camera to object clone");
-        }
-
-        // Hide ghost but keep it active
-        ghost.FreezeInput(true);
-        ghost.SetVisibility(false);
-        ghost.isControllingClone = true;
-
-        // 🔥 CRITICAL FIX: Create SEPARATE input for object clone
-        if (ghost.playerInputs != null)
-        {
-            var cloneInputs = new PlayerInputs();
-            cloneInputs.devices = ghost.playerInputs.devices;
-
-            // Object clone uses Ghost action map (since it's still a ghost-type entity)
-            cloneInputs.Ghost.Enable();
-            cloneInputs.Player.Disable();
-
-            cloneController.AssignInput(cloneInputs);
-        }
-
-        cloneController.FreezeInput(false);
-        cloneController.isControllingClone = true;
-        cloneController.preserveCameraSetup = true;
-
-        // Track active clone
-        activeClones[ghost] = new CloneData
-        {
-            cloneObject = clone,
-            timer = cloneDuration
-        };
-
-        // Setup return callback
-        cloneController.OnDestroyClone = () =>
-        {
-            if (ghost != null)
-            {
-                Debug.Log("Returning from object clone");
-
-                // 🔥 NEW: RETURN CAMERA TO GHOST
-                if (cloneController.cameraTransform != null)
-                {
-                    // Move camera back to ghost
-                    cloneController.cameraTransform.SetParent(ghost.transform);
-                    cloneController.cameraTransform.localPosition = Vector3.zero;
-                    cloneController.cameraTransform.localRotation = Quaternion.identity;
-
-                    ghost.cameraTransform = cloneController.cameraTransform;
-                    ghost.ghostCamera = cloneController.ghostCamera;
-
-                    Debug.Log("Returned camera to ghost");
-                }
-
-                // Restore ghost
-                ghost.gameObject.SetActive(true);
-                ghost.SetVisibility(true);
-                ghost.isControllingClone = false;
-                ghost.FreezeInput(false);
-
-                // 🔥 CRITICAL: Re-enable ghost's original input
-                if (ghost.playerInputs != null)
-                {
-                    ghost.playerInputs.Ghost.Enable();
-                    ghost.playerInputs.Player.Disable();
-                    ghost.AssignInput(ghost.playerInputs);
-                }
-
-                // Remove from active clones
-                activeClones.Remove(ghost);
-            }
-        };
-    }
-
-    private System.Collections.IEnumerator DelayedInputReassign(GhostController ghost, PlayerInputs storedInputs)
-    {
-        yield return null; // Wait one frame
-
-        if (ghost != null && storedInputs != null)
-        {
-            // Ensure proper action map state
-            storedInputs.Ghost.Enable();
-            storedInputs.Player.Disable();
-
-            // Reassign inputs
-            ghost.AssignInput(storedInputs);
-            ghost.FreezeInput(false); // Ensure input is not frozen
-
-            Debug.Log("✅ Ghost input system fully restored after frame delay");
-        }
-    }
-
-    // Make CloneData public
+    // Make CloneData public with expanded fields for storing appearance
     [System.Serializable]
     public class CloneData
     {
         public GameObject cloneObject;
         public float timer;
+
+        // Store original appearance for mesh swapping
+        public Mesh originalMesh;
+        public Material[] originalMaterials;
+
+        // Store collider info
+        public string originalColliderType;
+
+        // BoxCollider
+        public Vector3 boxCenter;
+        public Vector3 boxSize;
+
+        // SphereCollider
+        public Vector3 sphereCenter;
+        public float sphereRadius;
+
+        // CapsuleCollider
+        public Vector3 capsuleCenter;
+        public float capsuleRadius;
+        public float capsuleHeight;
+        public int capsuleDirection;
     }
 }
