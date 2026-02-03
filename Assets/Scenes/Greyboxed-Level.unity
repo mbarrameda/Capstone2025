@@ -158523,6 +158523,52 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 8126836583812050329, guid: 0decb3b2caa42dd46b075bfea2f50dec, type: 3}
+--- !u!1 &1045471853 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 30d52ecbe54ad1b4eb4f7a7ff57bd9ed, type: 3}
+  m_PrefabInstance: {fileID: 2028047787}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1045471854
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1045471853}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b655f5ed07442d446a3693b4518f3a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  fearCost: 10
+  fearReturnBonus: 5
+  isPossessed: 0
+  canBeTransformedInto: 1
+  clonePrefab: {fileID: 919132149155446097, guid: 30d52ecbe54ad1b4eb4f7a7ff57bd9ed, type: 3}
+  displayName: Bed
+  icon: {fileID: 21300000, guid: 9b530529fca8558449c2af2b412dbcb9, type: 3}
+--- !u!64 &1045471855
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1045471853}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: -5495902117074765545, guid: 30d52ecbe54ad1b4eb4f7a7ff57bd9ed, type: 3}
 --- !u!1001 &1045524129
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -172299,7 +172345,8 @@ PrefabInstance:
       propertyPath: m_UseGravity
       value: 0
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2835211160598329916, guid: d6b86c0fc6af80840a9fc14b245b1b55, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -295569,7 +295616,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 30d52ecbe54ad1b4eb4f7a7ff57bd9ed, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1045471855}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 30d52ecbe54ad1b4eb4f7a7ff57bd9ed, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1045471854}
   m_SourcePrefab: {fileID: 100100000, guid: 30d52ecbe54ad1b4eb4f7a7ff57bd9ed, type: 3}
 --- !u!1001 &2030000276
 PrefabInstance:
