@@ -421,7 +421,7 @@ MonoBehaviour:
   fearReturnBonus: 5
   isPossessed: 0
   canBeTransformedInto: 1
-  clonePrefab: {fileID: 4227542348200219666}
+  clonePrefab: {fileID: 919132149155446097, guid: b092dc58d7d4ed1419c45235c5a0b0eb, type: 3}
   displayName: Chair
   icon: {fileID: 21300000, guid: d76557ebe15c8aa418a27e7520633d9e, type: 3}
 --- !u!65 &6889943768177795699
