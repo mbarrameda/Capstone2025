@@ -171,6 +171,7 @@ GameObject:
   - component: {fileID: 1294113689785867392}
   - component: {fileID: 6147667372854573218}
   - component: {fileID: -8925812656415143316}
+  - component: {fileID: 2382221147397920564}
   m_Layer: 7
   m_Name: Ghost
   m_TagString: Ghost
@@ -248,13 +249,13 @@ MonoBehaviour:
   phaseDuration: 5
   baseFearDrainRate: 0
   phasingFearDrainRate: 1
-  cloneControlFearDrainRate: 5
+  cloneControlFearDrainRate: 0.5
   stunnedFearDrainRate: 0.5
-  maxFearGainDistance: 10
-  minFearGainDistance: 2
-  maxFearGainRate: 2
-  fearGainUpdateInterval: 0.5
-  fearRegenRate: 1
+  maxFearGainDistance: 25
+  minFearGainDistance: 10
+  maxFearGainRate: 5
+  fearGainUpdateInterval: 1
+  fearRegenRate: 2.5
   fearRegenDelay: 2
   canRegenFear: 1
   defaultLayerName: Default
@@ -323,6 +324,30 @@ MonoBehaviour:
   cooldownColor: {r: 0.7, g: 0.7, b: 0.7, a: 0.4}
   unavailableColor: {r: 0.4, g: 0.4, b: 0.4, a: 0.2}
   notEnoughFearColor: {r: 1, g: 0.5, b: 0, a: 0.6}
+--- !u!114 &2382221147397920564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5682524112272449894}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00dbebccc3b98df469aa5d19500b78d5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ghostCamera: {fileID: 6027540668835561494}
+  cameraPivot: {fileID: 7659279266709476768}
+  firstPersonOffset: {x: 0, y: 0, z: 0}
+  useThirdPersonWhenTransformed: 1
+  thirdPersonDistance: 5
+  thirdPersonHeight: -1
+  transitionSpeed: 5
+  avoidWalls: 1
+  collisionLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  collisionBuffer: 0.3
 --- !u!1 &6477768789775868868
 GameObject:
   m_ObjectHideFlags: 0
