@@ -161,13 +161,6 @@ public class GameManager : MonoBehaviour
         // Mark as controlling clone
         ghost.isControllingClone = true;
 
-        // Switch to Player controls
-        if (ghost.playerInputs != null)
-        {
-            ghost.playerInputs.Ghost.Disable();
-            ghost.playerInputs.Player.Enable();
-        }
-
         // Track active transformation
         activeClones[ghost] = cloneData;
 
@@ -360,14 +353,6 @@ public class GameManager : MonoBehaviour
         ghost.SetVisibility(true);
         ghost.FreezeInput(false);
         ghost.isControllingClone = false;
-
-        // Re-enable ghost input
-        if (ghost.playerInputs != null)
-        {
-            ghost.playerInputs.Player.Disable();
-            ghost.playerInputs.Ghost.Enable();
-            ghost.AssignInput(ghost.playerInputs);
-        }
 
         activeClones.Remove(ghost);
         Debug.Log("✅ Transformation released - back to ghost form");

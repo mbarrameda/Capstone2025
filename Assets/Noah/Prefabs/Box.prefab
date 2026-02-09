@@ -12,9 +12,7 @@ GameObject:
   - component: {fileID: 4739907592631510943}
   - component: {fileID: 27008835591016969}
   - component: {fileID: 7984795864633505105}
-  - component: {fileID: 7277762636150156098}
   - component: {fileID: 8973286815744991341}
-  - component: {fileID: 2835211160598329916}
   m_Layer: 0
   m_Name: Box
   m_TagString: Untagged
@@ -109,33 +107,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!54 &7277762636150156098
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 750958948754937165}
-  serializedVersion: 4
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!114 &8973286815744991341
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -155,56 +126,6 @@ MonoBehaviour:
   clonePrefab: {fileID: 750958948754937165}
   displayName: Box
   icon: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
---- !u!114 &2835211160598329916
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 750958948754937165}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 090e8ca2dc20d7b4d880eee98c1b2cf6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  possessionMenuCanvasName: Possession Menu Canvas
-  possessionMenu: {fileID: 0}
-  menuOpen: 0
-  ghostSanityBarPrefab: {fileID: 0}
-  moveSpeed: 5
-  flySpeed: 3
-  lookSensitivity: 2
-  lockObjectRotation: 1
-  fear: 100
-  phaseCost: 25
-  phaseDuration: 10
-  baseFearDrainRate: 5
-  phasingFearDrainRate: 7
-  cloneControlFearDrainRate: 10
-  stunnedFearDrainRate: 5
-  maxFearGainDistance: 15
-  minFearGainDistance: 1
-  maxFearGainRate: 6
-  fearGainUpdateInterval: 0.5
-  fearRegenRate: 3
-  fearRegenDelay: 2
-  canRegenFear: 1
-  defaultLayerName: Default
-  ghostLayerName: Ghost
-  phaseableWallLayerName: PhaseableWall
-  cameraTransform: {fileID: 2185953057830639570}
-  ghostCamera: {fileID: 1159532472494967452}
-  ghostRenderer: {fileID: 27008835591016969}
-  rb: {fileID: 7277762636150156098}
-  invertYLook: 0
-  cameraPivot: {fileID: 2185953057830639570}
-  preserveCameraSetup: 1
-  isControllingClone: 0
-  isStunned: 0
-  xRotation: 0
-  freezeInput: 0
-  activeClone: {fileID: 0}
-  possessedObjects: []
 --- !u!1 &6620998004459390193
 GameObject:
   m_ObjectHideFlags: 0
