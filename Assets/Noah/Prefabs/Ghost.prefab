@@ -171,7 +171,7 @@ GameObject:
   - component: {fileID: 1294113689785867392}
   - component: {fileID: 6147667372854573218}
   - component: {fileID: -8925812656415143316}
-  - component: {fileID: 2382221147397920564}
+  - component: {fileID: 4356612401232801831}
   m_Layer: 7
   m_Name: Ghost
   m_TagString: Ghost
@@ -324,7 +324,7 @@ MonoBehaviour:
   cooldownColor: {r: 0.7, g: 0.7, b: 0.7, a: 0.4}
   unavailableColor: {r: 0.4, g: 0.4, b: 0.4, a: 0.2}
   notEnoughFearColor: {r: 1, g: 0.5, b: 0, a: 0.6}
---- !u!114 &2382221147397920564
+--- !u!114 &4356612401232801831
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -333,16 +333,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 5682524112272449894}
   m_Enabled: 0
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 00dbebccc3b98df469aa5d19500b78d5, type: 3}
+  m_Script: {fileID: 11500000, guid: 1a1306862a62b9a4ba59e8a7d51c174e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ghostCamera: {fileID: 6027540668835561494}
-  cameraPivot: {fileID: 7659279266709476768}
-  firstPersonOffset: {x: 0, y: 0, z: 0}
-  useThirdPersonWhenTransformed: 1
+  playerCamera: {fileID: 6027540668835561494}
   thirdPersonDistance: 5
-  thirdPersonHeight: -1
-  transitionSpeed: 5
+  thirdPersonHeight: 2
+  transitionSpeed: 8
+  perspectiveButtonName: Perspective
   avoidWalls: 1
   collisionLayers:
     serializedVersion: 2

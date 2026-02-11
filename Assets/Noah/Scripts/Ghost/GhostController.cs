@@ -93,7 +93,7 @@ public class GhostController : MonoBehaviour
 
     private Quaternion targetRotation;
 
-    public List<PossessableObject> possessedObjects = new List<PossessableObject>();
+    //public List<PossessableObject> possessedObjects = new List<PossessableObject>();
 
     public System.Action OnDestroyClone;
     public System.Action OnReturnToGhost;
@@ -249,7 +249,7 @@ public class GhostController : MonoBehaviour
                 float regenAmount = fearRegenRate * Time.deltaTime;
                 fear += regenAmount;
                 fear = Mathf.Min(fear, 100f);
-                
+
             }
         }
         else
@@ -286,7 +286,7 @@ public class GhostController : MonoBehaviour
         fear -= drainAmount;
         fear = Mathf.Max(fear, 0f);
 
-       
+
 
         // Check if fear is depleted
         if (fear <= 0f)
@@ -322,7 +322,7 @@ public class GhostController : MonoBehaviour
                     fearRegenTimer = 0f;
                     isRegenerating = false;
 
-                   
+
                 }
             }
         }
@@ -430,44 +430,36 @@ public class GhostController : MonoBehaviour
     // -------------------------------
     // Possession Menu
     // -------------------------------
-    private void OnMenuOptionSelected(GameObject selectedObject)
+    private void OnMenuOptionSelected(int transformIndex)
     {
-        Debug.Log($"🎯 Menu option selected: {(selectedObject != null ? selectedObject.name : "Explorer")}");
+        Debug.Log($"🎯 Transformation selected: {transformIndex}");
 
-        // Close menu FIRST
+        // Close menu
         ClosePossessionMenu();
 
-        // Safety: prevent double possession
+        // Safety check
         if (GameManager.Instance.HasActiveClone(this))
         {
-            Debug.LogWarning("Already controlling a disguise — ignoring menu input");
+            Debug.LogWarning("Already transformed");
             return;
         }
 
-        // 🔥 FIX: Handle Explorer selection separately (selectedObject == null)
-        if (selectedObject == null)
+        // Call appropriate transformation
+        switch (transformIndex)
         {
-            Debug.Log("🟢 EXPLORER selected - calling SpawnPossessedClone");
-            GameManager.Instance.SpawnPossessedClone(this, null);
-            return;
+            case 0: // Explorer
+                GameManager.Instance.TransformIntoExplorer(this);
+                break;
+            case 1: // Wall
+                GameManager.Instance.TransformIntoWall(this);
+                break;
+            case 2: // Other
+                GameManager.Instance.TransformIntoOther(this);
+                break;
+            default:
+                Debug.LogError($"Unknown transformation index: {transformIndex}");
+                break;
         }
-
-        // 🔥 FIX: Handle Object selection (selectedObject != null)
-        PossessableObject possessable = selectedObject.GetComponent<PossessableObject>();
-        if (possessable == null)
-        {
-            Debug.LogError($"❌ Selected object '{selectedObject.name}' does not have a PossessableObject component!");
-            return;
-        }
-
-        if (possessable.clonePrefab == null)
-        {
-            Debug.LogError($"❌ {possessable.displayName} has no clone prefab assigned!");
-            return;
-        }
-
-        Debug.Log($"🔵 OBJECT selected - calling SpawnObjectClone for {possessable.displayName}");
-        GameManager.Instance.SpawnObjectClone(this, possessable);
     }
 
 
@@ -528,7 +520,7 @@ public class GhostController : MonoBehaviour
         playerInputs.Ghost.Look.canceled += OnLookCanceled;
 
         playerInputs.Ghost.PhaseToggle.performed += OnPhaseToggle;
-        playerInputs.Ghost.PossessObject.performed += OnPossessObject;
+        //playerInputs.Ghost.PossessObject.performed += OnPossessObject;
 
         if (!isControllingClone)
         {
@@ -554,7 +546,7 @@ public class GhostController : MonoBehaviour
         playerInputs.Ghost.Look.canceled -= OnLookCanceled;
 
         playerInputs.Ghost.PhaseToggle.performed -= OnPhaseToggle;
-        playerInputs.Ghost.PossessObject.performed -= OnPossessObject;
+       //playerInputs.Ghost.PossessObject.performed -= OnPossessObject;
         playerInputs.Ghost.MenuToggle.performed -= OnMenuToggle;
 
         playerInputs.Ghost.FlyUp.performed -= OnFlyUpPerformed;
@@ -714,21 +706,15 @@ public class GhostController : MonoBehaviour
             return;
         }
 
-        List<GameObject> possessedGameObjects = new List<GameObject>();
-        foreach (var obj in possessedObjects)
-        {
-            if (obj != null && obj.isPossessed)
-                possessedGameObjects.Add(obj.gameObject);
-        }
+        // New simplified system - no possession list needed
+        possessionMenu.OpenMenu();
 
-        // The menu should always show at least the Explorer option
-        possessionMenu.OpenMenu(possessedGameObjects);
-
-        FreezeInput(true); // This should prevent movement
+        FreezeInput(true);
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        Debug.Log("Possession menu opened with " + possessedGameObjects.Count + " objects");
+        menuOpen = true;
+        Debug.Log("Possession menu OPENED");
     }
 
     private void ClosePossessionMenu()
@@ -772,45 +758,45 @@ public class GhostController : MonoBehaviour
     }
 
     private void HandleMovement()
-{
-    // 🔥 FIX: Allow movement if EITHER horizontal OR vertical input exists
-    bool hasHorizontalInput = moveInput.sqrMagnitude > 0f;
-    bool hasVerticalInput = Mathf.Abs(verticalInput) > 0.1f;
-    
-    if (!hasHorizontalInput && !hasVerticalInput) return;
-
-    Vector3 moveDir = Vector3.zero;
-
-    if (hasHorizontalInput)
     {
-        if (lockObjectRotation)
+        // 🔥 FIX: Allow movement if EITHER horizontal OR vertical input exists
+        bool hasHorizontalInput = moveInput.sqrMagnitude > 0f;
+        bool hasVerticalInput = Mathf.Abs(verticalInput) > 0.1f;
+
+        if (!hasHorizontalInput && !hasVerticalInput) return;
+
+        Vector3 moveDir = Vector3.zero;
+
+        if (hasHorizontalInput)
         {
-            // For objects: move relative to camera direction, not object direction
-            if (cameraTransform != null)
+            if (lockObjectRotation)
             {
-                // Get camera forward and right vectors, but flatten them to the horizontal plane
-                Vector3 cameraForward = cameraTransform.forward;
-                cameraForward.y = 0;
-                cameraForward.Normalize();
+                // For objects: move relative to camera direction, not object direction
+                if (cameraTransform != null)
+                {
+                    // Get camera forward and right vectors, but flatten them to the horizontal plane
+                    Vector3 cameraForward = cameraTransform.forward;
+                    cameraForward.y = 0;
+                    cameraForward.Normalize();
 
-                Vector3 cameraRight = cameraTransform.right;
-                cameraRight.y = 0;
-                cameraRight.Normalize();
+                    Vector3 cameraRight = cameraTransform.right;
+                    cameraRight.y = 0;
+                    cameraRight.Normalize();
 
-                moveDir = (cameraForward * moveInput.y + cameraRight * moveInput.x).normalized;
+                    moveDir = (cameraForward * moveInput.y + cameraRight * moveInput.x).normalized;
+                }
+                else
+                {
+                    // Fallback: use object's forward/right
+                    moveDir = (transform.forward * moveInput.y + transform.right * moveInput.x).normalized;
+                }
             }
             else
             {
-                // Fallback: use object's forward/right
+                // For ghost: use object's forward/right (normal behavior)
                 moveDir = (transform.forward * moveInput.y + transform.right * moveInput.x).normalized;
             }
         }
-        else
-        {
-            // For ghost: use object's forward/right (normal behavior)
-            moveDir = (transform.forward * moveInput.y + transform.right * moveInput.x).normalized;
-        }
-    }
 
         if (freezeInput)
         {
@@ -820,86 +806,86 @@ public class GhostController : MonoBehaviour
             return;
         }
         Vector3 horizontalMove = moveDir * moveSpeed * Time.fixedDeltaTime;
-    Vector3 verticalMove = Vector3.up * verticalInput * flySpeed * Time.fixedDeltaTime;
-    
-    // 🔥 SEPARATE COLLISION CHECKS: Allow horizontal movement even when blocked vertically
-    Vector3 finalMove = Vector3.zero;
+        Vector3 verticalMove = Vector3.up * verticalInput * flySpeed * Time.fixedDeltaTime;
 
-    // Check horizontal movement separately
-    if (horizontalMove.magnitude > 0)
-    {
-        if (isPhasing)
+        // 🔥 SEPARATE COLLISION CHECKS: Allow horizontal movement even when blocked vertically
+        Vector3 finalMove = Vector3.zero;
+
+        // Check horizontal movement separately
+        if (horizontalMove.magnitude > 0)
         {
-            int defaultMask = LayerMask.GetMask(defaultLayerName);
-            if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
-                rb.position - Vector3.up * 0.5f, 0.5f,
-                horizontalMove.normalized, horizontalMove.magnitude, defaultMask))
+            if (isPhasing)
             {
-                finalMove += horizontalMove;
+                int defaultMask = LayerMask.GetMask(defaultLayerName);
+                if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
+                    rb.position - Vector3.up * 0.5f, 0.5f,
+                    horizontalMove.normalized, horizontalMove.magnitude, defaultMask))
+                {
+                    finalMove += horizontalMove;
+                }
+                else
+                {
+                    // 🔥 Even if blocked, try to slide along the surface
+                    Vector3 slideDirection = Vector3.ProjectOnPlane(horizontalMove.normalized, Vector3.up).normalized;
+                    if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
+                        rb.position - Vector3.up * 0.5f, 0.5f,
+                        slideDirection, horizontalMove.magnitude, defaultMask))
+                    {
+                        finalMove += slideDirection * horizontalMove.magnitude;
+                    }
+                }
             }
             else
             {
-                // 🔥 Even if blocked, try to slide along the surface
-                Vector3 slideDirection = Vector3.ProjectOnPlane(horizontalMove.normalized, Vector3.up).normalized;
                 if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
                     rb.position - Vector3.up * 0.5f, 0.5f,
-                    slideDirection, horizontalMove.magnitude, defaultMask))
+                    horizontalMove.normalized, horizontalMove.magnitude))
                 {
-                    finalMove += slideDirection * horizontalMove.magnitude;
+                    finalMove += horizontalMove;
+                }
+                else
+                {
+                    // 🔥 Even if blocked, try to slide along the surface
+                    Vector3 slideDirection = Vector3.ProjectOnPlane(horizontalMove.normalized, Vector3.up).normalized;
+                    if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
+                        rb.position - Vector3.up * 0.5f, 0.5f,
+                        slideDirection, horizontalMove.magnitude))
+                    {
+                        finalMove += slideDirection * horizontalMove.magnitude;
+                    }
                 }
             }
         }
-        else
+
+        // Check vertical movement separately - only apply if not blocked
+        if (verticalMove.magnitude > 0)
         {
-            if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
-                rb.position - Vector3.up * 0.5f, 0.5f,
-                horizontalMove.normalized, horizontalMove.magnitude))
+            if (isPhasing)
             {
-                finalMove += horizontalMove;
+                int defaultMask = LayerMask.GetMask(defaultLayerName);
+                if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
+                    rb.position - Vector3.up * 0.5f, 0.5f,
+                    Vector3.up * Mathf.Sign(verticalInput), Mathf.Abs(verticalMove.magnitude), defaultMask))
+                {
+                    finalMove += verticalMove;
+                }
             }
             else
             {
-                // 🔥 Even if blocked, try to slide along the surface
-                Vector3 slideDirection = Vector3.ProjectOnPlane(horizontalMove.normalized, Vector3.up).normalized;
                 if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
                     rb.position - Vector3.up * 0.5f, 0.5f,
-                    slideDirection, horizontalMove.magnitude))
+                    Vector3.up * Mathf.Sign(verticalInput), Mathf.Abs(verticalMove.magnitude)))
                 {
-                    finalMove += slideDirection * horizontalMove.magnitude;
+                    finalMove += verticalMove;
                 }
             }
         }
-    }
 
-    // Check vertical movement separately - only apply if not blocked
-    if (verticalMove.magnitude > 0)
-    {
-        if (isPhasing)
+        if (finalMove.magnitude > 0)
         {
-            int defaultMask = LayerMask.GetMask(defaultLayerName);
-            if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
-                rb.position - Vector3.up * 0.5f, 0.5f,
-                Vector3.up * Mathf.Sign(verticalInput), Mathf.Abs(verticalMove.magnitude), defaultMask))
-            {
-                finalMove += verticalMove;
-            }
-        }
-        else
-        {
-            if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
-                rb.position - Vector3.up * 0.5f, 0.5f,
-                Vector3.up * Mathf.Sign(verticalInput), Mathf.Abs(verticalMove.magnitude)))
-            {
-                finalMove += verticalMove;
-            }
+            rb.MovePosition(rb.position + finalMove);
         }
     }
-
-    if (finalMove.magnitude > 0)
-    {
-        rb.MovePosition(rb.position + finalMove);
-    }
-}
 
 
     // -------------------------------
@@ -912,7 +898,7 @@ public class GhostController : MonoBehaviour
         if (!isPhasing)
         {
             fear -= phaseCost;
-              fear = Mathf.Max(fear, 0f);
+            fear = Mathf.Max(fear, 0f);
             phaseTimer = phaseDuration;
         }
 
@@ -965,51 +951,15 @@ public class GhostController : MonoBehaviour
     // -------------------------------
     private PossessableObject GetNearestPossessable()
     {
-        float range = 3f;
-        Collider[] hits = Physics.OverlapSphere(transform.position, range);
-
-        PossessableObject nearest = null;
-        float nearestDist = float.MaxValue;
-
-        foreach (var hit in hits)
-        {
-            if (hit.TryGetComponent(out PossessableObject obj) && !obj.isPossessed)
-            {
-                float dist = Vector3.Distance(transform.position, hit.transform.position);
-                if (dist < nearestDist)
-                {
-                    nearest = obj;
-                    nearestDist = dist;
-                }
-            }
-        }
-        return nearest;
+        // Not used in simplified system
+        return null;
     }
 
     private void TryPossessNearestObject()
     {
-        PossessableObject nearest = GetNearestPossessable();
-        if (nearest != null)
-        {
-            bool success = nearest.TryPossess(this);
-            if (success)
-            {
-                Debug.Log($"Successfully possessed object: {nearest.name}");
-                if (!possessedObjects.Contains(nearest))
-                {
-                    possessedObjects.Add(nearest);
-                    Debug.Log($"Added {nearest.name} to possessed list");
-                }
-                UpdateGhostTracking();
-                GhostUIManager uiManager = GetComponent<GhostUIManager>();
-                if (uiManager != null)
-                {
-                    uiManager.TriggerPossessCooldown(1f);
-                }
-            }
-            else Debug.Log("Failed to possess object.");
-        }
-        else Debug.Log("No possessable object nearby.");
+        // Possession system removed in simplified transformation system
+        // Ghost can always transform into Explorer, Wall, or Other via menu (Y button)
+        Debug.Log("⚠️ Possession disabled - use transformation menu (Y) instead");
     }
 
 
@@ -1070,20 +1020,26 @@ public class GhostController : MonoBehaviour
 
     public void RegisterPossessedObject(PossessableObject obj)
     {
-        if (!possessedObjects.Contains(obj))
-            possessedObjects.Add(obj);
+        // Not used in simplified system - kept for compatibility
+        // Objects are always available for transformation
     }
 
     public void SetPossessionMenu(PossessionMenu menu)
     {
         possessionMenu = menu;
         if (possessionMenu != null)
+        {
+            // Initialize with callback that expects int (0, 1, or 2)
             possessionMenu.Initialize(OnMenuOptionSelected);
+        }
     }
 
     // Add this method to GhostController
     public void ReturnControlToGhost()
     {
+        // Strip the copied mesh + colliders off the ghost before anything else
+        TransformApplier.Revert(gameObject);
+
         if (activeClone != null)
         {
             PlayerInputHandler cloneInputHandler = activeClone.GetComponent<PlayerInputHandler>();
@@ -1100,7 +1056,7 @@ public class GhostController : MonoBehaviour
         SetVisibility(true);
         isControllingClone = false;
 
-            UpdateGhostTracking();
+        UpdateGhostTracking();
         Debug.Log("Control returned to ghost");
     }
 

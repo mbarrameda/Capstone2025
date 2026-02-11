@@ -100,9 +100,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   flashlight: {fileID: 4137290024574517383}
-  batteryMax: 100
-  batteryDrainPerSecond: 1.5
-  stunDuration: 5
+  batteryMax: 1000
+  batteryDrainPerSecond: 0.01
+  stunDuration: 3
   stunAngle: 25
   stunDistance: 25
   explorer: {fileID: 1247150047388275774, guid: dd08a6db167c3934caf5c2f08442fa96, type: 3}

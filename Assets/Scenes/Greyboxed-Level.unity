@@ -78628,13 +78628,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b655f5ed07442d446a3693b4518f3a41, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fearCost: 10
-  fearReturnBonus: 5
-  isPossessed: 0
-  canBeTransformedInto: 1
-  clonePrefab: {fileID: 7252718780094619801, guid: 487e59c14263118458e1aa3223677c02, type: 3}
   displayName: Clone
   icon: {fileID: 21300000, guid: 37cc89c9d8125ac45ad4ce579ea439ba, type: 3}
+  clonePrefab: {fileID: 7252718780094619801, guid: 487e59c14263118458e1aa3223677c02, type: 3}
+  useRotationOverride: 0
+  rotationOverride: {x: 0, y: 0, z: 0}
+  useScaleOverride: 0
+  scaleOverride: {x: 1, y: 1, z: 1}
+  overrideCameraSettings: 0
+  customCameraDistance: 3
+  customCameraHeight: 1.5
+  customCameraLookOffset: {x: 0, y: 0.5, z: 0}
 --- !u!4 &530804736
 Transform:
   m_ObjectHideFlags: 0
@@ -106443,7 +106447,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7900162532160150932, guid: 76c052182f08b524c9581a7b42c1568d, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 32.15
+      value: -19.32
       objectReference: {fileID: 0}
     - target: {fileID: 7900162532160150932, guid: 76c052182f08b524c9581a7b42c1568d, type: 3}
       propertyPath: m_LocalPosition.y
@@ -106451,7 +106455,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7900162532160150932, guid: 76c052182f08b524c9581a7b42c1568d, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -19.96
+      value: 17.68
       objectReference: {fileID: 0}
     - target: {fileID: 7900162532160150932, guid: 76c052182f08b524c9581a7b42c1568d, type: 3}
       propertyPath: m_LocalRotation.w
@@ -154958,25 +154962,6 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 30d52ecbe54ad1b4eb4f7a7ff57bd9ed, type: 3}
   m_PrefabInstance: {fileID: 2028047787}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1045471854
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1045471853}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b655f5ed07442d446a3693b4518f3a41, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fearCost: 10
-  fearReturnBonus: 5
-  isPossessed: 0
-  canBeTransformedInto: 1
-  clonePrefab: {fileID: 1045471853}
-  displayName: Bed
-  icon: {fileID: 21300000, guid: 9b530529fca8558449c2af2b412dbcb9, type: 3}
 --- !u!64 &1045471855
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -154999,6 +154984,29 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: -5495902117074765545, guid: 30d52ecbe54ad1b4eb4f7a7ff57bd9ed, type: 3}
+--- !u!114 &1045471859
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1045471853}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b655f5ed07442d446a3693b4518f3a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  displayName: Bed
+  icon: {fileID: 21300062, guid: 9b530529fca8558449c2af2b412dbcb9, type: 3}
+  clonePrefab: {fileID: 919132149155446097, guid: 30d52ecbe54ad1b4eb4f7a7ff57bd9ed, type: 3}
+  useRotationOverride: 0
+  rotationOverride: {x: 0, y: 0, z: 0}
+  useScaleOverride: 0
+  scaleOverride: {x: 1, y: 1, z: 1}
+  overrideCameraSettings: 0
+  customCameraDistance: 3
+  customCameraHeight: 1.5
+  customCameraLookOffset: {x: 0, y: 0.5, z: 0}
 --- !u!1001 &1045524129
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -166002,16 +166010,19 @@ MonoBehaviour:
   explorerPrefab: {fileID: 1247150047388275774, guid: dd08a6db167c3934caf5c2f08442fa96, type: 3}
   ghostPrefab: {fileID: 1294113689785867392, guid: a3ced9464669a6f4cb2e0484267c226d, type: 3}
   explorerClonePrefab: {fileID: 7252718780094619801, guid: 487e59c14263118458e1aa3223677c02, type: 3}
+  wallClonePrefab: {fileID: 919132149155446097, guid: 5e8990ab30bfcbc409e6b82549abccac, type: 3}
+  otherClonePrefab: {fileID: 0}
+  explorerSettings: {fileID: 0}
+  wallSettings: {fileID: 0}
+  otherSettings: {fileID: 0}
   explorerSpawns:
   - {fileID: 2114876607}
   - {fileID: 1837928194}
   ghostSpawns:
   - {fileID: 1242503383}
   - {fileID: 989571992}
-  cloneOffset: {x: 1.5, y: 0, z: 0}
   fearDrainRateWhileUsingClone: 0
   cloneDuration: 10
-  cloneFearCost: 0
   explorers: []
   ghosts: []
 --- !u!4 &1122643819
@@ -198195,6 +198206,11 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 8126836583812050329, guid: 0decb3b2caa42dd46b075bfea2f50dec, type: 3}
+--- !u!1 &1372038423 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: a45445a324b07e641a599433ac12612f, type: 3}
+  m_PrefabInstance: {fileID: 1984918314}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1374024601
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -210511,6 +210527,51 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: a45445a324b07e641a599433ac12612f, type: 3}
   m_PrefabInstance: {fileID: 1984918314}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1489974145
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372038423}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b655f5ed07442d446a3693b4518f3a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  displayName: ghost
+  icon: {fileID: 21300018, guid: 8098d30c44947294d839407359d24c77, type: 3}
+  clonePrefab: {fileID: 919132149155446097, guid: a45445a324b07e641a599433ac12612f, type: 3}
+  useRotationOverride: 0
+  rotationOverride: {x: 0, y: 0, z: 0}
+  useScaleOverride: 0
+  scaleOverride: {x: 1, y: 1, z: 1}
+  overrideCameraSettings: 0
+  customCameraDistance: 3
+  customCameraHeight: 1.5
+  customCameraLookOffset: {x: 0, y: 0.5, z: 0}
+--- !u!64 &1489974146
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372038423}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 5
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 3772797090071207700, guid: a45445a324b07e641a599433ac12612f, type: 3}
 --- !u!1001 &1490281332
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -213897,7 +213958,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7900162532160150932, guid: 76c052182f08b524c9581a7b42c1568d, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 33.36
+      value: -18.11
       objectReference: {fileID: 0}
     - target: {fileID: 7900162532160150932, guid: 76c052182f08b524c9581a7b42c1568d, type: 3}
       propertyPath: m_LocalPosition.y
@@ -213905,7 +213966,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7900162532160150932, guid: 76c052182f08b524c9581a7b42c1568d, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -19.06
+      value: 18.58
       objectReference: {fileID: 0}
     - target: {fileID: 7900162532160150932, guid: 76c052182f08b524c9581a7b42c1568d, type: 3}
       propertyPath: m_LocalRotation.w
@@ -283824,7 +283885,13 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a45445a324b07e641a599433ac12612f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1489974145}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a45445a324b07e641a599433ac12612f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1489974146}
   m_SourcePrefab: {fileID: 100100000, guid: a45445a324b07e641a599433ac12612f, type: 3}
 --- !u!1001 &1988644369
 PrefabInstance:
@@ -290765,7 +290832,7 @@ PrefabInstance:
       addedObject: {fileID: 1045471855}
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 30d52ecbe54ad1b4eb4f7a7ff57bd9ed, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1045471854}
+      addedObject: {fileID: 1045471859}
   m_SourcePrefab: {fileID: 100100000, guid: 30d52ecbe54ad1b4eb4f7a7ff57bd9ed, type: 3}
 --- !u!1001 &2030000276
 PrefabInstance:
@@ -305258,6 +305325,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5e8990ab30bfcbc409e6b82549abccac, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2145008574}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 5e8990ab30bfcbc409e6b82549abccac, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2145008575}
   m_SourcePrefab: {fileID: 100100000, guid: 5e8990ab30bfcbc409e6b82549abccac, type: 3}
 --- !u!4 &2145008571 stripped
 Transform:
@@ -305286,6 +305356,29 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 5461320835613783329, guid: 5e8990ab30bfcbc409e6b82549abccac, type: 3}
+--- !u!114 &2145008575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 740776536}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b655f5ed07442d446a3693b4518f3a41, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  displayName: Wall
+  icon: {fileID: 21300000, guid: 942e1668b77ac8a448cab87e5eedc469, type: 3}
+  clonePrefab: {fileID: 919132149155446097, guid: 5e8990ab30bfcbc409e6b82549abccac, type: 3}
+  useRotationOverride: 0
+  rotationOverride: {x: 0, y: 0, z: 0}
+  useScaleOverride: 0
+  scaleOverride: {x: 1, y: 1, z: 1}
+  overrideCameraSettings: 0
+  customCameraDistance: 3
+  customCameraHeight: 1.5
+  customCameraLookOffset: {x: 0, y: 0.5, z: 0}
 --- !u!1001 &2145106098
 PrefabInstance:
   m_ObjectHideFlags: 0

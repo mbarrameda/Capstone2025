@@ -314,6 +314,15 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Perspective"",
+                    ""type"": ""Button"",
+                    ""id"": ""fd632ea1-61d6-4f49-9046-80b830897de9"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -404,6 +413,17 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                     ""action"": ""Confirm"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""531b2d94-c60a-4c2d-b7ef-7258e0c35a45"",
+                    ""path"": ""<Gamepad>/leftStickPress"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Perspective"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -434,6 +454,7 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         m_Ghost_MenuToggle = m_Ghost.FindAction("MenuToggle", throwIfNotFound: true);
         m_Ghost_Look = m_Ghost.FindAction("Look", throwIfNotFound: true);
         m_Ghost_Confirm = m_Ghost.FindAction("Confirm", throwIfNotFound: true);
+        m_Ghost_Perspective = m_Ghost.FindAction("Perspective", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -659,6 +680,7 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_Ghost_MenuToggle;
     private readonly InputAction m_Ghost_Look;
     private readonly InputAction m_Ghost_Confirm;
+    private readonly InputAction m_Ghost_Perspective;
     public struct GhostActions
     {
         private @PlayerInputs m_Wrapper;
@@ -671,6 +693,7 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         public InputAction @MenuToggle => m_Wrapper.m_Ghost_MenuToggle;
         public InputAction @Look => m_Wrapper.m_Ghost_Look;
         public InputAction @Confirm => m_Wrapper.m_Ghost_Confirm;
+        public InputAction @Perspective => m_Wrapper.m_Ghost_Perspective;
         public InputActionMap Get() { return m_Wrapper.m_Ghost; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -704,6 +727,9 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
             @Confirm.started += instance.OnConfirm;
             @Confirm.performed += instance.OnConfirm;
             @Confirm.canceled += instance.OnConfirm;
+            @Perspective.started += instance.OnPerspective;
+            @Perspective.performed += instance.OnPerspective;
+            @Perspective.canceled += instance.OnPerspective;
         }
 
         private void UnregisterCallbacks(IGhostActions instance)
@@ -732,6 +758,9 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
             @Confirm.started -= instance.OnConfirm;
             @Confirm.performed -= instance.OnConfirm;
             @Confirm.canceled -= instance.OnConfirm;
+            @Perspective.started -= instance.OnPerspective;
+            @Perspective.performed -= instance.OnPerspective;
+            @Perspective.canceled -= instance.OnPerspective;
         }
 
         public void RemoveCallbacks(IGhostActions instance)
@@ -775,5 +804,6 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         void OnMenuToggle(InputAction.CallbackContext context);
         void OnLook(InputAction.CallbackContext context);
         void OnConfirm(InputAction.CallbackContext context);
+        void OnPerspective(InputAction.CallbackContext context);
     }
 }
