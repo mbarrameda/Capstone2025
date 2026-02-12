@@ -3,13 +3,10 @@ using System.Collections.Generic;
 
 /// <summary>
 /// Enhanced version with per-object settings for rotation and scale overrides.
-/// Allows inspector-configurable transformations for special objects like walls.
+/// FIXED: Now properly uses the prefab's actual scale instead of ghost's scale.
 /// </summary>
 public static class TransformApplier
 {
-    // -----------------------------------------------------------------------
-    // Snapshot — everything we add so we can cleanly remove it later
-    // -----------------------------------------------------------------------
     private class Snapshot
     {
         public GameObject visualClone;
@@ -20,9 +17,6 @@ public static class TransformApplier
 
     private static readonly Dictionary<GameObject, Snapshot> _snapshots = new();
 
-    // -----------------------------------------------------------------------
-    // Apply with settings from PossessableObject
-    // -----------------------------------------------------------------------
     public static void Apply(GameObject target, GameObject source, PossessableObject settings = null)
     {
         if (target == null || source == null)
@@ -56,7 +50,7 @@ public static class TransformApplier
         snap.visualClone.transform.SetParent(target.transform, false);
         snap.visualClone.transform.localPosition = Vector3.zero;
 
-        // 🔥 NEW: Apply rotation override if specified in settings
+        // Apply rotation override if specified in settings
         Quaternion rotationOverride = Quaternion.identity;
         if (settings != null && settings.useRotationOverride)
         {
@@ -65,13 +59,22 @@ public static class TransformApplier
         }
         snap.visualClone.transform.localRotation = rotationOverride;
 
-        // 🔥 NEW: Apply scale override if specified in settings
-        Vector3 finalScale = source.transform.lossyScale;
+        // 🔥 FIX: Use the prefab's actual local scale, NOT lossyScale
+        // lossyScale gives you the world scale which includes parent transforms
+        // localScale gives you the prefab's own scale
+        Vector3 finalScale = source.transform.localScale;
+
+        // If settings specify a scale override, use that instead
         if (settings != null && settings.useScaleOverride)
         {
             finalScale = settings.scaleOverride;
             Debug.Log($"📏 Applying scale override: {settings.scaleOverride}");
         }
+        else
+        {
+            Debug.Log($"📏 Using prefab's original scale: {finalScale}");
+        }
+
         snap.visualClone.transform.localScale = finalScale;
 
         // Remove any scripts/logic from the clone — we only want visuals
@@ -103,9 +106,6 @@ public static class TransformApplier
                   $"(scale {finalScale}) onto '{target.name}' with {snap.addedColliders.Count} collider(s).");
     }
 
-    // -----------------------------------------------------------------------
-    // Revert — strip everything we added, restore the ghost to normal
-    // -----------------------------------------------------------------------
     public static void Revert(GameObject target)
     {
         if (target == null) return;
@@ -141,9 +141,6 @@ public static class TransformApplier
         Debug.Log($"✅ TransformApplier: reverted '{target.name}' back to ghost.");
     }
 
-    // -----------------------------------------------------------------------
-    // Helper: strip non-visual components from the clone
-    // -----------------------------------------------------------------------
     private static void StripNonVisualComponents(GameObject clone)
     {
         foreach (MonoBehaviour script in clone.GetComponentsInChildren<MonoBehaviour>())
@@ -162,9 +159,6 @@ public static class TransformApplier
         }
     }
 
-    // -----------------------------------------------------------------------
-    // Collider copier — handles common collider types from root
-    // -----------------------------------------------------------------------
     private static Collider CopyCollider(GameObject target, Collider source)
     {
         if (source is BoxCollider box)
@@ -211,9 +205,6 @@ public static class TransformApplier
         return null;
     }
 
-    // -----------------------------------------------------------------------
-    // Copy collider from child, adjusting for position offset
-    // -----------------------------------------------------------------------
     private static Collider CopyColliderFromChild(GameObject target, Collider source, Transform sourceRoot)
     {
         Vector3 localOffset = sourceRoot.InverseTransformPoint(source.transform.position);
