@@ -106,12 +106,6 @@ MonoBehaviour:
   stunAngle: 15
   stunDistance: 15
   explorer: {fileID: 1247150047388275774, guid: dd08a6db167c3934caf5c2f08442fa96, type: 3}
-  batterySlider: {fileID: 0}
-  batteryFill: {fileID: 0}
-  fullBatteryColor: {r: 0, g: 1, b: 0, a: 1}
-  mediumBatteryColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  lowBatteryColor: {r: 1, g: 0, b: 0, a: 1}
-  lowBatteryThreshold: 10
   currentBattery: 0
 --- !u!65 &8373875832592899657
 BoxCollider:

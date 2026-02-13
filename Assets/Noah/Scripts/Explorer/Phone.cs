@@ -17,21 +17,14 @@ public class Phone : MonoBehaviour
     public PlayerInputHandler explorer;
 
     [Header("Battery UI - MANUALLY ASSIGN IN INSPECTOR")]
-    public Slider batterySlider;
-    public Image batteryFill;
-    public Color fullBatteryColor = Color.green;
-    public Color mediumBatteryColor = Color.yellow;
-    public Color lowBatteryColor = Color.red;
-    public float lowBatteryThreshold = 20f;
+    
 
     private Slider batteryBar;
     private bool batteryBarFound = false;
     public float currentBattery; 
     private bool flashlightOn = false;
     private bool isOut = false;
-    private Vector3 initialLocalPosition;
-    private Quaternion initialLocalRotation;
-    private CanvasGroup batteryCanvasGroup;
+   
 
     private void Start()
     {
@@ -55,10 +48,8 @@ public class Phone : MonoBehaviour
     {
         if (flashlight != null) flashlight.enabled = false;
         currentBattery = batteryMax;
-        initialLocalPosition = transform.localPosition;
-        initialLocalRotation = transform.localRotation;
+        
 
-        InitializeBatteryUI();
     }
 
     private void Update()
@@ -72,57 +63,6 @@ public class Phone : MonoBehaviour
             if (BatteryManager.Instance != null)
             {
                 BatteryManager.Instance.SetBatteryValue(currentBattery);
-            }
-        }
-        UpdateBatteryUI();
-    }
-
-    private void InitializeBatteryUI()
-    {
-        if (batterySlider != null)
-        {
-            batterySlider.minValue = 0f;
-            batterySlider.maxValue = batteryMax;
-            batterySlider.value = currentBattery;
-
-            // Get or add canvas group for fading
-            batteryCanvasGroup = batterySlider.GetComponent<CanvasGroup>();
-            if (batteryCanvasGroup == null)
-            {
-                batteryCanvasGroup = batterySlider.gameObject.AddComponent<CanvasGroup>();
-            }
-
-            // Start hidden
-            batteryCanvasGroup.alpha = 0f;
-            batterySlider.gameObject.SetActive(false);
-        }
-        else
-        {
-            Debug.LogWarning("Battery Slider not assigned in Inspector - battery UI will not work");
-        }
-    }
-
-    private void UpdateBatteryUI()
-    {
-        if (batterySlider == null) return;
-
-        batterySlider.value = currentBattery;
-
-        if (batteryFill != null)
-        {
-            float batteryPercent = (currentBattery / batteryMax) * 100f;
-
-            if (batteryPercent <= lowBatteryThreshold)
-            {
-                batteryFill.color = lowBatteryColor;
-            }
-            else if (batteryPercent <= 50f)
-            {
-                batteryFill.color = mediumBatteryColor;
-            }
-            else
-            {
-                batteryFill.color = fullBatteryColor;
             }
         }
     }
@@ -234,28 +174,6 @@ public class Phone : MonoBehaviour
         if (stunnedAnyGhost && StunTextDisplay.Instance != null)
         {
             StunTextDisplay.Instance.ShowStunText(0f);
-        }
-    }
-
-    private IEnumerator FadeBatteryUI(float targetAlpha, float duration)
-    {
-        if (batteryCanvasGroup == null) yield break;
-
-        float startAlpha = batteryCanvasGroup.alpha;
-        float time = 0f;
-
-        while (time < duration)
-        {
-            time += Time.deltaTime;
-            batteryCanvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, time / duration);
-            yield return null;
-        }
-
-        batteryCanvasGroup.alpha = targetAlpha;
-
-        if (targetAlpha <= 0f && batterySlider != null)
-        {
-            batterySlider.gameObject.SetActive(false);
         }
     }
 
