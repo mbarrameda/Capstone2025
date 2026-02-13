@@ -163,7 +163,7 @@ MonoBehaviour:
   staminaRegenRate: 15
   staminaRegenDelay: 1.5
   minStaminaToSprint: 10
-  maxSanity: 100
+  maxSanity: 10000
   currentSanity: 100
   sanityIncreaseRate: 15
   sanityDecreaseRate: 0.5
