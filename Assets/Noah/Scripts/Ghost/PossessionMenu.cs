@@ -1,8 +1,8 @@
+﻿
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 
 public class PossessionMenu : MonoBehaviour
 {
@@ -11,23 +11,25 @@ public class PossessionMenu : MonoBehaviour
     public Transform buttonParent;
     public GameObject menuRoot;
 
-    [Header("Button Settings")]
+    [Header("Fallback Icons (used if settings don't have icons)")]
     public Sprite explorerIcon;
-    public Sprite defaultObjectIcon;
+    public Sprite wallIcon;
+    public Sprite otherIcon;
+
+    [Header("Fallback Display Names")]
+    public string explorerDisplayName = "Explorer";
+    public string wallDisplayName = "Wall";
+    public string otherDisplayName = "Other";
 
     [Header("Controller Navigation")]
     public Button firstSelectedButton;
 
-    private PlayerInput menuOwner; // The player who opened the menu
     private List<Button> menuButtons = new List<Button>();
-    private System.Action<GameObject> onSelectObject;
+    private System.Action<int> onSelectTransformation;
 
-    // Store unique possessable types to avoid duplicates
-    private Dictionary<string, (PossessableObject reference, int count)> uniquePossessables = new();
-
-    public void Initialize(System.Action<GameObject> onSelectCallback)
+    public void Initialize(System.Action<int> onSelectCallback)
     {
-        onSelectObject = onSelectCallback;
+        onSelectTransformation = onSelectCallback;
 
         if (menuRoot != null)
             menuRoot.SetActive(false);
@@ -42,59 +44,83 @@ public class PossessionMenu : MonoBehaviour
 
     public void ClearCallbacks()
     {
-        onSelectObject = null;
+        onSelectTransformation = null;
     }
 
-    public void UpdateMenu(List<GameObject> possessedObjects)
+    public void UpdateMenu()
     {
         // Clear existing UI
         foreach (Transform child in buttonParent)
             Destroy(child.gameObject);
 
         menuButtons.Clear();
-        uniquePossessables.Clear();
 
-        // Always add Explorer option first
-        AddMenuButton("Explorer", explorerIcon, null);
+        // Start with fallback values
+        string explorerName = explorerDisplayName;
+        Sprite explorerSprite = explorerIcon;
 
-        // Build unique list of object types
-        foreach (var obj in possessedObjects)
+        string wallName = wallDisplayName;
+        Sprite wallSprite = wallIcon;
+
+        string otherName = otherDisplayName;
+        Sprite otherSprite = otherIcon;
+
+        // 🔥 NEW: Pull names/icons from GameManager settings
+        if (GameManager.Instance != null)
         {
-            if (obj == null) continue;
-
-            PossessableObject p = obj.GetComponent<PossessableObject>();
-            string key = p != null && !string.IsNullOrEmpty(p.displayName)
-                ? p.displayName
-                : GetDisplayName(obj.name);
-
-            if (uniquePossessables.ContainsKey(key))
+            // Get explorer settings
+            if (GameManager.Instance.explorerSettings != null)
             {
-                var entry = uniquePossessables[key];
-                entry.count++;
-                uniquePossessables[key] = entry;
+                var settings = GameManager.Instance.explorerSettings;
+                if (!string.IsNullOrEmpty(settings.displayName))
+                {
+                    explorerName = settings.displayName;
+                    Debug.Log($"Using explorer name from settings: {explorerName}");
+                }
+                if (settings.icon != null)
+                {
+                    explorerSprite = settings.icon;
+                    Debug.Log("Using explorer icon from settings");
+                }
             }
-            else
+
+            // Get wall settings
+            if (GameManager.Instance.wallSettings != null)
             {
-                uniquePossessables[key] = (p, 1);
+                var settings = GameManager.Instance.wallSettings;
+                if (!string.IsNullOrEmpty(settings.displayName))
+                {
+                    wallName = settings.displayName;
+                    Debug.Log($"Using wall name from settings: {wallName}");
+                }
+                if (settings.icon != null)
+                {
+                    wallSprite = settings.icon;
+                    Debug.Log("Using wall icon from settings");
+                }
+            }
+
+            // Get other settings
+            if (GameManager.Instance.otherSettings != null)
+            {
+                var settings = GameManager.Instance.otherSettings;
+                if (!string.IsNullOrEmpty(settings.displayName))
+                {
+                    otherName = settings.displayName;
+                    Debug.Log($"Using other name from settings: {otherName}");
+                }
+                if (settings.icon != null)
+                {
+                    otherSprite = settings.icon;
+                    Debug.Log("Using other icon from settings");
+                }
             }
         }
 
-        // Create one button per unique object type
-        foreach (var kvp in uniquePossessables)
-        {
-            string displayName = kvp.Key;
-            int count = kvp.Value.count;
-            PossessableObject p = kvp.Value.reference;
-
-            Sprite icon = p != null && p.icon != null
-                ? p.icon
-                : defaultObjectIcon;
-
-            string finalText = count > 1 ? $"{displayName} x{count}" : displayName;
-            GameObject linkedObject = p != null ? p.gameObject : null;
-
-            AddMenuButton(finalText, icon, linkedObject);
-        }
+        // Add 3 fixed options with correct names/icons
+        AddMenuButton(explorerName, explorerSprite, 0);
+        AddMenuButton(wallName, wallSprite, 1);
+        AddMenuButton(otherName, otherSprite, 2);
 
         // Set up navigation
         SetupControllerNavigation();
@@ -110,7 +136,7 @@ public class PossessionMenu : MonoBehaviour
         }
     }
 
-    private void AddMenuButton(string displayText, Sprite icon, GameObject linkedObject)
+    private void AddMenuButton(string displayText, Sprite icon, int transformIndex)
     {
         if (buttonPrefab == null || buttonParent == null)
         {
@@ -131,27 +157,31 @@ public class PossessionMenu : MonoBehaviour
                 tmpTextComponent.text = displayText;
             else if (textComponent != null)
                 textComponent.text = displayText;
-            else
-                Debug.LogWarning($"No Text or TMP_Text found in {buttonObj.name}");
 
             // Set icon
             Image iconImage = buttonObj.transform.Find("Icon")?.GetComponent<Image>();
             if (iconImage != null)
             {
-                iconImage.sprite = icon != null ? icon : defaultObjectIcon;
-                iconImage.gameObject.SetActive(true);
+                if (icon != null)
+                {
+                    iconImage.sprite = icon;
+                    iconImage.gameObject.SetActive(true);
+                    iconImage.enabled = true;
+                }
+                else
+                {
+                    // No icon assigned - hide or use placeholder
+                    Debug.LogWarning($"No icon for {displayText}");
+                    iconImage.enabled = false;
+                }
             }
 
-            GameObject objRef = linkedObject;
-            button.onClick.AddListener(() => { OnButtonSelected(objRef); });
+            // Add click listener
+            int index = transformIndex;
+            button.onClick.AddListener(() => { OnButtonSelected(index); });
 
             menuButtons.Add(button);
         }
-    }
-
-    private string GetDisplayName(string originalName)
-    {
-        return originalName.Replace("(Clone)", "").Trim();
     }
 
     private void SetupControllerNavigation()
@@ -169,18 +199,19 @@ public class PossessionMenu : MonoBehaviour
         }
     }
 
-    private void OnButtonSelected(GameObject selectedObject)
+    private void OnButtonSelected(int transformIndex)
     {
-        onSelectObject?.Invoke(selectedObject);
+        Debug.Log($"🎯 Selected transformation: {transformIndex}");
+        onSelectTransformation?.Invoke(transformIndex);
         CloseMenu();
     }
 
-    public void OpenMenu(List<GameObject> possessedObjects)
+    public void OpenMenu()
     {
         if (menuRoot != null)
         {
             menuRoot.SetActive(true);
-            UpdateMenu(possessedObjects);
+            UpdateMenu();
         }
     }
 

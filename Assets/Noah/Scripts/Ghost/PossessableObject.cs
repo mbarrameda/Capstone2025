@@ -2,29 +2,45 @@
 
 public class PossessableObject : MonoBehaviour
 {
-    [Header("Possession Settings")]
-    public float fearCost = 10f;
-    public float fearReturnBonus = 5f;
-    public bool isPossessed = false;
-    public bool canBeTransformedInto = true;
+    [Header("Basic Settings")]
+    public string displayName = "Unnamed Object";
+    [Tooltip("Icon to show in the possession menu")]
+    public Sprite icon;
 
     [Header("Clone Prefab")]
     [Tooltip("The prefab that represents what this object looks like when transformed into")]
     public GameObject clonePrefab;
 
-    [Header("UI Info")]
-    public string displayName = "Unnamed Object";
-    [Tooltip("Icon to show in the possession menu")]
-    public Sprite icon;
+    [Header("Transform Overrides")]
+    [Tooltip("Apply custom rotation when transforming into this object")]
+    public bool useRotationOverride = false;
+    [Tooltip("Rotation to apply (in degrees). Example: (0, 180, 0) to flip around")]
+    public Vector3 rotationOverride = Vector3.zero;
 
-    private GhostController possessingGhost;
+    [Tooltip("Apply custom scale when transforming into this object")]
+    public bool useScaleOverride = false;
+    [Tooltip("Scale to apply. Example: (2, 1, 1) to make it twice as wide")]
+    public Vector3 scaleOverride = Vector3.one;
+
+    [Header("Position Offset")]
+    [Tooltip("Apply position offset to visual (useful for fixing floating meshes)")]
+    public bool usePositionOffset = false;
+    [Tooltip("Position offset in local space. Use negative Y to move mesh down.")]
+    public Vector3 positionOffset = Vector3.zero;
+
+    [Header("Camera Settings (Optional)")]
+    [Tooltip("Override third-person camera distance for this object")]
+    public bool overrideCameraSettings = false;
+    public float customCameraDistance = 3f;
+    public float customCameraHeight = 1.5f;
+    public Vector3 customCameraLookOffset = new Vector3(0f, 0.5f, 0f);
 
     private void Start()
     {
         // Validate setup
         if (clonePrefab == null)
         {
-            Debug.LogWarning($"⚠️ {displayName} has no clone prefab assigned! Ghost won't be able to transform into this object.");
+            Debug.LogWarning($"⚠️ {displayName} has no clone prefab assigned!");
         }
         else
         {
@@ -34,11 +50,15 @@ public class PossessableObject : MonoBehaviour
 
             if (mf == null || mr == null)
             {
-                Debug.LogError($"❌ {displayName}'s clone prefab ({clonePrefab.name}) is missing MeshFilter or MeshRenderer! Add these components.");
+                Debug.LogError($"❌ {displayName}'s clone prefab ({clonePrefab.name}) is missing MeshFilter or MeshRenderer!");
             }
             else
             {
-                Debug.Log($"✅ {displayName} properly configured with mesh: {mf.sharedMesh?.name}");
+                Debug.Log($"✅ {displayName} properly configured");
+                if (useRotationOverride)
+                    Debug.Log($"  📐 Rotation override: {rotationOverride}");
+                if (useScaleOverride)
+                    Debug.Log($"  📏 Scale override: {scaleOverride}");
             }
         }
 
@@ -48,39 +68,26 @@ public class PossessableObject : MonoBehaviour
         }
     }
 
-    public bool TryPossess(GhostController ghost)
+    // Apply custom camera settings when ghost transforms into this object
+    public void ApplyCameraSettings(TransformationCameraController cameraController)
     {
-        if (isPossessed || ghost.fear < fearCost)
-            return false;
+        if (cameraController == null || !overrideCameraSettings) return;
 
-        ghost.fear -= fearCost;
-        isPossessed = true;
-        possessingGhost = ghost;
-        ghost.RegisterPossessedObject(this);
-
-        // Visual feedback
-        if (TryGetComponent<Renderer>(out Renderer r))
-        {
-            r.material.color = new Color(0.5f, 0.8f, 1f); // Light blue tint
-        }
-
-        Debug.Log($"✅ {displayName} possessed by ghost");
-        return true;
+        Debug.Log($"📷 Applying custom camera settings for {displayName}");
+        cameraController.SetThirdPersonDistance(customCameraDistance);
+        cameraController.thirdPersonHeight = customCameraHeight;
+        cameraController.thirdPersonTargetOffset = customCameraLookOffset;
     }
 
-    public void OnExplorerInteract()
+    // Helper to validate the object is set up correctly
+    private void OnValidate()
     {
-        if (isPossessed && possessingGhost != null)
+        // Ensure scale override is never zero
+        if (useScaleOverride)
         {
-            possessingGhost.fear += fearCost + fearReturnBonus;
-            possessingGhost.fear = Mathf.Min(possessingGhost.fear, 100f);
-            isPossessed = false;
-
-            // Visual feedback
-            if (TryGetComponent<Renderer>(out Renderer r))
-                r.material.color = Color.white;
-
-            Debug.Log($"✅ {displayName} unpossessed - ghost gained {fearCost + fearReturnBonus} fear");
+            if (scaleOverride.x == 0) scaleOverride.x = 1;
+            if (scaleOverride.y == 0) scaleOverride.y = 1;
+            if (scaleOverride.z == 0) scaleOverride.z = 1;
         }
     }
 }

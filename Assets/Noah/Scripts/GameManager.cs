@@ -2,22 +2,34 @@
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
 
+/// <summary>
+/// Simplified transformation system - no possession required.
+/// Ghost can transform into 3 fixed objects: Explorer, Wall, and one other.
+/// </summary>
 public class GameManager : MonoBehaviour
 {
     [Header("Prefabs")]
     public PlayerInputHandler explorerPrefab;
     public GhostController ghostPrefab;
+
+    [Header("Transformation Prefabs - Always Available")]
     public GameObject explorerClonePrefab;
+    public GameObject wallClonePrefab;
+    public GameObject otherClonePrefab; // Your third transformable object
+
+    [Header("PossessableObject Components (for settings)")]
+    [Tooltip("Attach a PossessableObject component to these to configure rotation/scale/camera")]
+    public PossessableObject explorerSettings;
+    public PossessableObject wallSettings;
+    public PossessableObject otherSettings;
 
     [Header("Spawn Points")]
     public Transform[] explorerSpawns;
     public Transform[] ghostSpawns;
 
     [Header("Clone Settings")]
-    public Vector3 cloneOffset = new Vector3(1.5f, 0f, 0f);
     public float fearDrainRateWhileUsingClone = 20f;
     public float cloneDuration = 15f;
-    public float cloneFearCost = 25f;
 
     public List<PlayerInputHandler> explorers = new List<PlayerInputHandler>();
     public List<GhostController> ghosts = new List<GhostController>();
@@ -63,8 +75,6 @@ public class GameManager : MonoBehaviour
         foreach (var ghost in finishedClones)
             ReleaseClone(ghost);
     }
-
-    // ------------------ Player & Ghost Setup ------------------ //
 
     private void SetupPlayers()
     {
@@ -117,11 +127,38 @@ public class GameManager : MonoBehaviour
         ghosts.Add(ghost);
     }
 
-    // ------------------ Transform into Explorer (Mesh Swap) ------------------ //
+    // ==================== NEW SIMPLIFIED TRANSFORMATION SYSTEM ====================
 
-    public void SpawnPossessedClone(GhostController ghost, PossessableObject obj)
+    /// <summary>
+    /// Transform into Explorer
+    /// </summary>
+    public void TransformIntoExplorer(GhostController ghost)
     {
-        Debug.Log("🟢 Transforming into EXPLORER...");
+        TransformInto(ghost, explorerClonePrefab, explorerSettings, "Explorer");
+    }
+
+    /// <summary>
+    /// Transform into Wall
+    /// </summary>
+    public void TransformIntoWall(GhostController ghost)
+    {
+        TransformInto(ghost, wallClonePrefab, wallSettings, "Wall");
+    }
+
+    /// <summary>
+    /// Transform into Other Object
+    /// </summary>
+    public void TransformIntoOther(GhostController ghost)
+    {
+        TransformInto(ghost, otherClonePrefab, otherSettings, "Other");
+    }
+
+    /// <summary>
+    /// Generic transformation method
+    /// </summary>
+    private void TransformInto(GhostController ghost, GameObject prefab, PossessableObject settings, string name)
+    {
+        Debug.Log($"🔵 Transforming into {name}...");
 
         if (ghost == null)
         {
@@ -135,163 +172,36 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        if (explorerClonePrefab == null)
+        if (prefab == null)
         {
-            Debug.LogWarning("No explorer clone prefab assigned!");
+            Debug.LogWarning($"No {name} clone prefab assigned!");
             return;
         }
 
-        // Store original ghost appearance
-        CloneData cloneData = StoreGhostAppearance(ghost);
-        cloneData.timer = cloneDuration;
-
-        // Get explorer appearance from the prefab
-        MeshFilter explorerMeshFilter = explorerClonePrefab.GetComponentInChildren<MeshFilter>();
-        MeshRenderer explorerMeshRenderer = explorerClonePrefab.GetComponentInChildren<MeshRenderer>();
-
-        if (explorerMeshFilter == null || explorerMeshRenderer == null)
-        {
-            Debug.LogError("❌ Explorer prefab is missing MeshFilter or MeshRenderer!");
-            return;
-        }
-
-        // Apply explorer appearance to ghost
-        ApplyAppearanceToGhost(ghost, explorerMeshFilter.sharedMesh, explorerMeshRenderer.sharedMaterial);
+        // Use TransformApplier to apply the visual appearance
+        TransformApplier.Apply(ghost.gameObject, prefab, settings);
 
         // Mark as controlling clone
         ghost.isControllingClone = true;
 
-        // Track active transformation
-        activeClones[ghost] = cloneData;
-
-        Debug.Log("✅ Transformed into Explorer!");
-    }
-
-    // ------------------ Transform into Object (Mesh Swap) ------------------ //
-
-    public void SpawnObjectClone(GhostController ghost, PossessableObject obj)
-    {
-        Debug.Log("🔵 Transforming into OBJECT...");
-
-        if (ghost == null)
-        {
-            Debug.LogError("❌ GhostController is null!");
-            return;
-        }
-
-        if (activeClones.ContainsKey(ghost))
-        {
-            Debug.Log("Ghost already has an active clone");
-            return;
-        }
-
-        if (obj == null || obj.clonePrefab == null)
-        {
-            Debug.LogWarning("No valid disguise prefab");
-            return;
-        }
-
-        Debug.Log($"🔵 Transforming into: {obj.clonePrefab.name}");
-
-        // Store original ghost appearance
-        CloneData cloneData = StoreGhostAppearance(ghost);
+        // Create clone data
+        CloneData cloneData = new CloneData();
         cloneData.timer = cloneDuration;
-
-        // Get object appearance from the prefab
-        MeshFilter objectMeshFilter = obj.clonePrefab.GetComponentInChildren<MeshFilter>();
-        MeshRenderer objectMeshRenderer = obj.clonePrefab.GetComponentInChildren<MeshRenderer>();
-
-        if (objectMeshFilter == null || objectMeshRenderer == null)
-        {
-            Debug.LogError("❌ Object prefab is missing MeshFilter or MeshRenderer!");
-            Debug.LogError($"Prefab structure: {obj.clonePrefab.name}");
-
-            // Debug: print all components
-            foreach (var component in obj.clonePrefab.GetComponentsInChildren<Component>())
-            {
-                Debug.Log($"  - {component.GetType().Name} on {component.gameObject.name}");
-            }
-            return;
-        }
-
-        // Apply object appearance to ghost
-        ApplyAppearanceToGhost(ghost, objectMeshFilter.sharedMesh, objectMeshRenderer.sharedMaterial);
-
-        // Mark as controlling clone
-        ghost.isControllingClone = true;
-
-        // Track active transformation
         activeClones[ghost] = cloneData;
 
-        Debug.Log($"✅ Transformed into {obj.displayName}!");
+        // Apply camera settings if available
+        TransformationCameraController cameraController = ghost.GetComponent<TransformationCameraController>();
+        if (cameraController != null && settings != null)
+        {
+            settings.ApplyCameraSettings(cameraController);
+        }
+
+        Debug.Log($"✅ Transformed into {name}!");
     }
 
-    // ------------------ Helper Methods for Mesh Swapping ------------------ //
-
-    private CloneData StoreGhostAppearance(GhostController ghost)
-    {
-        MeshFilter ghostMeshFilter = ghost.GetComponentInChildren<MeshFilter>();
-        MeshRenderer ghostMeshRenderer = ghost.GetComponentInChildren<MeshRenderer>();
-        Collider ghostCollider = ghost.GetComponent<Collider>();
-
-        CloneData cloneData = new CloneData
-        {
-            cloneObject = null, // No actual clone object for mesh swap
-            originalMesh = ghostMeshFilter != null ? ghostMeshFilter.sharedMesh : null,
-            originalMaterials = ghostMeshRenderer != null ? ghostMeshRenderer.sharedMaterials : null,
-            originalColliderType = ghostCollider != null ? ghostCollider.GetType().Name : null
-        };
-
-        // Store collider properties based on type
-        if (ghostCollider is BoxCollider boxCol)
-        {
-            cloneData.boxCenter = boxCol.center;
-            cloneData.boxSize = boxCol.size;
-        }
-        else if (ghostCollider is SphereCollider sphereCol)
-        {
-            cloneData.sphereCenter = sphereCol.center;
-            cloneData.sphereRadius = sphereCol.radius;
-        }
-        else if (ghostCollider is CapsuleCollider capsuleCol)
-        {
-            cloneData.capsuleCenter = capsuleCol.center;
-            cloneData.capsuleRadius = capsuleCol.radius;
-            cloneData.capsuleHeight = capsuleCol.height;
-            cloneData.capsuleDirection = capsuleCol.direction;
-        }
-
-        return cloneData;
-    }
-
-    private void ApplyAppearanceToGhost(GhostController ghost, Mesh newMesh, Material newMaterial)
-    {
-        MeshFilter ghostMeshFilter = ghost.GetComponentInChildren<MeshFilter>();
-        MeshRenderer ghostMeshRenderer = ghost.GetComponentInChildren<MeshRenderer>();
-
-        if (ghostMeshFilter != null && newMesh != null)
-        {
-            ghostMeshFilter.sharedMesh = newMesh;
-            Debug.Log($"✅ Applied mesh: {newMesh.name}");
-        }
-        else
-        {
-            Debug.LogError("❌ Failed to apply mesh!");
-        }
-
-        if (ghostMeshRenderer != null && newMaterial != null)
-        {
-            ghostMeshRenderer.sharedMaterial = newMaterial;
-            Debug.Log($"✅ Applied material: {newMaterial.name}");
-        }
-        else
-        {
-            Debug.LogError("❌ Failed to apply material!");
-        }
-    }
-
-    // ------------------ Release Clone (Restore Original Appearance) ------------------ //
-
+    /// <summary>
+    /// Release transformation and return to ghost form
+    /// </summary>
     public void ReleaseClone(GhostController ghost)
     {
         if (ghost == null)
@@ -308,51 +218,21 @@ public class GameManager : MonoBehaviour
 
         Debug.Log("🔵 Releasing transformation...");
 
-        // Restore original ghost appearance
-        MeshFilter ghostMeshFilter = ghost.GetComponentInChildren<MeshFilter>();
-        MeshRenderer ghostMeshRenderer = ghost.GetComponentInChildren<MeshRenderer>();
-        Collider ghostCollider = ghost.GetComponent<Collider>();
-
-        if (ghostMeshFilter != null && cloneData.originalMesh != null)
-        {
-            ghostMeshFilter.sharedMesh = cloneData.originalMesh;
-            Debug.Log("✅ Restored original mesh");
-        }
-
-        if (ghostMeshRenderer != null && cloneData.originalMaterials != null)
-        {
-            ghostMeshRenderer.sharedMaterials = cloneData.originalMaterials;
-            Debug.Log("✅ Restored original materials");
-        }
-
-        // Restore original collider shape
-        if (ghostCollider != null && !string.IsNullOrEmpty(cloneData.originalColliderType))
-        {
-            if (cloneData.originalColliderType == "BoxCollider" && ghostCollider is BoxCollider ghostBox)
-            {
-                ghostBox.center = cloneData.boxCenter;
-                ghostBox.size = cloneData.boxSize;
-            }
-            else if (cloneData.originalColliderType == "SphereCollider" && ghostCollider is SphereCollider ghostSphere)
-            {
-                ghostSphere.center = cloneData.sphereCenter;
-                ghostSphere.radius = cloneData.sphereRadius;
-            }
-            else if (cloneData.originalColliderType == "CapsuleCollider" && ghostCollider is CapsuleCollider ghostCapsule)
-            {
-                ghostCapsule.center = cloneData.capsuleCenter;
-                ghostCapsule.radius = cloneData.capsuleRadius;
-                ghostCapsule.height = cloneData.capsuleHeight;
-                ghostCapsule.direction = cloneData.capsuleDirection;
-            }
-            Debug.Log("✅ Restored original collider");
-        }
+        // Use TransformApplier to revert visual appearance
+        TransformApplier.Revert(ghost.gameObject);
 
         // Reset ghost state
         ghost.gameObject.SetActive(true);
         ghost.SetVisibility(true);
         ghost.FreezeInput(false);
         ghost.isControllingClone = false;
+
+        // Reset camera to first person
+        TransformationCameraController cameraController = ghost.GetComponent<TransformationCameraController>();
+        if (cameraController != null)
+        {
+            cameraController.ForceFirstPerson();
+        }
 
         activeClones.Remove(ghost);
         Debug.Log("✅ Transformation released - back to ghost form");
@@ -363,32 +243,9 @@ public class GameManager : MonoBehaviour
         return activeClones.ContainsKey(ghost);
     }
 
-    // Make CloneData public with expanded fields for storing appearance
     [System.Serializable]
     public class CloneData
     {
-        public GameObject cloneObject;
         public float timer;
-
-        // Store original appearance for mesh swapping
-        public Mesh originalMesh;
-        public Material[] originalMaterials;
-
-        // Store collider info
-        public string originalColliderType;
-
-        // BoxCollider
-        public Vector3 boxCenter;
-        public Vector3 boxSize;
-
-        // SphereCollider
-        public Vector3 sphereCenter;
-        public float sphereRadius;
-
-        // CapsuleCollider
-        public Vector3 capsuleCenter;
-        public float capsuleRadius;
-        public float capsuleHeight;
-        public int capsuleDirection;
     }
 }
