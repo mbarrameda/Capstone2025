@@ -1,9 +1,5 @@
 ﻿using UnityEngine;
 
-/// <summary>
-/// Enhanced PossessableObject with transform override settings.
-/// Use this for objects that need special rotation/scale adjustments (like walls).
-/// </summary>
 public class PossessableObject : MonoBehaviour
 {
     [Header("Basic Settings")]
@@ -25,6 +21,12 @@ public class PossessableObject : MonoBehaviour
     public bool useScaleOverride = false;
     [Tooltip("Scale to apply. Example: (2, 1, 1) to make it twice as wide")]
     public Vector3 scaleOverride = Vector3.one;
+
+    [Header("Position Offset")]
+    [Tooltip("Apply position offset to visual (useful for fixing floating meshes)")]
+    public bool usePositionOffset = false;
+    [Tooltip("Position offset in local space. Use negative Y to move mesh down.")]
+    public Vector3 positionOffset = Vector3.zero;
 
     [Header("Camera Settings (Optional)")]
     [Tooltip("Override third-person camera distance for this object")]

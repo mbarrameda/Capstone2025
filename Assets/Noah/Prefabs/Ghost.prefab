@@ -245,15 +245,15 @@ MonoBehaviour:
   lookSensitivity: 5
   lockObjectRotation: 0
   fear: 50
-  phaseCost: 5
-  phaseDuration: 5
+  phaseCost: 10
+  phaseDuration: 1
   baseFearDrainRate: 0
   phasingFearDrainRate: 1
   cloneControlFearDrainRate: 0.5
   stunnedFearDrainRate: 0.5
   maxFearGainDistance: 25
   minFearGainDistance: 10
-  maxFearGainRate: 5
+  maxFearGainRate: 2
   fearGainUpdateInterval: 1
   fearRegenRate: 2.5
   fearRegenDelay: 2
@@ -273,7 +273,6 @@ MonoBehaviour:
   xRotation: 0
   freezeInput: 0
   activeClone: {fileID: 0}
-  possessedObjects: []
 --- !u!136 &6147667372854573218
 CapsuleCollider:
   m_ObjectHideFlags: 0

@@ -48,7 +48,14 @@ public static class TransformApplier
 
         // Parent it to the target, positioned at target's origin
         snap.visualClone.transform.SetParent(target.transform, false);
-        snap.visualClone.transform.localPosition = Vector3.zero;
+
+        Vector3 localPosition = Vector3.zero;
+        if (settings != null && settings.usePositionOffset)
+        {
+            localPosition = settings.positionOffset;
+            Debug.Log($"📍 Applying position offset: {settings.positionOffset}");
+        }
+        snap.visualClone.transform.localPosition = localPosition;
 
         // Apply rotation override if specified in settings
         Quaternion rotationOverride = Quaternion.identity;

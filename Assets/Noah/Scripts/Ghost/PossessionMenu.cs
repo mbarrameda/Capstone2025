@@ -1,13 +1,9 @@
-﻿using System.Collections.Generic;
+﻿
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-/// <summary>
-/// Simplified possession menu that shows 3 fixed transformation options:
-/// Explorer, Wall, and Other object.
-/// No possession system needed - these are always available.
-/// </summary>
 public class PossessionMenu : MonoBehaviour
 {
     [Header("UI References")]
@@ -15,12 +11,12 @@ public class PossessionMenu : MonoBehaviour
     public Transform buttonParent;
     public GameObject menuRoot;
 
-    [Header("Icons")]
+    [Header("Fallback Icons (used if settings don't have icons)")]
     public Sprite explorerIcon;
     public Sprite wallIcon;
     public Sprite otherIcon;
 
-    [Header("Display Names")]
+    [Header("Fallback Display Names")]
     public string explorerDisplayName = "Explorer";
     public string wallDisplayName = "Wall";
     public string otherDisplayName = "Other";
@@ -29,7 +25,7 @@ public class PossessionMenu : MonoBehaviour
     public Button firstSelectedButton;
 
     private List<Button> menuButtons = new List<Button>();
-    private System.Action<int> onSelectTransformation; // 0 = Explorer, 1 = Wall, 2 = Other
+    private System.Action<int> onSelectTransformation;
 
     public void Initialize(System.Action<int> onSelectCallback)
     {
@@ -59,10 +55,72 @@ public class PossessionMenu : MonoBehaviour
 
         menuButtons.Clear();
 
-        // Add 3 fixed options
-        AddMenuButton(explorerDisplayName, explorerIcon, 0);
-        AddMenuButton(wallDisplayName, wallIcon, 1);
-        AddMenuButton(otherDisplayName, otherIcon, 2);
+        // Start with fallback values
+        string explorerName = explorerDisplayName;
+        Sprite explorerSprite = explorerIcon;
+
+        string wallName = wallDisplayName;
+        Sprite wallSprite = wallIcon;
+
+        string otherName = otherDisplayName;
+        Sprite otherSprite = otherIcon;
+
+        // 🔥 NEW: Pull names/icons from GameManager settings
+        if (GameManager.Instance != null)
+        {
+            // Get explorer settings
+            if (GameManager.Instance.explorerSettings != null)
+            {
+                var settings = GameManager.Instance.explorerSettings;
+                if (!string.IsNullOrEmpty(settings.displayName))
+                {
+                    explorerName = settings.displayName;
+                    Debug.Log($"Using explorer name from settings: {explorerName}");
+                }
+                if (settings.icon != null)
+                {
+                    explorerSprite = settings.icon;
+                    Debug.Log("Using explorer icon from settings");
+                }
+            }
+
+            // Get wall settings
+            if (GameManager.Instance.wallSettings != null)
+            {
+                var settings = GameManager.Instance.wallSettings;
+                if (!string.IsNullOrEmpty(settings.displayName))
+                {
+                    wallName = settings.displayName;
+                    Debug.Log($"Using wall name from settings: {wallName}");
+                }
+                if (settings.icon != null)
+                {
+                    wallSprite = settings.icon;
+                    Debug.Log("Using wall icon from settings");
+                }
+            }
+
+            // Get other settings
+            if (GameManager.Instance.otherSettings != null)
+            {
+                var settings = GameManager.Instance.otherSettings;
+                if (!string.IsNullOrEmpty(settings.displayName))
+                {
+                    otherName = settings.displayName;
+                    Debug.Log($"Using other name from settings: {otherName}");
+                }
+                if (settings.icon != null)
+                {
+                    otherSprite = settings.icon;
+                    Debug.Log("Using other icon from settings");
+                }
+            }
+        }
+
+        // Add 3 fixed options with correct names/icons
+        AddMenuButton(explorerName, explorerSprite, 0);
+        AddMenuButton(wallName, wallSprite, 1);
+        AddMenuButton(otherName, otherSprite, 2);
 
         // Set up navigation
         SetupControllerNavigation();
@@ -102,10 +160,20 @@ public class PossessionMenu : MonoBehaviour
 
             // Set icon
             Image iconImage = buttonObj.transform.Find("Icon")?.GetComponent<Image>();
-            if (iconImage != null && icon != null)
+            if (iconImage != null)
             {
-                iconImage.sprite = icon;
-                iconImage.gameObject.SetActive(true);
+                if (icon != null)
+                {
+                    iconImage.sprite = icon;
+                    iconImage.gameObject.SetActive(true);
+                    iconImage.enabled = true;
+                }
+                else
+                {
+                    // No icon assigned - hide or use placeholder
+                    Debug.LogWarning($"No icon for {displayText}");
+                    iconImage.enabled = false;
+                }
             }
 
             // Add click listener
