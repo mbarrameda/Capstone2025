@@ -242,7 +242,7 @@ MonoBehaviour:
   ghostSanityBarPrefab: {fileID: 2748786851199801456, guid: 40f6ceffba3f733479fc4450f64cfb44, type: 3}
   moveSpeed: 8
   flySpeed: 8
-  lookSensitivity: 5
+  lookSensitivity: 4
   lockObjectRotation: 0
   fear: 50
   phaseCost: 10
