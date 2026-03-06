@@ -152,9 +152,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   staminaBarObject: {fileID: 0}
-  fullStaminaColor: {r: 0, g: 1, b: 0, a: 1}
-  lowStaminaColor: {r: 1, g: 0, b: 0, a: 1}
-  mediumStaminaColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  fullStaminaColor: {r: 0.90943396, g: 0.63008326, b: 0.06005683, a: 1}
+  lowStaminaColor: {r: 0.3886792, g: 0.204673, b: 0.016867168, a: 1}
+  mediumStaminaColor: {r: 0.7584905, g: 0.2502379, b: 0.0787112, a: 1}
   lowStaminaThreshold: 25
   mediumStaminaThreshold: 60
   batterySlider: {fileID: 0}
@@ -163,7 +163,7 @@ MonoBehaviour:
   staminaRegenRate: 15
   staminaRegenDelay: 1.5
   minStaminaToSprint: 10
-  maxSanity: 10000
+  maxSanity: 100
   currentSanity: 100
   sanityIncreaseRate: 15
   sanityDecreaseRate: 0.5
@@ -171,9 +171,9 @@ MonoBehaviour:
   sanityEffectDistance: 15
   sanitySlider: {fileID: 0}
   sanityFill: {fileID: 0}
-  lowSanityColor: {r: 1, g: 0, b: 0, a: 1}
-  mediumSanityColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  highSanityColor: {r: 0, g: 0.23198485, b: 1, a: 1}
+  lowSanityColor: {r: 0.2528302, g: 0.03386971, b: 0.03386971, a: 1}
+  mediumSanityColor: {r: 0.6226415, g: 0.1370442, b: 0.10220716, a: 1}
+  highSanityColor: {r: 0.8867924, g: 0.23926659, b: 0.23926659, a: 1}
   highSanityThreshold: 75
   mediumSanityThreshold: 50
   moveSpeed: 5
