@@ -15,8 +15,8 @@ EditorBuildSettings:
     path: Assets/Scenes/Tutorial.unity
     guid: 9269bae760014ae40b4751f8b9d707d6
   - enabled: 1
-    path: Assets/Scenes/Greyboxed-Level.unity
-    guid: 252c20d205d1cd34ab53ae39c1622568
+    path: Assets/Scenes/Greyboxed-Level 1.unity
+    guid: 7087c9e44f0ec554db0a2443596d79ce
   - enabled: 1
     path: Assets/Scenes/WinExplorer.unity
     guid: a76dd7af52a0bd2418cc242582c69303

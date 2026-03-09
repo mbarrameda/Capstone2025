@@ -757,7 +757,7 @@ MonoBehaviour:
   readyTexts:
   - {fileID: 0}
   - {fileID: 0}
-  nextSceneName: Greyboxed-Level
+  nextSceneName: Greyboxed-Level 1
 --- !u!4 &521933243
 Transform:
   m_ObjectHideFlags: 0
