@@ -310,12 +310,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   fearBar: {fileID: 0}
   fearFill: {fileID: 0}
-  fullFearColor: {r: 0.654902, g: 0.42352945, b: 0.9607844, a: 1}
-  mediumFearColor: {r: 0.5254902, g: 0.18039216, b: 0.9803922, a: 1}
-  lowFearColor: {r: 0.43137258, g: 0, b: 1, a: 1}
+  fullFearColor: {r: 0, g: 0.8892856, b: 0.90943396, a: 1}
+  mediumFearColor: {r: 0, g: 0.5710504, b: 1, a: 1}
+  lowFearColor: {r: 0.0321466, g: 0.3001401, b: 0.4867924, a: 1}
   lowFearThreshold: 25
   stunStatusText: {fileID: 0}
-  stunTextColor: {r: 1, g: 0, b: 0, a: 1}
+  stunTextColor: {r: 0.690566, g: 0.22055514, b: 0.019544203, a: 1}
   phaseButton: {fileID: 0}
   transformButton: {fileID: 0}
   possessButton: {fileID: 0}

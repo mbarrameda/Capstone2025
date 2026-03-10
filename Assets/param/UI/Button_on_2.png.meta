@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: ea444e40d9400ea48abe24a2c0b534e0
+guid: 5c3994f21920e244cb6fd7719de48756
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -97,13 +97,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Mutual_Frame_0
+      name: Button_on_2_0
       rect:
         serializedVersion: 2
-        x: 474
-        y: 944
-        width: 3117
-        height: 523
+        x: 1505
+        y: 318
+        width: 266
+        height: 84
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -111,8 +111,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 2ace358f86d5e4140bbc3a95eead80f6
-      internalID: 10947132
+      spriteID: 8ed2f8064c89520498ef92caf8f507cb
+      internalID: -614372578
       vertices: []
       indices: 
       edges: []
@@ -128,7 +128,7 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Mutual_Frame_0: 10947132
+      Button_on_2_0: -614372578
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
