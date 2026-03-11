@@ -447,9 +447,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2f9e6fde5ad0eca4fbbd49a239ed5a21, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fadeInDuration: 3
-  holdDuration: 2
-  fadeOutDuration: 3
+  fadeInDuration: 2
+  holdDuration: 1
+  fadeOutDuration: 2
   nextSceneName: MainMenu
 --- !u!1 &1478328639
 GameObject:
