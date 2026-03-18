@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 1b67be23e5bddaa4381c5192435ff908
+guid: 809d28062b3107f46984bee936effb4e
 TextureImporter:
   internalIDToNameTable: []
   externalObjects: {}
@@ -53,7 +53,7 @@ TextureImporter:
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
-  spriteTessellationDetail: 0
+  spriteTessellationDetail: -1
   textureType: 8
   textureShape: 1
   singleChannelComponent: 0
@@ -97,13 +97,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Options_Menu_0
+      name: Back_Buton_on_0
       rect:
         serializedVersion: 2
-        x: 814
-        y: 153
-        width: 2614
-        height: 1375
+        x: 2188
+        y: 640
+        width: 12
+        height: 4
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -111,8 +111,29 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 85d36f3c27069e041b11082ab767ce93
-      internalID: -1765126548
+      spriteID: 1aee7558ade3e534f954889ca64619ca
+      internalID: 1872898926
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Back_Buton_on_1
+      rect:
+        serializedVersion: 2
+        x: 2016
+        y: 307
+        width: 333
+        height: 331
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: a9473b3ba6d84c842b705ef8dd0fa4c3
+      internalID: -125237953
       vertices: []
       indices: 
       edges: []
@@ -120,15 +141,16 @@ TextureImporter:
     outline: []
     physicsShape: []
     bones: []
-    spriteID: 5e97eb03825dee720800000000000000
-    internalID: 1537655665
+    spriteID: 3651076be91ea5548b5a0a72e7f2a3ae
+    internalID: 0
     vertices: []
     indices: 
     edges: []
     weights: []
     secondaryTextures: []
     nameFileIdTable:
-      Options_Menu_0: -1765126548
+      Back_Buton_on_0: 1872898926
+      Back_Buton_on_1: -125237953
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
