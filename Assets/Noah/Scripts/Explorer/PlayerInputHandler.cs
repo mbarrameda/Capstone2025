@@ -94,10 +94,8 @@ public class PlayerInputHandler : MonoBehaviour
     // 🔹 INTERACTION
     // =======================
     [Header("Interaction Settings")]
-    [Tooltip("Max distance for interacting with puzzle cubes")]
     public float interactDistance = 3f;
-    [Tooltip("LayerMask for interactable puzzle cubes (optional)")]
-    public LayerMask interactLayerMask = ~0; // all layers by default
+    public LayerMask interactLayerMask = ~0;
 
     // =======================
     // 🔹 PRIVATE FIELDS
@@ -112,7 +110,7 @@ public class PlayerInputHandler : MonoBehaviour
 
     public bool shouldFindUI = true;
     private bool isRealExplorer = true;
-
+    private BookInteract currentTargetBook;
 
 
     [Header("Sanity Game Over")]
@@ -173,7 +171,7 @@ public class PlayerInputHandler : MonoBehaviour
     {
         HandleLook();
         HandleMovement();
-        HandleHintRaycast();
+        HandleBookRaycast();
         HandleStamina();
         HandleSanity();
     }
@@ -864,38 +862,48 @@ public class PlayerInputHandler : MonoBehaviour
     }
 
     // =======================
-    // 🔹 INTERACTION
+    // 🔹 INTERACTION (Updated for Books)
     // =======================
-    private void HandleHintRaycast()
-    {
-        if (cameraTransform == null || uiHint == null) return;
-
-        Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit, 3f))
-        {
-            if (hit.collider.GetComponent<CubeChildInteract>() != null)
-            {
-                uiHint.ShowHint("Press □ / X to Interact");
-                return;
-            }
-        }
-
-        uiHint.HideHint();
-    }
-
-    private void OnInteractPerformed(InputAction.CallbackContext ctx)
+    private void HandleBookRaycast()
     {
         if (cameraTransform == null) return;
 
         Ray ray = new Ray(cameraTransform.position, cameraTransform.forward);
-        if (Physics.Raycast(ray, out RaycastHit hit, interactDistance, interactLayerMask))
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, interactDistance, interactLayerMask))
         {
-            CubeChildInteract cube = hit.collider.GetComponent<CubeChildInteract>();
-            if (cube != null)
+            BookInteract book = hit.collider.GetComponentInParent<BookInteract>();
+
+            // If we hit a book
+            if (book != null)
             {
-                cube.OnInteract();
+                if (currentTargetBook != book)
+                {
+                    // Tell the old book to hide its text, tell the new one to show its text
+                    if (currentTargetBook != null) currentTargetBook.HideHover();
+                    currentTargetBook = book;
+                    currentTargetBook.ShowHover();
+                }
                 return;
             }
+        }
+
+        // If the Raycast hits nothing or a wall, hide the current book's hover text
+        if (currentTargetBook != null)
+        {
+            currentTargetBook.HideHover();
+            currentTargetBook = null;
+        }
+    }
+
+    private void OnInteractPerformed(InputAction.CallbackContext ctx)
+    {
+        // If the raycast already found a book, just interact with it!
+        if (currentTargetBook != null)
+        {
+            currentTargetBook.OnInteract();
+            currentTargetBook = null; // Reset after pickup
         }
     }
 

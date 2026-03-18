@@ -21,7 +21,6 @@ public class GhostUIManager : MonoBehaviour
     [Header("Ability Buttons")]
     public Image phaseButton;
     public Image transformButton;
-    public Image possessButton;
 
     [Header("Button Colors")]
     public Color activeColor = Color.white;
@@ -34,8 +33,6 @@ public class GhostUIManager : MonoBehaviour
     private float phaseCooldownTimer = 0f;
     private bool transformOnCooldown = false;
     private float transformCooldownTimer = 0f;
-    private bool possessOnCooldown = false;
-    private float possessCooldownTimer = 0f;
 
     private GhostController ghost;
     private CanvasGroup fearCanvasGroup;
@@ -56,16 +53,18 @@ public class GhostUIManager : MonoBehaviour
             stunStatusText = SceneUIManager.Instance.stunStatusText;
             phaseButton = SceneUIManager.Instance.phaseButton;
             transformButton = SceneUIManager.Instance.transformButton;
-            possessButton = SceneUIManager.Instance.possessButton;
         }
 
         ghost = GetComponentInParent<GhostController>();
 
-        ghost = GetComponent<GhostController>();
+        if (ghost == null)
+        {
+            ghost = GetComponent<GhostController>();
+        }
 
         if (ghost == null)
         {
-            Debug.LogError("GhostUIManager: No GhostController found!");
+           // Debug.LogError("GhostUIManager: No GhostController found!");
             return;
         }
 
@@ -92,11 +91,10 @@ public class GhostUIManager : MonoBehaviour
             }
 
             fearCanvasGroup.alpha = 1f;
-            Debug.Log("Fear UI initialized");
         }
         else
         {
-            Debug.LogError("FearBar is not assigned in Inspector!");
+            Debug.LogError("FearBar is not assigned!");
         }
     }
 
@@ -107,18 +105,12 @@ public class GhostUIManager : MonoBehaviour
             stunStatusText.color = stunTextColor;
             stunStatusText.text = "";
             stunStatusText.gameObject.SetActive(false);
-            Debug.Log("Stun status initialized");
-        }
-        else
-        {
-            Debug.LogError("StunStatusText is not assigned in Inspector!");
         }
     }
 
     void InitializeAbilityButtons()
     {
         UpdateAbilityButtonAppearance();
-        Debug.Log("Ability buttons initialized");
     }
 
     void Update()
@@ -133,69 +125,39 @@ public class GhostUIManager : MonoBehaviour
 
     void UpdateFearUI()
     {
-        if (fearBar == null)
-        {
-            Debug.LogError("FearBar reference is null!");
-            return;
-        }
+        if (fearBar == null) return;
 
-        // Update fear bar value
         float currentFear = ghost.fear;
         fearBar.value = currentFear;
 
-        // Update fill color based on fear level
         if (fearFill != null)
         {
-            if (currentFear <= lowFearThreshold)
-            {
-                fearFill.color = lowFearColor;
-            }
-            else if (currentFear <= 50f)
-            {
-                fearFill.color = mediumFearColor;
-            }
-            else
-            {
-                fearFill.color = fullFearColor;
-            }
-        }
-
-        // Debug to verify fear is changing
-        if (Time.frameCount % 120 == 0)
-        {
-            Debug.Log($"Fear UI Update: {currentFear} | Bar Value: {fearBar.value}");
+            if (currentFear <= lowFearThreshold) fearFill.color = lowFearColor;
+            else if (currentFear <= 50f) fearFill.color = mediumFearColor;
+            else fearFill.color = fullFearColor;
         }
     }
 
     void UpdateStunStatus()
     {
-        if (stunStatusText == null)
-        {
-            Debug.LogError("StunStatusText reference is null!");
-            return;
-        }
+        if (stunStatusText == null) return;
 
         bool currentStunState = ghost.isStunned;
 
         if (currentStunState != wasStunned)
         {
-            Debug.Log($"Stun state changed: {wasStunned} -> {currentStunState}");
-
             if (currentStunState)
             {
                 stunStatusText.text = "STUNNED!";
                 stunStatusText.gameObject.SetActive(true);
                 StartCoroutine(PulseStunText());
-                Debug.Log("Stun text activated");
             }
             else
             {
                 stunStatusText.text = "";
                 stunStatusText.gameObject.SetActive(false);
                 StopAllCoroutines();
-                Debug.Log("Stun text deactivated");
             }
-
             wasStunned = currentStunState;
         }
     }
@@ -207,63 +169,22 @@ public class GhostUIManager : MonoBehaviour
 
     void UpdateAbilityButtonAppearance()
     {
-        // Update Phase button
+        // Phase Button logic
         if (phaseButton != null)
         {
-            if (phaseOnCooldown)
-            {
-                phaseButton.color = cooldownColor;
-            }
-            else if (ghost.fear < ghost.phaseCost)
-            {
-                phaseButton.color = notEnoughFearColor;
-            }
-            else if (ghost.isStunned)
-            {
-                phaseButton.color = unavailableColor;
-            }
-            else
-            {
-                phaseButton.color = activeColor;
-            }
-        }
-        else
-        {
-            Debug.LogError("PhaseButton reference is null!");
+            if (phaseOnCooldown) phaseButton.color = cooldownColor;
+            else if (ghost.fear < ghost.phaseCost) phaseButton.color = notEnoughFearColor;
+            else if (ghost.isStunned) phaseButton.color = unavailableColor;
+            else phaseButton.color = activeColor;
         }
 
-        // Update Transform button (menu)
+        // Transform Button logic
         if (transformButton != null)
         {
             if (transformOnCooldown || ghost.isStunned || ghost.isControllingClone)
-            {
                 transformButton.color = unavailableColor;
-            }
             else
-            {
                 transformButton.color = activeColor;
-            }
-        }
-        else
-        {
-            Debug.LogError("TransformButton reference is null!");
-        }
-
-        // Update Possess button
-        if (possessButton != null)
-        {
-            if (possessOnCooldown || ghost.isStunned)
-            {
-                possessButton.color = unavailableColor;
-            }
-            else
-            {
-                possessButton.color = activeColor;
-            }
-        }
-        else
-        {
-            Debug.LogError("PossessButton reference is null!");
         }
     }
 
@@ -280,51 +201,29 @@ public class GhostUIManager : MonoBehaviour
             transformCooldownTimer -= Time.deltaTime;
             if (transformCooldownTimer <= 0f) transformOnCooldown = false;
         }
-
-        if (possessOnCooldown)
-        {
-            possessCooldownTimer -= Time.deltaTime;
-            if (possessCooldownTimer <= 0f) possessOnCooldown = false;
-        }
     }
 
-    // Public methods to trigger cooldowns
     public void TriggerPhaseCooldown(float duration = 1f)
     {
         phaseOnCooldown = true;
         phaseCooldownTimer = duration;
-        Debug.Log($"Phase cooldown triggered: {duration}s");
     }
 
     public void TriggerTransformCooldown(float duration = 0.5f)
     {
         transformOnCooldown = true;
         transformCooldownTimer = duration;
-        Debug.Log($"Transform cooldown triggered: {duration}s");
     }
 
-    public void TriggerPossessCooldown(float duration = 1f)
-    {
-        possessOnCooldown = true;
-        possessCooldownTimer = duration;
-        Debug.Log($"Possess cooldown triggered: {duration}s");
-    }
-
-    System.Collections.IEnumerator PulseStunText()
+    IEnumerator PulseStunText()
     {
         while (ghost != null && ghost.isStunned && stunStatusText != null)
         {
-            float pulse = (Mathf.Sin(Time.time * 1f) + 5f) * 0.5f;
+            float pulse = (Mathf.Sin(Time.time * 5f) + 1f) * 0.5f; // Faster pulse
             Color pulseColor = stunTextColor;
             pulseColor.a = pulse;
             stunStatusText.color = pulseColor;
-
             yield return null;
-        }
-
-        if (stunStatusText != null)
-        {
-            stunStatusText.color = stunTextColor;
         }
     }
 

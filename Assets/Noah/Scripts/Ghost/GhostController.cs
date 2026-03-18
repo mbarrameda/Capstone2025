@@ -190,7 +190,7 @@ public class GhostController : MonoBehaviour
     {
         if (ghostSanityBarPrefab == null)
         {
-            Debug.LogError("Ghost sanity bar prefab is missing!");
+           // Debug.LogError("Ghost sanity bar prefab is missing!");
             return;
         }
 

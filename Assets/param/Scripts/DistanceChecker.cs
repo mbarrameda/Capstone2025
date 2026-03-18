@@ -4,7 +4,7 @@ using TMPro; // Important for TextMeshPro
 public class DistanceChecker : MonoBehaviour
 {
     // Assign the specific UI Text components in the Inspector
-    public TextMeshProUGUI explorerDistanceDisplay;
+   // public TextMeshProUGUI explorerDistanceDisplay;
     public TextMeshProUGUI ghostDistanceDisplay;
 
     // --- REVERTED TO PRIVATE: Objects are now found dynamically by tag ---
@@ -21,10 +21,10 @@ public class DistanceChecker : MonoBehaviour
         FindCharacterObjects();
 
         // --- STEP 2: CHECK UI ASSIGNMENTS ---
-        if (explorerDistanceDisplay == null)
-        {
-            Debug.LogError("Distance Check FAILED: Explorer Distance Display (TextMeshPro) is not linked in the Inspector!");
-        }
+      //  if (explorerDistanceDisplay == null)
+       // {
+        //    Debug.LogError("Distance Check FAILED: Explorer Distance Display (TextMeshPro) is not linked in the Inspector!");
+       // }
         if (ghostDistanceDisplay == null)
         {
             Debug.LogError("Distance Check FAILED: Ghost Distance Display (TextMeshPro) is not linked in the Inspector!");
@@ -79,10 +79,10 @@ public class DistanceChecker : MonoBehaviour
             // --- END REINFORCED DEBUG LINES ---
 
             // Update BOTH UI elements, checking for null just in case
-            if (explorerDistanceDisplay != null)
-            {
-                explorerDistanceDisplay.text = displayText;
-            }
+           // if (explorerDistanceDisplay != null)
+            //{
+            //    explorerDistanceDisplay.text = displayText;
+           // }
 
             if (ghostDistanceDisplay != null)
             {
