@@ -334857,6 +334857,37 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 5461320835613783329, guid: db921414bd1c2a140a664d85357278ef, type: 3}
+--- !u!1 &2103331065
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2103331066}
+  m_Layer: 0
+  m_Name: ----------Canvas------------
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2103331066
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2103331065}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -49.689884, y: 10.979057, z: -31.005913}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2103885739
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -341896,11 +341927,8 @@ SceneRoots:
   - {fileID: 1122643819}
   - {fileID: 1730858195}
   - {fileID: 1702046380}
-  - {fileID: 1908445779}
   - {fileID: 559048898}
-  - {fileID: 1937926344}
   - {fileID: 1408719376}
-  - {fileID: 964448716}
   - {fileID: 718309649}
   - {fileID: 1397983104}
   - {fileID: 2013033485}
@@ -341920,3 +341948,7 @@ SceneRoots:
   - {fileID: 1883128254}
   - {fileID: 1926435857}
   - {fileID: 846598430}
+  - {fileID: 2103331066}
+  - {fileID: 964448716}
+  - {fileID: 1937926344}
+  - {fileID: 1908445779}

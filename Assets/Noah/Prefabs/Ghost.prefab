@@ -651,14 +651,14 @@ MonoBehaviour:
   phaseCost: 10
   phaseDuration: 1
   baseFearDrainRate: 0
-  phasingFearDrainRate: 1
-  cloneControlFearDrainRate: 0.5
-  stunnedFearDrainRate: 0.5
+  phasingFearDrainRate: 0
+  cloneControlFearDrainRate: 1.5
+  stunnedFearDrainRate: 1
   maxFearGainDistance: 25
   minFearGainDistance: 10
-  maxFearGainRate: 2
-  fearGainUpdateInterval: 1
-  fearRegenRate: 2.5
+  maxFearGainRate: 1
+  fearGainUpdateInterval: 0.5
+  fearRegenRate: 0.75
   fearRegenDelay: 2
   canRegenFear: 1
   defaultLayerName: Default
