@@ -520,12 +520,8 @@ public class GhostController : MonoBehaviour
         playerInputs.Ghost.Look.canceled += OnLookCanceled;
 
         playerInputs.Ghost.PhaseToggle.performed += OnPhaseToggle;
-        //playerInputs.Ghost.PossessObject.performed += OnPossessObject;
 
-        if (!isControllingClone)
-        {
-            playerInputs.Ghost.MenuToggle.performed += OnMenuToggle;
-        }
+        playerInputs.Ghost.MenuToggle.performed += OnMenuToggle;
 
         playerInputs.Ghost.FlyUp.performed += OnFlyUpPerformed;
         playerInputs.Ghost.FlyUp.canceled += OnFlyUpCanceled;
@@ -632,30 +628,24 @@ public class GhostController : MonoBehaviour
     // -------------------------------
     private void OnMenuToggle(InputAction.CallbackContext ctx)
     {
-        // Safety check - if this object is destroyed, don't process input
+        // Safety check
         if (this == null) return;
 
-        // 🔥 DISABLE MENU BUTTON ENTIRELY while controlling clone/object
-        if (isControllingClone)
+        // 🔥 NEW: If transformed, Y button releases transformation
+        if (isControllingClone || (GameManager.Instance != null && GameManager.Instance.HasActiveClone(this)))
         {
-            Debug.Log("❌ Menu button disabled - currently controlling a clone/object");
+            Debug.Log("🔵 Y button pressed - releasing transformation");
+            GameManager.Instance.ManuallyReleaseTransform(this);
             return;
         }
 
-        // 🔥 DOUBLE CHECK with GameManager
-        if (GameManager.Instance != null && GameManager.Instance.HasActiveClone(this))
-        {
-            Debug.Log("❌ Menu button disabled - GameManager reports active clone");
-            return;
-        }
-
+        // Not transformed - open menu normally
         GhostUIManager uiManager = GetComponent<GhostUIManager>();
         if (uiManager != null)
         {
             uiManager.TriggerTransformCooldown(0.5f);
         }
 
-        // Normal ghost menu (only when not controlling anything)
         TogglePossessionMenu();
     }
 

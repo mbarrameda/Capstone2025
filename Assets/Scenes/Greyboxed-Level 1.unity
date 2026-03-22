@@ -187676,7 +187676,6 @@ MonoBehaviour:
   - {fileID: 1242503383}
   - {fileID: 989571992}
   fearDrainRateWhileUsingClone: 0
-  cloneDuration: 10
   explorers: []
   ghosts: []
 --- !u!4 &1122643819
