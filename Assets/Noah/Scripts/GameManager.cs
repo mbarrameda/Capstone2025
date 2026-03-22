@@ -1,13 +1,16 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections.Generic;
-
+using System.Linq;
 /// <summary>
 /// Simplified transformation system - no possession required.
 /// Ghost can transform into 3 fixed objects: Explorer, Wall, and one other.
 /// </summary>
 public class GameManager : MonoBehaviour
 {
+    [Header("Controller Management")]
+    private Dictionary<int, InputDevice> assignedControllers = new Dictionary<int, InputDevice>();
+
     [Header("Prefabs")]
     public PlayerInputHandler explorerPrefab;
     public GhostController ghostPrefab;
@@ -29,7 +32,6 @@ public class GameManager : MonoBehaviour
 
     [Header("Clone Settings")]
     public float fearDrainRateWhileUsingClone = 20f;
-    public float cloneDuration = 15f;
 
     public List<PlayerInputHandler> explorers = new List<PlayerInputHandler>();
     public List<GhostController> ghosts = new List<GhostController>();
@@ -38,6 +40,144 @@ public class GameManager : MonoBehaviour
     public Dictionary<GhostController, CloneData> activeClones = new Dictionary<GhostController, CloneData>();
 
     public static GameManager Instance { get; private set; }
+
+    private void OnEnable()
+    {
+        // Subscribe to device change events
+        InputSystem.onDeviceChange += OnDeviceChange;
+    }
+    private void OnDisable()
+    {
+        // Unsubscribe from device change events
+        InputSystem.onDeviceChange -= OnDeviceChange;
+    }
+    private void OnDeviceChange(InputDevice device, InputDeviceChange change)
+    {
+        Debug.Log($"🎮 Device change: {device.name} - {change}");
+
+        switch (change)
+        {
+            case InputDeviceChange.Added:
+                OnControllerConnected(device);
+                break;
+
+            case InputDeviceChange.Removed:
+                OnControllerDisconnected(device);
+                break;
+
+            case InputDeviceChange.Reconnected:
+                OnControllerReconnected(device);
+                break;
+
+            case InputDeviceChange.Disconnected:
+                OnControllerDisconnected(device);
+                break;
+        }
+    }
+    private void OnControllerConnected(InputDevice device)
+    {
+        if (!(device is Gamepad gamepad)) return;
+
+        Debug.Log($"🎮 Controller connected: {device.name}");
+
+        // Try to reassign to previously assigned player
+        int playerIndex = FindPlayerIndexForDevice(device);
+
+        if (playerIndex >= 0)
+        {
+            // Reassign to existing player
+            ReassignControllerToPlayer(playerIndex, gamepad);
+        }
+        else
+        {
+            // New controller - could auto-assign if we have unassigned players
+            Debug.Log($"New controller detected: {device.name}");
+        }
+    }
+    private void OnControllerDisconnected(InputDevice device)
+    {
+        if (!(device is Gamepad)) return;
+
+        Debug.Log($"🎮 Controller disconnected: {device.name}");
+        // Player can still exist, just can't receive input until reconnected
+    }
+    private void OnControllerReconnected(InputDevice device)
+    {
+        if (!(device is Gamepad gamepad)) return;
+
+        Debug.Log($"🎮 Controller reconnected: {device.name}");
+
+        // Find which player had this controller
+        int playerIndex = FindPlayerIndexForDevice(device);
+
+        if (playerIndex >= 0)
+        {
+            ReassignControllerToPlayer(playerIndex, gamepad);
+        }
+    }
+
+    private int FindPlayerIndexForDevice(InputDevice device)
+    {
+        // Check assigned controllers dictionary
+        foreach (var kvp in assignedControllers)
+        {
+            if (kvp.Value == device)
+            {
+                return kvp.Key;
+            }
+        }
+
+        // Check by device ID (persistent across reconnections)
+        for (int i = 0; i < inputSets.Count; i++)
+        {
+            var devices = inputSets[i].devices;
+
+            if (devices.HasValue && devices.Value.Count > 0)
+            {
+                var firstDevice = devices.Value[0];
+                if (firstDevice != null && firstDevice.deviceId == device.deviceId)
+                {
+                    return i;
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    private void ReassignControllerToPlayer(int playerIndex, Gamepad gamepad)
+    {
+        Debug.Log($"🔄 Reassigning controller to player {playerIndex}");
+
+        if (playerIndex >= inputSets.Count)
+        {
+            Debug.LogError($"Invalid player index: {playerIndex}");
+            return;
+        }
+
+        // Update the input set with new device reference
+        inputSets[playerIndex].devices = new InputDevice[] { gamepad };
+
+        // Reassign to explorer or ghost
+        if (playerIndex < explorers.Count)
+        {
+            // Explorer
+            explorers[playerIndex].ReleaseControl();
+            explorers[playerIndex].TakeControl(inputSets[playerIndex]);
+            Debug.Log($"✅ Reassigned controller to Explorer {playerIndex}");
+        }
+        else if (playerIndex - explorers.Count < ghosts.Count)
+        {
+            // Ghost
+            int ghostIndex = playerIndex - explorers.Count;
+            ghosts[ghostIndex].RemoveInput();
+            ghosts[ghostIndex].AssignInput(inputSets[playerIndex]);
+            Debug.Log($"✅ Reassigned controller to Ghost {ghostIndex}");
+        }
+
+        // Update tracking
+        assignedControllers[playerIndex] = gamepad;
+    }
 
     private void Awake()
     {
@@ -64,16 +204,36 @@ public class GameManager : MonoBehaviour
             GhostController ghost = kvp.Key;
             CloneData data = kvp.Value;
 
+            // Drain fear while transformed
             ghost.fear -= fearDrainRateWhileUsingClone * Time.deltaTime;
             ghost.fear = Mathf.Max(ghost.fear, 0f);
-            data.timer -= Time.deltaTime;
 
-            if (data.timer <= 0f || ghost.fear <= 0f)
+            if (ghost.fear <= 0f)
+            {
+                Debug.Log("⚠️ Fear depleted - releasing transformation");
                 finishedClones.Add(ghost);
+            }
         }
 
         foreach (var ghost in finishedClones)
             ReleaseClone(ghost);
+    }
+    public void ManuallyReleaseTransform(GhostController ghost)
+    {
+        if (ghost == null)
+        {
+            Debug.LogError("❌ ManuallyReleaseTransform called with null ghost!");
+            return;
+        }
+
+        if (!HasActiveClone(ghost))
+        {
+            Debug.LogWarning($"⚠️ {ghost.name} is not transformed");
+            return;
+        }
+
+        Debug.Log("🔵 Manual transformation release requested");
+        ReleaseClone(ghost);
     }
 
     private void SetupPlayers()
@@ -90,6 +250,8 @@ public class GameManager : MonoBehaviour
             var input = new PlayerInputs();
             input.devices = new InputDevice[] { Gamepad.all[i] };
             inputSets.Add(input);
+
+            assignedControllers[i] = Gamepad.all[i];
         }
 
         SpawnExplorer(0);
@@ -184,9 +346,15 @@ public class GameManager : MonoBehaviour
         // Mark as controlling clone
         ghost.isControllingClone = true;
 
+        Light ghostLight = ghost.GetComponentInChildren<Light>();
+        if (ghostLight != null)
+        {
+            ghostLight.enabled = false;
+            Debug.Log("💡 Ghost light disabled");
+        }
+
         // Create clone data
         CloneData cloneData = new CloneData();
-        cloneData.timer = cloneDuration;
         activeClones[ghost] = cloneData;
 
         // Apply camera settings if available
@@ -227,6 +395,13 @@ public class GameManager : MonoBehaviour
         ghost.FreezeInput(false);
         ghost.isControllingClone = false;
 
+        Light ghostLight = ghost.GetComponentInChildren<Light>();
+        if (ghostLight != null)
+        {
+            ghostLight.enabled = true;
+            Debug.Log("💡 Ghost light re-enabled");
+        }
+
         // Reset camera to first person
         TransformationCameraController cameraController = ghost.GetComponent<TransformationCameraController>();
         if (cameraController != null)
@@ -246,6 +421,5 @@ public class GameManager : MonoBehaviour
     [System.Serializable]
     public class CloneData
     {
-        public float timer;
     }
 }

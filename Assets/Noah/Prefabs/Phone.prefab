@@ -103,8 +103,8 @@ MonoBehaviour:
   batteryMax: 1000
   batteryDrainPerSecond: 0.01
   stunDuration: 5
-  stunAngle: 15
-  stunDistance: 15
+  stunAngle: 25
+  stunDistance: 25
   explorer: {fileID: 1247150047388275774, guid: dd08a6db167c3934caf5c2f08442fa96, type: 3}
   currentBattery: 0
 --- !u!65 &8373875832592899657
@@ -187,10 +187,10 @@ Light:
   serializedVersion: 10
   m_Type: 0
   m_Shape: 0
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 2
+  m_Color: {r: 1, g: 0.8670811, b: 0.50628924, a: 1}
+  m_Intensity: 1
   m_Range: 25
-  m_SpotAngle: 75
+  m_SpotAngle: 25
   m_InnerSpotAngle: 1
   m_CookieSize: 10
   m_Shadows:
@@ -230,7 +230,7 @@ Light:
   m_Lightmapping: 4
   m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
-  m_BounceIntensity: 2
+  m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
   m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
