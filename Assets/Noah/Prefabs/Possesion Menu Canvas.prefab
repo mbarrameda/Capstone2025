@@ -267,7 +267,6 @@ MonoBehaviour:
   stunTextColor: {r: 1, g: 0, b: 0, a: 1}
   phaseButton: {fileID: 8579406699383059210}
   transformButton: {fileID: 7413810454993659985}
-  possessButton: {fileID: 8380500551082276987}
   activeColor: {r: 0.654902, g: 0.42352945, b: 0.9607844, a: 1}
   cooldownColor: {r: 0.7686275, g: 0.7686275, b: 0.7686275, a: 1}
   unavailableColor: {r: 0.3, g: 0.3, b: 0.3, a: 0.5}
@@ -395,7 +394,11 @@ MonoBehaviour:
   buttonParent: {fileID: 9084640458433717212}
   menuRoot: {fileID: 7664534189009721858}
   explorerIcon: {fileID: 21300000, guid: 37cc89c9d8125ac45ad4ce579ea439ba, type: 3}
-  defaultObjectIcon: {fileID: 21300000, guid: b74c31d447d2f5d41a61081bdf5e7126, type: 3}
+  wallIcon: {fileID: 0}
+  otherIcon: {fileID: 0}
+  explorerDisplayName: Explorer
+  wallDisplayName: Wall
+  otherDisplayName: Other
   firstSelectedButton: {fileID: 0}
 --- !u!1 &2987850408162741274
 GameObject:
