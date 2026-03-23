@@ -6,6 +6,9 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Rigidbody), typeof(Collider))]
 public class GhostController : MonoBehaviour
 {
+    public LayerMask wallLayerMask;
+    private readonly Collider[] buffer = new Collider[16];
+
     [Header("Possession Menu")]
     [SerializeField] private string possessionMenuCanvasName = "Possession Menu Canvas";
     public PossessionMenu possessionMenu;
