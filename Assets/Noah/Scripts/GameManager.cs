@@ -15,16 +15,18 @@ public class GameManager : MonoBehaviour
     public PlayerInputHandler explorerPrefab;
     public GhostController ghostPrefab;
 
-    [Header("Transformation Prefabs - Always Available")]
-    public GameObject explorerClonePrefab;
-    public GameObject wallClonePrefab;
-    public GameObject otherClonePrefab; // Your third transformable object
+    [Header("Transformation Options - Add as many as you want")]
+    [Tooltip("Each entry is one option in the transformation menu. Index 0 = first button, etc.")]
+    public TransformationOption[] transformationOptions;
 
-    [Header("PossessableObject Components (for settings)")]
-    [Tooltip("Attach a PossessableObject component to these to configure rotation/scale/camera")]
-    public PossessableObject explorerSettings;
-    public PossessableObject wallSettings;
-    public PossessableObject otherSettings;
+    [System.Serializable]
+    public class TransformationOption
+    {
+        public string displayName = "Unnamed";
+        public Sprite icon;
+        public GameObject clonePrefab;
+        public PossessableObject settings; // optional, for rotation/scale/camera overrides
+    }
 
     [Header("Spawn Points")]
     public Transform[] explorerSpawns;
@@ -291,33 +293,23 @@ public class GameManager : MonoBehaviour
 
     // ==================== NEW SIMPLIFIED TRANSFORMATION SYSTEM ====================
 
-    /// <summary>
-    /// Transform into Explorer
-    /// </summary>
-    public void TransformIntoExplorer(GhostController ghost)
-    {
-        TransformInto(ghost, explorerClonePrefab, explorerSettings, "Explorer");
-    }
+    // ==================== TRANSFORMATION SYSTEM ====================
 
     /// <summary>
-    /// Transform into Wall
+    /// Transform into whichever option is at this index in transformationOptions[]
     /// </summary>
-    public void TransformIntoWall(GhostController ghost)
+    public void TransformIntoOption(GhostController ghost, int index)
     {
-        TransformInto(ghost, wallClonePrefab, wallSettings, "Wall");
+        if (transformationOptions == null || index < 0 || index >= transformationOptions.Length)
+        {
+            Debug.LogError($"TransformIntoOption: index {index} is out of range (options count: {transformationOptions?.Length ?? 0})");
+            return;
+        }
+
+        var option = transformationOptions[index];
+        TransformInto(ghost, option.clonePrefab, option.settings, option.displayName);
     }
 
-    /// <summary>
-    /// Transform into Other Object
-    /// </summary>
-    public void TransformIntoOther(GhostController ghost)
-    {
-        TransformInto(ghost, otherClonePrefab, otherSettings, "Other");
-    }
-
-    /// <summary>
-    /// Generic transformation method
-    /// </summary>
     private void TransformInto(GhostController ghost, GameObject prefab, PossessableObject settings, string name)
     {
         Debug.Log($"🔵 Transforming into {name}...");
@@ -358,13 +350,29 @@ public class GameManager : MonoBehaviour
         activeClones[ghost] = cloneData;
 
         // Apply camera settings if available
-        TransformationCameraController cameraController = ghost.GetComponent<TransformationCameraController>();
-        if (cameraController != null && settings != null)
+        Camera cloneCamera = null;
+        foreach (Camera cam in ghost.GetComponentsInChildren<Camera>())
         {
-            settings.ApplyCameraSettings(cameraController);
+            if (cam == ghost.ghostCamera) continue;
+            cloneCamera = cam;
+            break;
         }
 
-        Debug.Log($"✅ Transformed into {name}!");
+        if (cloneCamera != null)
+        {
+            // Stamp the correct split-screen rect and disable it BEFORE it renders even one frame
+            if (ghost.ghostCamera != null)
+                cloneCamera.rect = ghost.ghostCamera.rect;
+
+            cloneCamera.enabled = false;
+
+            // Now do the proper swap
+            ghost.ActivateCloneCamera(cloneCamera);
+        }
+        else
+        {
+            Debug.LogWarning($"⚠️ No camera found in clone prefab for {name}. Ghost camera will stay active.");
+        }
     }
 
     /// <summary>
@@ -402,12 +410,7 @@ public class GameManager : MonoBehaviour
             Debug.Log("💡 Ghost light re-enabled");
         }
 
-        // Reset camera to first person
-        TransformationCameraController cameraController = ghost.GetComponent<TransformationCameraController>();
-        if (cameraController != null)
-        {
-            cameraController.ForceFirstPerson();
-        }
+        ghost.DeactivateCloneCamera();
 
         activeClones.Remove(ghost);
         Debug.Log("✅ Transformation released - back to ghost form");
@@ -418,8 +421,22 @@ public class GameManager : MonoBehaviour
         return activeClones.ContainsKey(ghost);
     }
 
+    /// <summary>
+    /// Returns the display name and icon for each transformation option, for building the menu.
+    /// </summary>
+    public (string name, Sprite icon)[] GetTransformationMenuData()
+    {
+        if (transformationOptions == null) return System.Array.Empty<(string, Sprite)>();
+
+        var result = new (string name, Sprite icon)[transformationOptions.Length];
+        for (int i = 0; i < transformationOptions.Length; i++)
+            result[i] = (transformationOptions[i].displayName, transformationOptions[i].icon);
+
+        return result;
+    }
     [System.Serializable]
     public class CloneData
     {
     }
+
 }

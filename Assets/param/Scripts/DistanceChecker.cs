@@ -75,7 +75,6 @@ public class DistanceChecker : MonoBehaviour
 
             // --- REINFORCED DEBUG LINES ---
             // The Console positions SHOULD now be changing if the prefab instances are tagged correctly.
-            Debug.Log($"[FRAME] Dist: {displayText} | Exp X: {explorerObject.transform.position.x:F2} | Ghst X: {ghostObject.transform.position.x:F2}");
             // --- END REINFORCED DEBUG LINES ---
 
             // Update BOTH UI elements, checking for null just in case

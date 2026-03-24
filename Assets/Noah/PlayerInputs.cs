@@ -316,9 +316,36 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Perspective"",
+                    ""name"": ""ZoomIn"",
                     ""type"": ""Button"",
-                    ""id"": ""fd632ea1-61d6-4f49-9046-80b830897de9"",
+                    ""id"": ""f60ef49d-48a3-453d-8ecb-a199d36e71ab"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ZoomOut"",
+                    ""type"": ""Button"",
+                    ""id"": ""995086b2-22f1-46b9-a41a-dca33c26feb0"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""RotateRight"",
+                    ""type"": ""Button"",
+                    ""id"": ""eb12f482-cdc0-4be3-b73b-4b23df4aeed0"",
+                    ""expectedControlType"": ""Button"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""RotateLeft"",
+                    ""type"": ""Button"",
+                    ""id"": ""27bfa795-aa42-4dc5-975e-1eccf1a5fd88"",
                     ""expectedControlType"": ""Button"",
                     ""processors"": """",
                     ""interactions"": """",
@@ -416,12 +443,45 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""531b2d94-c60a-4c2d-b7ef-7258e0c35a45"",
+                    ""id"": ""32c31e1f-d8f8-479c-abd1-d7c09b9b4ffb"",
+                    ""path"": ""<Gamepad>/rightStickPress"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ZoomIn"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""ece4d224-43b7-4f99-be8c-5c5543064eda"",
                     ""path"": ""<Gamepad>/leftStickPress"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Perspective"",
+                    ""action"": ""ZoomOut"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""fa019d93-97c8-4d41-896f-072245bf3057"",
+                    ""path"": ""<Gamepad>/rightShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RotateRight"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b31bf632-c1ea-4d40-afb1-513725964171"",
+                    ""path"": ""<Gamepad>/leftShoulder"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""RotateLeft"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -454,7 +514,10 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         m_Ghost_MenuToggle = m_Ghost.FindAction("MenuToggle", throwIfNotFound: true);
         m_Ghost_Look = m_Ghost.FindAction("Look", throwIfNotFound: true);
         m_Ghost_Confirm = m_Ghost.FindAction("Confirm", throwIfNotFound: true);
-        m_Ghost_Perspective = m_Ghost.FindAction("Perspective", throwIfNotFound: true);
+        m_Ghost_ZoomIn = m_Ghost.FindAction("ZoomIn", throwIfNotFound: true);
+        m_Ghost_ZoomOut = m_Ghost.FindAction("ZoomOut", throwIfNotFound: true);
+        m_Ghost_RotateRight = m_Ghost.FindAction("RotateRight", throwIfNotFound: true);
+        m_Ghost_RotateLeft = m_Ghost.FindAction("RotateLeft", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -680,7 +743,10 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
     private readonly InputAction m_Ghost_MenuToggle;
     private readonly InputAction m_Ghost_Look;
     private readonly InputAction m_Ghost_Confirm;
-    private readonly InputAction m_Ghost_Perspective;
+    private readonly InputAction m_Ghost_ZoomIn;
+    private readonly InputAction m_Ghost_ZoomOut;
+    private readonly InputAction m_Ghost_RotateRight;
+    private readonly InputAction m_Ghost_RotateLeft;
     public struct GhostActions
     {
         private @PlayerInputs m_Wrapper;
@@ -693,7 +759,10 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         public InputAction @MenuToggle => m_Wrapper.m_Ghost_MenuToggle;
         public InputAction @Look => m_Wrapper.m_Ghost_Look;
         public InputAction @Confirm => m_Wrapper.m_Ghost_Confirm;
-        public InputAction @Perspective => m_Wrapper.m_Ghost_Perspective;
+        public InputAction @ZoomIn => m_Wrapper.m_Ghost_ZoomIn;
+        public InputAction @ZoomOut => m_Wrapper.m_Ghost_ZoomOut;
+        public InputAction @RotateRight => m_Wrapper.m_Ghost_RotateRight;
+        public InputAction @RotateLeft => m_Wrapper.m_Ghost_RotateLeft;
         public InputActionMap Get() { return m_Wrapper.m_Ghost; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -727,9 +796,18 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
             @Confirm.started += instance.OnConfirm;
             @Confirm.performed += instance.OnConfirm;
             @Confirm.canceled += instance.OnConfirm;
-            @Perspective.started += instance.OnPerspective;
-            @Perspective.performed += instance.OnPerspective;
-            @Perspective.canceled += instance.OnPerspective;
+            @ZoomIn.started += instance.OnZoomIn;
+            @ZoomIn.performed += instance.OnZoomIn;
+            @ZoomIn.canceled += instance.OnZoomIn;
+            @ZoomOut.started += instance.OnZoomOut;
+            @ZoomOut.performed += instance.OnZoomOut;
+            @ZoomOut.canceled += instance.OnZoomOut;
+            @RotateRight.started += instance.OnRotateRight;
+            @RotateRight.performed += instance.OnRotateRight;
+            @RotateRight.canceled += instance.OnRotateRight;
+            @RotateLeft.started += instance.OnRotateLeft;
+            @RotateLeft.performed += instance.OnRotateLeft;
+            @RotateLeft.canceled += instance.OnRotateLeft;
         }
 
         private void UnregisterCallbacks(IGhostActions instance)
@@ -758,9 +836,18 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
             @Confirm.started -= instance.OnConfirm;
             @Confirm.performed -= instance.OnConfirm;
             @Confirm.canceled -= instance.OnConfirm;
-            @Perspective.started -= instance.OnPerspective;
-            @Perspective.performed -= instance.OnPerspective;
-            @Perspective.canceled -= instance.OnPerspective;
+            @ZoomIn.started -= instance.OnZoomIn;
+            @ZoomIn.performed -= instance.OnZoomIn;
+            @ZoomIn.canceled -= instance.OnZoomIn;
+            @ZoomOut.started -= instance.OnZoomOut;
+            @ZoomOut.performed -= instance.OnZoomOut;
+            @ZoomOut.canceled -= instance.OnZoomOut;
+            @RotateRight.started -= instance.OnRotateRight;
+            @RotateRight.performed -= instance.OnRotateRight;
+            @RotateRight.canceled -= instance.OnRotateRight;
+            @RotateLeft.started -= instance.OnRotateLeft;
+            @RotateLeft.performed -= instance.OnRotateLeft;
+            @RotateLeft.canceled -= instance.OnRotateLeft;
         }
 
         public void RemoveCallbacks(IGhostActions instance)
@@ -804,6 +891,9 @@ public partial class @PlayerInputs: IInputActionCollection2, IDisposable
         void OnMenuToggle(InputAction.CallbackContext context);
         void OnLook(InputAction.CallbackContext context);
         void OnConfirm(InputAction.CallbackContext context);
-        void OnPerspective(InputAction.CallbackContext context);
+        void OnZoomIn(InputAction.CallbackContext context);
+        void OnZoomOut(InputAction.CallbackContext context);
+        void OnRotateRight(InputAction.CallbackContext context);
+        void OnRotateLeft(InputAction.CallbackContext context);
     }
 }

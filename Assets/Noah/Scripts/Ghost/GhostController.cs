@@ -9,6 +9,12 @@ public class GhostController : MonoBehaviour
     public LayerMask wallLayerMask;
     private readonly Collider[] buffer = new Collider[16];
 
+    [Header("Clone Camera")]
+    public Camera activeCloneCamera;
+
+    [Header("Phaseable Wall Prompt")]
+    public float phasePromptDistance = 1.2f;
+
     [Header("Possession Menu")]
     [SerializeField] private string possessionMenuCanvasName = "Possession Menu Canvas";
     public PossessionMenu possessionMenu;
@@ -111,7 +117,50 @@ public class GhostController : MonoBehaviour
 
         PlayerInputHandler.OnExplorerSanityChanged -= UpdateGhostSanityBar;
     }
+    // -------------------------------
+    // Camera Stuff
+    // -------------------------------
+    public void ActivateCloneCamera(Camera cloneCamera)
+    {
+        if (cloneCamera == null) return;
 
+        activeCloneCamera = cloneCamera;
+
+        if (ghostCamera != null)
+        {
+            cloneCamera.rect = ghostCamera.rect;
+            ghostCamera.enabled = false;
+        }
+
+        cloneCamera.enabled = true;
+
+        // Freeze rigidbody so the ghost doesn't drift while transformed
+        rb.velocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
+
+        // Add the orbit controller and initialise it with the clone camera
+        TransformOrbitCamera orbit = gameObject.AddComponent<TransformOrbitCamera>();
+        orbit.Initialise(cloneCamera, this);
+    }
+
+    public void DeactivateCloneCamera()
+    {
+        if (activeCloneCamera != null)
+        {
+            activeCloneCamera.enabled = false;
+            activeCloneCamera = null;
+        }
+
+        // Remove the orbit component so the right stick goes back to ghost look
+        TransformOrbitCamera orbit = GetComponent<TransformOrbitCamera>();
+        if (orbit != null)
+            Destroy(orbit);
+
+        // Restore rigidbody constraints to what they were before transforming
+        // (rotation frozen, position free — same as the ghost's Awake setup)
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
+    }
     // -------------------------------
     // Update & Physics
     // -------------------------------
@@ -151,11 +200,16 @@ public class GhostController : MonoBehaviour
         }
 
         UpdateUIPrompt();
+        UpdatePhaseWallPrompt();
     }
 
     private void FixedUpdate()
     {
-        HandleRotation();
+        // Don't rotate the ghost body while the orbit camera is active —
+        // rotation is handled by the orbit script instead
+        if (activeCloneCamera == null)
+            HandleRotation();
+
         HandleMovement();
         if (freezeInput)
         {
@@ -437,32 +491,18 @@ public class GhostController : MonoBehaviour
     {
         Debug.Log($"🎯 Transformation selected: {transformIndex}");
 
-        // Close menu
         ClosePossessionMenu();
 
-        // Safety check
+        if (GameManager.Instance == null) return;
+
         if (GameManager.Instance.HasActiveClone(this))
         {
             Debug.LogWarning("Already transformed");
             return;
         }
 
-        // Call appropriate transformation
-        switch (transformIndex)
-        {
-            case 0: // Explorer
-                GameManager.Instance.TransformIntoExplorer(this);
-                break;
-            case 1: // Wall
-                GameManager.Instance.TransformIntoWall(this);
-                break;
-            case 2: // Other
-                GameManager.Instance.TransformIntoOther(this);
-                break;
-            default:
-                Debug.LogError($"Unknown transformation index: {transformIndex}");
-                break;
-        }
+        // Fully data-driven — no switch needed, GameManager handles the index
+        GameManager.Instance.TransformIntoOption(this, transformIndex);
     }
 
 
@@ -752,7 +792,6 @@ public class GhostController : MonoBehaviour
 
     private void HandleMovement()
     {
-        // 🔥 FIX: Allow movement if EITHER horizontal OR vertical input exists
         bool hasHorizontalInput = moveInput.sqrMagnitude > 0f;
         bool hasVerticalInput = Mathf.Abs(verticalInput) > 0.1f;
 
@@ -764,10 +803,8 @@ public class GhostController : MonoBehaviour
         {
             if (lockObjectRotation)
             {
-                // For objects: move relative to camera direction, not object direction
                 if (cameraTransform != null)
                 {
-                    // Get camera forward and right vectors, but flatten them to the horizontal plane
                     Vector3 cameraForward = cameraTransform.forward;
                     cameraForward.y = 0;
                     cameraForward.Normalize();
@@ -780,77 +817,67 @@ public class GhostController : MonoBehaviour
                 }
                 else
                 {
-                    // Fallback: use object's forward/right
                     moveDir = (transform.forward * moveInput.y + transform.right * moveInput.x).normalized;
                 }
             }
             else
             {
-                // For ghost: use object's forward/right (normal behavior)
-                moveDir = (transform.forward * moveInput.y + transform.right * moveInput.x).normalized;
+                // While transformed, move relative to the orbit camera's facing direction
+                // so the ghost moves where the camera is pointing, not where its body faces
+                Transform dirSource = (activeCloneCamera != null) ? activeCloneCamera.transform : transform;
+                Vector3 forward = dirSource.forward;
+                forward.y = 0;
+                forward.Normalize();
+                Vector3 right = dirSource.right;
+                right.y = 0;
+                right.Normalize();
+                moveDir = (forward * moveInput.y + right * moveInput.x).normalized;
             }
         }
 
         if (freezeInput)
         {
-            // Ensure all input is zeroed out when frozen
             moveInput = Vector2.zero;
             verticalInput = 0f;
             return;
         }
+
         Vector3 horizontalMove = moveDir * moveSpeed * Time.fixedDeltaTime;
         Vector3 verticalMove = Vector3.up * verticalInput * flySpeed * Time.fixedDeltaTime;
-
-        // 🔥 SEPARATE COLLISION CHECKS: Allow horizontal movement even when blocked vertically
         Vector3 finalMove = Vector3.zero;
 
-        // Check horizontal movement separately
+        // ---- HORIZONTAL MOVEMENT ----
         if (horizontalMove.magnitude > 0)
         {
-            if (isPhasing)
+            // Only difference between phasing/non-phasing is the layer mask
+            int castMask = isPhasing ? LayerMask.GetMask(defaultLayerName) : ~0;
+
+            Vector3 capTop = rb.position + Vector3.up * 0.5f;
+            Vector3 capBot = rb.position - Vector3.up * 0.5f;
+
+            if (!Physics.CapsuleCast(capTop, capBot, 0.5f,
+                horizontalMove.normalized, out RaycastHit hit,
+                horizontalMove.magnitude, castMask))
             {
-                int defaultMask = LayerMask.GetMask(defaultLayerName);
-                if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
-                    rb.position - Vector3.up * 0.5f, 0.5f,
-                    horizontalMove.normalized, horizontalMove.magnitude, defaultMask))
-                {
-                    finalMove += horizontalMove;
-                }
-                else
-                {
-                    // 🔥 Even if blocked, try to slide along the surface
-                    Vector3 slideDirection = Vector3.ProjectOnPlane(horizontalMove.normalized, Vector3.up).normalized;
-                    if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
-                        rb.position - Vector3.up * 0.5f, 0.5f,
-                        slideDirection, horizontalMove.magnitude, defaultMask))
-                    {
-                        finalMove += slideDirection * horizontalMove.magnitude;
-                    }
-                }
+                finalMove += horizontalMove;
             }
             else
             {
-                if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
-                    rb.position - Vector3.up * 0.5f, 0.5f,
-                    horizontalMove.normalized, horizontalMove.magnitude))
+                // ✅ FIX: use the actual wall normal from the hit instead of Vector3.up
+                Vector3 wallNormal = hit.normal;
+                Vector3 slideDirection = Vector3.ProjectOnPlane(horizontalMove.normalized, wallNormal).normalized;
+
+                if (slideDirection.sqrMagnitude > 0.001f &&
+                    !Physics.CapsuleCast(capTop, capBot, 0.5f,
+                        slideDirection, horizontalMove.magnitude, castMask))
                 {
-                    finalMove += horizontalMove;
+                    finalMove += slideDirection * horizontalMove.magnitude;
                 }
-                else
-                {
-                    // 🔥 Even if blocked, try to slide along the surface
-                    Vector3 slideDirection = Vector3.ProjectOnPlane(horizontalMove.normalized, Vector3.up).normalized;
-                    if (!Physics.CapsuleCast(rb.position + Vector3.up * 0.5f,
-                        rb.position - Vector3.up * 0.5f, 0.5f,
-                        slideDirection, horizontalMove.magnitude))
-                    {
-                        finalMove += slideDirection * horizontalMove.magnitude;
-                    }
-                }
+                // If slide is also blocked, nothing added — ghost stops cleanly
             }
         }
 
-        // Check vertical movement separately - only apply if not blocked
+        // ---- VERTICAL MOVEMENT (unchanged) ----
         if (verticalMove.magnitude > 0)
         {
             if (isPhasing)
@@ -938,6 +965,17 @@ public class GhostController : MonoBehaviour
         }
     }
 
+    private void UpdatePhaseWallPrompt()
+    {
+        if (GhostUIManager.Instance == null) return;
+
+        // Cast a small sphere around the ghost looking for PhasableWall layer only
+        int phasableLayer = LayerMask.GetMask(phaseableWallLayerName);
+        bool nearPhasableWall = Physics.CheckSphere(transform.position, phasePromptDistance, phasableLayer);
+
+        // Only show when NOT already phasing — no point prompting if they're mid-phase
+        GhostUIManager.Instance.SetPhaseWallPromptVisible(nearPhasableWall && !isPhasing && !isStunned);
+    }
 
     // -------------------------------
     // Possession System

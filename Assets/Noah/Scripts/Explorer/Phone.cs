@@ -19,31 +19,12 @@ public class Phone : MonoBehaviour
     [Header("Battery UI - MANUALLY ASSIGN IN INSPECTOR")]
     
 
-    private Slider batteryBar;
-    private bool batteryBarFound = false;
     public float currentBattery; 
     private bool flashlightOn = false;
     private bool isOut = false;
    
 
-    private void Start()
-    {
-        if (BatteryManager.Instance == null)
-        {
-            new GameObject("BatteryManager").AddComponent<BatteryManager>();
-        }
-        // Find battery bar
-        GameObject barObject = GameObject.Find("BatteryBar");
-        if (barObject != null)
-        {
-            batteryBar = barObject.GetComponent<Slider>();
-            if (batteryBar != null)
-            {
-                batteryBarFound = true;
-                batteryBar.gameObject.SetActive(false);
-            }
-        }
-    }
+   
     private void Awake()
     {
         if (flashlight != null) flashlight.enabled = false;

@@ -6,6 +6,9 @@ using UnityEngine.SceneManagement;
 
 public class GhostUIManager : MonoBehaviour
 {
+    public static GhostUIManager Instance { get; private set; }
+    private TextMeshProUGUI phaseWallPrompt;
+
     [Header("Fear UI")]
     public Slider fearBar;
     public Image fearFill;
@@ -43,7 +46,10 @@ public class GhostUIManager : MonoBehaviour
     {
         InitializeUI();
     }
-
+    private void Awake()
+    {
+        Instance = this;
+    }
     void InitializeUI()
     {
         if (SceneUIManager.Instance != null)
@@ -73,6 +79,8 @@ public class GhostUIManager : MonoBehaviour
         InitializeAbilityButtons();
 
         isInitialized = true;
+        CreatePhaseWallPrompt();
+        Debug.Log("GhostUIManager initialized successfully");
         Debug.Log("GhostUIManager initialized successfully");
     }
 
@@ -98,6 +106,49 @@ public class GhostUIManager : MonoBehaviour
         }
     }
 
+    public void SetPhaseWallPromptVisible(bool visible)
+{
+    if (phaseWallPrompt == null) return;
+    phaseWallPrompt.gameObject.SetActive(visible);
+}
+    private void CreatePhaseWallPrompt()
+    {
+        // Find the canvas to parent to — reuse the fear bar's canvas if available
+        Canvas targetCanvas = null;
+
+        if (fearBar != null)
+            targetCanvas = fearBar.GetComponentInParent<Canvas>();
+
+        if (targetCanvas == null)
+            targetCanvas = FindObjectOfType<Canvas>();
+
+        if (targetCanvas == null)
+        {
+            Debug.LogWarning("GhostUIManager: No canvas found for phase wall prompt.");
+            return;
+        }
+
+        // Create the GameObject
+        GameObject promptObj = new GameObject("PhaseWallPrompt");
+        promptObj.transform.SetParent(targetCanvas.transform, false);
+
+        // Add and configure TMP text
+        phaseWallPrompt = promptObj.AddComponent<TextMeshProUGUI>();
+        phaseWallPrompt.text = "Press X / Square to Phase";
+        phaseWallPrompt.fontSize = 24;
+        phaseWallPrompt.alignment = TextAlignmentOptions.Center;
+        phaseWallPrompt.color = new Color(1f, 1f, 1f, 0.9f);
+
+        // Position it at the bottom-centre of the screen
+        RectTransform rt = promptObj.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0f, 0f);
+        rt.anchorMax = new Vector2(0f, 0f);
+        rt.pivot = new Vector2(0.5f, 0f);
+        rt.anchoredPosition = new Vector2(1500f, 500f); // 80px from the bottom edge
+        rt.sizeDelta = new Vector2(400f, 50f);
+
+        promptObj.SetActive(false); // hidden by default
+    }
     void InitializeStunStatus()
     {
         if (stunStatusText != null)
