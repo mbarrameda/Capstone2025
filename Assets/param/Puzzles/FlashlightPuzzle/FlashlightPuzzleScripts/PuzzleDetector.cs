@@ -33,12 +33,13 @@ public class FlashlightPuzzleDetector : MonoBehaviour
         if (!phone.flashlight.enabled) return;
 
         Ray ray = new Ray(playerCam.transform.position, playerCam.transform.forward);
+        // Inside Update(), change the Raycast block to:
         if (Physics.Raycast(ray, out RaycastHit hit, detectionRange, detectionMask))
         {
             LightReactiveObject reactive = hit.collider.GetComponent<LightReactiveObject>();
             if (reactive != null)
             {
-                reactive.ActivateGlow();
+                reactive.Activate(); // Calls our updated Activate logic
             }
         }
     }
