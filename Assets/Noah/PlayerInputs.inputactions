@@ -294,9 +294,36 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Perspective",
+                    "name": "ZoomIn",
                     "type": "Button",
-                    "id": "fd632ea1-61d6-4f49-9046-80b830897de9",
+                    "id": "f60ef49d-48a3-453d-8ecb-a199d36e71ab",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "ZoomOut",
+                    "type": "Button",
+                    "id": "995086b2-22f1-46b9-a41a-dca33c26feb0",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "RotateRight",
+                    "type": "Button",
+                    "id": "eb12f482-cdc0-4be3-b73b-4b23df4aeed0",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "RotateLeft",
+                    "type": "Button",
+                    "id": "27bfa795-aa42-4dc5-975e-1eccf1a5fd88",
                     "expectedControlType": "Button",
                     "processors": "",
                     "interactions": "",
@@ -394,12 +421,45 @@
                 },
                 {
                     "name": "",
-                    "id": "531b2d94-c60a-4c2d-b7ef-7258e0c35a45",
+                    "id": "32c31e1f-d8f8-479c-abd1-d7c09b9b4ffb",
+                    "path": "<Gamepad>/rightStickPress",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "ZoomIn",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ece4d224-43b7-4f99-be8c-5c5543064eda",
                     "path": "<Gamepad>/leftStickPress",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Perspective",
+                    "action": "ZoomOut",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "fa019d93-97c8-4d41-896f-072245bf3057",
+                    "path": "<Gamepad>/rightShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RotateRight",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b31bf632-c1ea-4d40-afb1-513725964171",
+                    "path": "<Gamepad>/leftShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RotateLeft",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

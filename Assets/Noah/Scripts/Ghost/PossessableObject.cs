@@ -28,12 +28,7 @@ public class PossessableObject : MonoBehaviour
     [Tooltip("Position offset in local space. Use negative Y to move mesh down.")]
     public Vector3 positionOffset = Vector3.zero;
 
-    [Header("Camera Settings (Optional)")]
-    [Tooltip("Override third-person camera distance for this object")]
-    public bool overrideCameraSettings = false;
-    public float customCameraDistance = 3f;
-    public float customCameraHeight = 1.5f;
-    public Vector3 customCameraLookOffset = new Vector3(0f, 0.5f, 0f);
+    
 
     private void Start()
     {
@@ -69,15 +64,7 @@ public class PossessableObject : MonoBehaviour
     }
 
     // Apply custom camera settings when ghost transforms into this object
-    public void ApplyCameraSettings(TransformationCameraController cameraController)
-    {
-        if (cameraController == null || !overrideCameraSettings) return;
-
-        Debug.Log($"📷 Applying custom camera settings for {displayName}");
-        cameraController.SetThirdPersonDistance(customCameraDistance);
-        cameraController.thirdPersonHeight = customCameraHeight;
-        cameraController.thirdPersonTargetOffset = customCameraLookOffset;
-    }
+   
 
     // Helper to validate the object is set up correctly
     private void OnValidate()

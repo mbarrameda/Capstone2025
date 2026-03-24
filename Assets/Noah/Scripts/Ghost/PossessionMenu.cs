@@ -11,11 +11,6 @@ public class PossessionMenu : MonoBehaviour
     public Transform buttonParent;
     public GameObject menuRoot;
 
-    [Header("Fallback Icons (used if settings don't have icons)")]
-    public Sprite explorerIcon;
-    public Sprite wallIcon;
-    public Sprite otherIcon;
-
     [Header("Fallback Display Names")]
     public string explorerDisplayName = "Explorer";
     public string wallDisplayName = "Wall";
@@ -55,84 +50,71 @@ public class PossessionMenu : MonoBehaviour
 
         menuButtons.Clear();
 
-        // Start with fallback values
-        string explorerName = explorerDisplayName;
-        Sprite explorerSprite = explorerIcon;
-
-        string wallName = wallDisplayName;
-        Sprite wallSprite = wallIcon;
-
-        string otherName = otherDisplayName;
-        Sprite otherSprite = otherIcon;
-
-        // 🔥 NEW: Pull names/icons from GameManager settings
+        // Pull all options from GameManager
         if (GameManager.Instance != null)
         {
-            // Get explorer settings
-            if (GameManager.Instance.explorerSettings != null)
-            {
-                var settings = GameManager.Instance.explorerSettings;
-                if (!string.IsNullOrEmpty(settings.displayName))
-                {
-                    explorerName = settings.displayName;
-                    Debug.Log($"Using explorer name from settings: {explorerName}");
-                }
-                if (settings.icon != null)
-                {
-                    explorerSprite = settings.icon;
-                    Debug.Log("Using explorer icon from settings");
-                }
-            }
+            var options = GameManager.Instance.GetTransformationMenuData();
+            for (int i = 0; i < options.Length; i++)
+                AddMenuButton(options[i].name, options[i].icon, i);
 
-            // Get wall settings
-            if (GameManager.Instance.wallSettings != null)
-            {
-                var settings = GameManager.Instance.wallSettings;
-                if (!string.IsNullOrEmpty(settings.displayName))
-                {
-                    wallName = settings.displayName;
-                    Debug.Log($"Using wall name from settings: {wallName}");
-                }
-                if (settings.icon != null)
-                {
-                    wallSprite = settings.icon;
-                    Debug.Log("Using wall icon from settings");
-                }
-            }
-
-            // Get other settings
-            if (GameManager.Instance.otherSettings != null)
-            {
-                var settings = GameManager.Instance.otherSettings;
-                if (!string.IsNullOrEmpty(settings.displayName))
-                {
-                    otherName = settings.displayName;
-                    Debug.Log($"Using other name from settings: {otherName}");
-                }
-                if (settings.icon != null)
-                {
-                    otherSprite = settings.icon;
-                    Debug.Log("Using other icon from settings");
-                }
-            }
+            // Resize the menu container to fit the buttons
+            ResizeMenuContainer(options.Length);
         }
-
-        // Add 3 fixed options with correct names/icons
-        AddMenuButton(explorerName, explorerSprite, 0);
-        AddMenuButton(wallName, wallSprite, 1);
-        AddMenuButton(otherName, otherSprite, 2);
+        else
+        {
+            Debug.LogWarning("PossessionMenu: GameManager.Instance is null, menu will be empty");
+        }
 
         // Set up navigation
         SetupControllerNavigation();
 
         // Auto-select first button for controller support
         if (firstSelectedButton != null)
-        {
             EventSystem.current.SetSelectedGameObject(firstSelectedButton.gameObject);
-        }
         else if (menuButtons.Count > 0)
-        {
             EventSystem.current.SetSelectedGameObject(menuButtons[0].gameObject);
+    }
+
+    private void ResizeMenuContainer(int buttonCount)
+    {
+        if (buttonParent == null) return;
+
+        // Get the height of a single button from the prefab
+        float buttonHeight = 160f; // fallback default
+        float spacing = 10f;
+
+
+        if (buttonPrefab != null)
+        {
+            var rt = buttonPrefab.GetComponent<RectTransform>();
+            if (rt != null) buttonHeight = rt.sizeDelta.y;
+
+            // Also try to read spacing from a VerticalLayoutGroup if one exists
+            var layout = buttonParent.GetComponent<UnityEngine.UI.VerticalLayoutGroup>();
+            if (layout != null) spacing = layout.spacing;
+        }
+
+        float totalHeight = buttonCount * buttonHeight + Mathf.Max(0, buttonCount - 1) * spacing;
+
+        // Resize buttonParent
+        RectTransform parentRT = buttonParent.GetComponent<RectTransform>();
+        if (parentRT != null)
+        {
+            var size = parentRT.sizeDelta;
+            size.y = totalHeight;
+            parentRT.sizeDelta = size;
+        }
+
+        // Also resize menuRoot if it exists and is separate from buttonParent
+        if (menuRoot != null && menuRoot.transform != buttonParent)
+        {
+            RectTransform rootRT = menuRoot.GetComponent<RectTransform>();
+            if (rootRT != null)
+            {
+                var size = rootRT.sizeDelta;
+                size.y = totalHeight + 300f; // small padding around the content
+                rootRT.sizeDelta = size;
+            }
         }
     }
 
