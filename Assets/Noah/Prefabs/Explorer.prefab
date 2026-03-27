@@ -165,8 +165,8 @@ MonoBehaviour:
   minStaminaToSprint: 10
   maxSanity: 100
   currentSanity: 100
-  sanityIncreaseRate: 5
-  sanityDecreaseRate: 1
+  sanityIncreaseRate: 2.5
+  sanityDecreaseRate: 2.5
   sanityUpdateInterval: 0.5
   sanityEffectDistance: 15
   sanitySlider: {fileID: 0}
@@ -182,7 +182,7 @@ MonoBehaviour:
   gravity: -9.81
   cameraTransform: {fileID: 7810442224545779810}
   playerCamera: {fileID: 7810442224545779813}
-  lookSensitivity: 2
+  lookSensitivity: 1
   phonePrefab: {fileID: 1107688851397771869, guid: 728bd32e44bd7be46b05ff2ea90a6046, type: 3}
   phoneInstance: {fileID: 0}
   uiHint: {fileID: 0}
@@ -190,6 +190,8 @@ MonoBehaviour:
   interactLayerMask:
     serializedVersion: 2
     m_Bits: 512
+  isCarryingArtifact: 0
+  artifactSwapMessage: i need to keep down the one i have on the alter
   shouldFindUI: 1
   ghostWinSceneName: GhostWinScene
 --- !u!136 &4646947839042228124
