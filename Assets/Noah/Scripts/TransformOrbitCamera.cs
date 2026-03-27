@@ -8,7 +8,7 @@ using UnityEngine;
 public class TransformOrbitCamera : MonoBehaviour
 {
     [Header("Orbit Settings")]
-    public float orbitSensitivity = 3f;
+    public float orbitSensitivity = 1f;
     public float minVerticalAngle = -60f;
     public float maxVerticalAngle = 75f;
     public float bodyRotateSpeed = 45f;
