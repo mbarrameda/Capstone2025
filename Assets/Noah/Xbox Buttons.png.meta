@@ -105,7 +105,7 @@ TextureImporter:
         width: 77
         height: 80
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -126,7 +126,7 @@ TextureImporter:
         width: 77
         height: 80
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -147,7 +147,7 @@ TextureImporter:
         width: 77
         height: 80
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -168,7 +168,7 @@ TextureImporter:
         width: 77
         height: 80
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -189,7 +189,7 @@ TextureImporter:
         width: 98
         height: 96
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -210,7 +210,7 @@ TextureImporter:
         width: 98
         height: 82
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -231,7 +231,7 @@ TextureImporter:
         width: 98
         height: 82
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -252,7 +252,7 @@ TextureImporter:
         width: 98
         height: 82
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       outline: []
       physicsShape: []
@@ -260,6 +260,69 @@ TextureImporter:
       bones: []
       spriteID: 3a9f519c34acec84e95684f938d4fd68
       internalID: 2080524961
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Xbox Buttons_8
+      rect:
+        serializedVersion: 2
+        x: 780
+        y: 251
+        width: 104
+        height: 72
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 1c07cf911c5b5f04ea33db191d3f3dcc
+      internalID: 2048209883
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Xbox Buttons_9
+      rect:
+        serializedVersion: 2
+        x: 664
+        y: 421
+        width: 104
+        height: 77
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 2db9d38ecde40f34d8edea89a760234c
+      internalID: -709474771
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Xbox Buttons_10
+      rect:
+        serializedVersion: 2
+        x: 777
+        y: 422
+        width: 105
+        height: 78
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0c6fa4eb0de35ab4abba309c481310f4
+      internalID: 1923486694
       vertices: []
       indices: 
       edges: []
@@ -277,12 +340,15 @@ TextureImporter:
     nameFileIdTable:
       Xbox Buttons_0: 1072542033
       Xbox Buttons_1: -1129352892
+      Xbox Buttons_10: 1923486694
       Xbox Buttons_2: 403415014
       Xbox Buttons_3: -1694168770
       Xbox Buttons_4: 993283568
       Xbox Buttons_5: 1997986832
       Xbox Buttons_6: -395092283
       Xbox Buttons_7: 2080524961
+      Xbox Buttons_8: 2048209883
+      Xbox Buttons_9: -709474771
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
