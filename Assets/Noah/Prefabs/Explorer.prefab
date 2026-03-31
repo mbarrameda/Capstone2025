@@ -166,9 +166,9 @@ MonoBehaviour:
   maxSanity: 100
   currentSanity: 100
   sanityIncreaseRate: 2.5
-  sanityDecreaseRate: 2.5
+  sanityDecreaseRate: 0.5
   sanityUpdateInterval: 0.5
-  sanityEffectDistance: 15
+  sanityEffectDistance: 20
   sanitySlider: {fileID: 0}
   sanityFill: {fileID: 0}
   lowSanityColor: {r: 0.2528302, g: 0.03386971, b: 0.03386971, a: 1}
