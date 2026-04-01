@@ -50,7 +50,7 @@ public class LightPuzzleManager : MonoBehaviour
 
             if (remaining > 0)
             {
-                ShowMessage($"Shape activated! {remaining} more to find.");
+                ShowMessage($"Good! Now i need to purify {remaining} more.");
             }
             else
             {
