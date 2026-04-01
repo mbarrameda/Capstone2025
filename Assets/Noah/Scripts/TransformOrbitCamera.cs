@@ -65,7 +65,7 @@ public class TransformOrbitCamera : MonoBehaviour
         Vector2 look = ghost.playerInputs.Ghost.Look.ReadValue<Vector2>();
 
         currentYaw += look.x * orbitSensitivity;
-        currentPitch -= look.y * orbitSensitivity;
+        currentPitch += look.y * orbitSensitivity;
         currentPitch = Mathf.Clamp(currentPitch, minVerticalAngle, maxVerticalAngle);
     }
 

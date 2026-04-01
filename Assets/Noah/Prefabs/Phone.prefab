@@ -108,6 +108,7 @@ MonoBehaviour:
   stunDistance: 15
   explorer: {fileID: 1247150047388275774, guid: dd08a6db167c3934caf5c2f08442fa96, type: 3}
   currentBattery: 0
+  timeToStun: 0.5
 --- !u!65 &8373875832592899657
 BoxCollider:
   m_ObjectHideFlags: 0

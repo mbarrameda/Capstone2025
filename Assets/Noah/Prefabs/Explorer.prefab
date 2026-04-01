@@ -165,7 +165,7 @@ MonoBehaviour:
   minStaminaToSprint: 10
   maxSanity: 100
   currentSanity: 100
-  sanityIncreaseRate: 2.5
+  sanityIncreaseRate: 2
   sanityDecreaseRate: 0.5
   sanityUpdateInterval: 0.5
   sanityEffectDistance: 20

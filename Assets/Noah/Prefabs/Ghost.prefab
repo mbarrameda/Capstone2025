@@ -674,6 +674,7 @@ MonoBehaviour:
   ghostCamera: {fileID: 6027540668835561494}
   ghostRenderer: {fileID: 8466732496915190834}
   rb: {fileID: 4235255242431818843}
+  ghostLight: {fileID: 5050400847428831749}
   invertYLook: 0
   cameraPivot: {fileID: 0}
   preserveCameraSetup: 0
