@@ -70,6 +70,7 @@ public class GhostController : MonoBehaviour
     public Camera ghostCamera;
     public Renderer ghostRenderer;
     public Rigidbody rb;
+    public Light ghostLight;
 
     [Header("Camera Settings")]
     public bool invertYLook = false;
@@ -164,6 +165,23 @@ public class GhostController : MonoBehaviour
     // -------------------------------
     // Update & Physics
     // -------------------------------
+    private void UpdateGhostLightColor()
+    {
+        if (ghostLight == null) return;
+
+        if (isControllingClone)
+        {
+            //White light when transformed
+            ghostLight.color = Color.white;
+            Debug.Log("Ghost light changed to WHITE (transformed)");
+        }
+        else
+        {
+            //Red light when in ghost form
+            ghostLight.color = Color.red;
+            Debug.Log("Ghost light changed to RED (ghost form)");
+        }
+    }
     private void Start()
     {
         SetupGhostSanityUI();
@@ -172,6 +190,8 @@ public class GhostController : MonoBehaviour
     }
     private void Update()
     {
+        // Handle Ghost Light Swap
+        UpdateGhostLightColor();
         // Handle fear drain
         HandleFearDrain();
 
@@ -673,6 +693,11 @@ public class GhostController : MonoBehaviour
     {
         // Safety check
         if (this == null) return;
+        if (isStunned)
+        {
+            Debug.Log("Can't open menu while stunned!");
+            return;
+        }
 
         // 🔥 NEW: If transformed, Y button releases transformation
         if (isControllingClone || (GameManager.Instance != null && GameManager.Instance.HasActiveClone(this)))
@@ -1047,6 +1072,20 @@ public class GhostController : MonoBehaviour
         isStunned = true;
         stunTimer = duration;
         FreezeInput(true);
+        if (isControllingClone)
+        {
+            Debug.Log("Stun interrupted transformation - returning to ghost form");
+
+            // Release the transformation immediately
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.ReleaseClone(this);
+            }
+        }
+        if (menuOpen && possessionMenu != null)
+        {
+            ClosePossessionMenu();
+        }
     }
 
     public void RegisterPossessedObject(PossessableObject obj)

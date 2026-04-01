@@ -345,9 +345,8 @@ public class PlayerInputHandler : MonoBehaviour
     private bool IsGhostFrozenOrInactive(GhostController ghost)
     {
         if (ghost == null) return true;
-        if (ghost.isStunned) return true;
         if (!ghost.gameObject.activeInHierarchy || !ghost.enabled) return true;
-        if (ghost.freezeInput && !ghost.menuOpen) return true;
+        if (ghost.freezeInput && !ghost.menuOpen && !ghost.isStunned) return true;
         return false;
     }
 

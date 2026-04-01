@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Phone : MonoBehaviour
 {
@@ -17,14 +18,14 @@ public class Phone : MonoBehaviour
     public PlayerInputHandler explorer;
 
     [Header("Battery UI - MANUALLY ASSIGN IN INSPECTOR")]
-    
-
     public float currentBattery; 
     private bool flashlightOn = false;
     private bool isOut = false;
-   
 
-   
+    [Header("Stun Charge Settings")]
+    public float timeToStun = 3f; // how long the light must be held on the ghost
+    private Dictionary<GhostController, float> stunChargeTimers = new Dictionary<GhostController, float>();
+
     private void Awake()
     {
         if (flashlight != null) flashlight.enabled = false;
@@ -82,6 +83,9 @@ public class Phone : MonoBehaviour
             flashlightOn = false;
             if (flashlight != null)
                 flashlight.enabled = false;
+
+            // Reset all charge timers — putting the phone away breaks the stun charge
+            stunChargeTimers.Clear();
         }
     }
 
@@ -128,34 +132,55 @@ public class Phone : MonoBehaviour
         Vector3 forward = explorer.cameraTransform.forward;
 
         GhostController[] ghosts = FindObjectsOfType<GhostController>();
+
+        // Track which ghosts are currently in the cone this frame
         bool stunnedAnyGhost = false;
+        System.Collections.Generic.HashSet<GhostController> ghostsInCone
+            = new System.Collections.Generic.HashSet<GhostController>();
 
         foreach (GhostController ghost in ghosts)
         {
+            if (ghost.isStunned) continue; // already stunned, skip
+
             Vector3 dirToGhost = ghost.transform.position - origin;
             float distance = dirToGhost.magnitude;
 
             if (distance > stunDistance) continue;
 
             float angle = Vector3.Angle(forward, dirToGhost);
-            if (angle <= stunAngle / 2f)
+            if (angle > stunAngle / 2f) continue;
+
+            if (!Physics.Raycast(origin, dirToGhost.normalized, out RaycastHit hit, stunDistance)) continue;
+            if (hit.collider.gameObject != ghost.gameObject) continue;
+
+            // Ghost is in the cone and has line of sight — charge the timer
+            ghostsInCone.Add(ghost);
+
+            if (!stunChargeTimers.ContainsKey(ghost))
+                stunChargeTimers[ghost] = 0f;
+
+            stunChargeTimers[ghost] += Time.deltaTime;
+
+            if (stunChargeTimers[ghost] >= timeToStun)
             {
-                if (Physics.Raycast(origin, dirToGhost.normalized, out RaycastHit hit, stunDistance))
-                {
-                    if (hit.collider.gameObject == ghost.gameObject)
-                    {
-                        ghost.Stun(stunDuration);
-                        stunnedAnyGhost = true;
-                    }
-                }
+                ghost.Stun(stunDuration);
+                stunChargeTimers.Remove(ghost);
+                stunnedAnyGhost = true;
             }
         }
 
-        // Show stun text if we stunned any ghost
-        if (stunnedAnyGhost && StunTextDisplay.Instance != null)
+        // Reset timers for any ghost that left the cone this frame
+        var ghostsToReset = new System.Collections.Generic.List<GhostController>();
+        foreach (var kvp in stunChargeTimers)
         {
-            StunTextDisplay.Instance.ShowStunText(0f);
+            if (!ghostsInCone.Contains(kvp.Key))
+                ghostsToReset.Add(kvp.Key);
         }
+        foreach (var ghost in ghostsToReset)
+            stunChargeTimers.Remove(ghost);
+
+        if (stunnedAnyGhost && StunTextDisplay.Instance != null)
+            StunTextDisplay.Instance.ShowStunText(0f);
     }
 
     public bool IsPhoneOut()
