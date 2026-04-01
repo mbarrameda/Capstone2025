@@ -10,6 +10,10 @@ public class BookGroupManager : MonoBehaviour
     public GameObject door;
     public float doorOpenSpeed = 2f;
 
+    [Header("Visual Settings")]
+    [Tooltip("The material that will be applied to the correct book.")]
+    public Material correctBookMaterial;
+
     [Header("UI Feedback")]
     public TextMeshProUGUI hintText;
     public float hintDuration = 2f;
@@ -35,8 +39,20 @@ public class BookGroupManager : MonoBehaviour
             bool isWinner = (i == randomIndex);
             books[i].SetAsCorrect(isWinner);
 
-            // This will tell us in the Console which book is the right one!
-            if (isWinner) Debug.Log($"<color=green>PUZZLE START:</color> The winner is {books[i].gameObject.name}");
+            if (isWinner)
+            {
+                // Apply the new material if it is assigned
+                if (correctBookMaterial != null)
+                {
+                    Renderer bookRenderer = books[i].GetComponent<Renderer>();
+                    if (bookRenderer != null)
+                    {
+                        bookRenderer.material = correctBookMaterial;
+                    }
+                }
+
+                Debug.Log($"<color=green>PUZZLE START:</color> The winner is {books[i].gameObject.name}");
+            }
         }
 
         if (hintText != null) hintText.enabled = false;
