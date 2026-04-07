@@ -6,7 +6,8 @@ using TMPro;
 public class MultiControllerReady : MonoBehaviour
 {
     [Header("UI for each controller")]
-    public TextMeshProUGUI[] readyTexts;   // One text per controller
+    [Tooltip("The number of elements here determines the max player count.")]
+    public TextMeshProUGUI[] readyTexts;
 
     [Header("Scene to load when all ready")]
     public string nextSceneName = "NextScene";
@@ -15,39 +16,50 @@ public class MultiControllerReady : MonoBehaviour
 
     private void Start()
     {
-        int controllerCount = Gamepad.all.Count;
+        // FIX: Initialize the array based on UI slots, not just physical gamepads.
+        // This ensures Player 2's slot exists even if the controller isn't detected yet.
+        isReady = new bool[readyTexts.Length];
 
-        // Prepare ready-tracking array
-        isReady = new bool[controllerCount];
+        // Hide all texts at start and verify assignments
+        for (int i = 0; i < readyTexts.Length; i++)
+        {
+            if (readyTexts[i] != null)
+            {
+                readyTexts[i].gameObject.SetActive(false);
+            }
+            else
+            {
+                Debug.LogWarning($"Ready Text at element {i} is not assigned in the Inspector!");
+            }
+        }
 
-        // Hide all texts at start
-        foreach (var t in readyTexts)
-            t.gameObject.SetActive(false);
-
-        Debug.Log("Controllers Connected: " + controllerCount);
+        Debug.Log($"System initialized for up to {readyTexts.Length} players.");
     }
 
     private void Update()
     {
-        // Keyboard fallback
-        if (Keyboard.current != null && Keyboard.current.aKey.wasPressedThisFrame)
+        // Keyboard fallback (Assigns to Player 1)
+        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
         {
-            ManuallySetReady(0); // Assign keyboard as controller 0
+            SetControllerReady(0);
         }
 
-        // Check all gamepads
+        // Check all connected gamepads
         for (int i = 0; i < Gamepad.all.Count; i++)
         {
+            // Safety: Don't try to set player 3 as ready if you only have 2 UI slots
+            if (i >= isReady.Length) break;
+
             Gamepad pad = Gamepad.all[i];
 
-            // A button (Xbox) or Cross button (PS)
+            // Check if South button (A/Cross) was pressed
             if (pad != null && pad.buttonSouth.wasPressedThisFrame)
             {
                 SetControllerReady(i);
             }
         }
 
-        // Load scene when all ready
+        // Load scene when all players are ready
         if (CheckAllReady())
         {
             SceneManager.LoadScene(nextSceneName);
@@ -56,29 +68,34 @@ public class MultiControllerReady : MonoBehaviour
 
     private void SetControllerReady(int index)
     {
-        if (isReady[index]) return; // Already ready
+        // Basic boundary and "already ready" checks
+        if (index < 0 || index >= isReady.Length || isReady[index]) return;
 
         isReady[index] = true;
-        readyTexts[index].gameObject.SetActive(true);
-        readyTexts[index].text = $"Controller {index + 1}: READY!";
-        Debug.Log($"Controller {index + 1} ready");
-    }
 
-    // Keyboard override
-    private void ManuallySetReady(int index)
-    {
-        if (index < readyTexts.Length)
+        if (readyTexts[index] != null)
         {
-            SetControllerReady(index);
+            readyTexts[index].gameObject.SetActive(true);
+            readyTexts[index].text = $"Player {index + 1}: READY!";
         }
+
+        Debug.Log($"Player {index + 1} is now ready.");
     }
 
     private bool CheckAllReady()
     {
-        foreach (var r in isReady)
+        // If no players are ready yet, don't proceed
+        bool anyReady = false;
+
+        // Ensure every slot that IS active/connected is ready
+        // Note: This logic requires ALL UI slots to be filled. 
+        // If you only want CONNECTED players to be ready, see the note below.
+        for (int i = 0; i < isReady.Length; i++)
         {
-            if (!r) return false;
+            if (!isReady[i]) return false;
+            anyReady = true;
         }
-        return true;
+
+        return anyReady;
     }
 }
