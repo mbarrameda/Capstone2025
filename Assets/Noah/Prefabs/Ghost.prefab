@@ -674,7 +674,6 @@ MonoBehaviour:
   ghostCamera: {fileID: 6027540668835561494}
   ghostRenderer: {fileID: 8466732496915190834}
   rb: {fileID: 4235255242431818843}
-  ghostLight: {fileID: 5050400847428831749}
   invertYLook: 0
   cameraPivot: {fileID: 0}
   preserveCameraSetup: 0
@@ -909,7 +908,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: -6478536213147159724, guid: ac1c7a25f19cfce43988b7b22cae8c41, type: 3}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
